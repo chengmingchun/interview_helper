@@ -1,0 +1,995 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RAG 完全掌握：工具选型、流程、技术点与增强型 RAG</title>
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --paper: #ffffff;
+      --ink: #142033;
+      --muted: #637089;
+      --line: #dce2ee;
+      --blue: #2563eb;
+      --blue-soft: #e8f0ff;
+      --green: #0f766e;
+      --green-soft: #e5f7f4;
+      --amber: #b45309;
+      --amber-soft: #fff4df;
+      --red: #b91c1c;
+      --red-soft: #feecec;
+      --dark: #111827;
+      --code: #f8fafc;
+      --shadow: 0 18px 44px rgba(20, 32, 51, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(37, 99, 235, 0.12), transparent 32%),
+        linear-gradient(180deg, #fff 0%, var(--bg) 46%, #fff 100%);
+      line-height: 1.65;
+    }
+
+    a { color: var(--blue); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+      width: min(1380px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 52px;
+    }
+
+    aside {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow);
+    }
+
+    aside strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    aside a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    aside a:hover { color: var(--blue); background: var(--blue-soft); }
+
+    main { min-width: 0; }
+
+    .hero {
+      min-height: 430px;
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(17, 24, 39, 0.92), rgba(30, 64, 175, 0.86)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500' viewBox='0 0 900 500'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.16'%3E%3Cpath d='M85 120h160v80H85zM380 80h180v80H380zM640 220h170v80H640zM245 320h220v80H245z'/%3E%3Cpath d='M245 160h135M560 120c80 0 80 140 80 140M465 360c120 0 120-100 175-100M165 200c0 130 80 160 80 160'/%3E%3Ccircle cx='85' cy='120' r='5' fill='%23fff'/%3E%3Ccircle cx='245' cy='160' r='5' fill='%23fff'/%3E%3Ccircle cx='380' cy='120' r='5' fill='%23fff'/%3E%3Ccircle cx='560' cy='120' r='5' fill='%23fff'/%3E%3Ccircle cx='640' cy='260' r='5' fill='%23fff'/%3E%3Ccircle cx='810' cy='260' r='5' fill='%23fff'/%3E%3Ccircle cx='245' cy='360' r='5' fill='%23fff'/%3E%3Ccircle cx='465' cy='360' r='5' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      box-shadow: var(--shadow);
+    }
+
+    .hero .crumb {
+      display: inline-flex;
+      margin-bottom: 22px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: #bfdbfe;
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h1 {
+      max-width: 880px;
+      margin: 0 0 18px;
+      font-size: clamp(38px, 7vw, 72px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 850px;
+      margin: 0;
+      color: #dbeafe;
+      font-size: 18px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .metric {
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .metric b { display: block; font-size: 22px; }
+    .metric span { color: #bfdbfe; font-size: 13px; }
+
+    section {
+      margin-top: 18px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 20px;
+    }
+
+    p { margin: 0 0 12px; }
+    ul, ol { margin: 0 0 14px; padding-left: 22px; }
+    li + li { margin-top: 5px; }
+
+    .lead {
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .box {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+    }
+
+    .box h3:first-child { margin-top: 0; }
+
+    .tag {
+      display: inline-flex;
+      margin: 3px 5px 3px 0;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: #1d4ed8;
+      background: var(--blue-soft);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .ok { color: var(--green); background: var(--green-soft); }
+    .warn { color: var(--amber); background: var(--amber-soft); }
+    .risk { color: var(--red); background: var(--red-soft); }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .step {
+      min-height: 132px;
+      padding: 14px;
+      border: 1px solid #c9d6f1;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #fff, #f7faff);
+    }
+
+    .step b {
+      display: block;
+      color: var(--blue);
+      font-size: 15px;
+    }
+
+    .step span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      color: #24324a;
+      background: #f2f5fb;
+      font-size: 13px;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      color: #0f172a;
+      background: #eef2f7;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 16px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    pre code { padding: 0; color: inherit; background: transparent; }
+
+    details {
+      margin: 10px 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 800;
+    }
+
+    details > div {
+      padding: 0 14px 14px;
+      color: var(--muted);
+    }
+
+    .flashcards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .flashcard {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .flashcard b { display: block; margin-bottom: 6px; color: var(--blue); }
+
+    .quiz button {
+      display: inline-flex;
+      margin: 4px 6px 4px 0;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: #fff;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .quiz button.correct { border-color: #99d8c9; background: var(--green-soft); color: var(--green); }
+    .quiz button.wrong { border-color: #f3b4b4; background: var(--red-soft); color: var(--red); }
+
+    .note {
+      padding: 14px 16px;
+      border-left: 4px solid var(--blue);
+      border-radius: 8px;
+      color: #34445f;
+      background: var(--blue-soft);
+    }
+
+    .toplink {
+      display: inline-flex;
+      margin-top: 10px;
+      font-size: 13px;
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; max-height: none; }
+      aside nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pipeline { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .hero-grid, .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .layout { width: min(100% - 20px, 1380px); padding-top: 10px; }
+      .hero, section { padding: 18px; }
+      aside nav, .grid-2, .grid-3, .flashcards, .hero-grid, .pipeline { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="top">
+    <aside>
+      <strong>RAG 学习路线</strong>
+      <nav>
+        <a href="#map">1. 一句话与地图</a>
+        <a href="#selection">2. 市面工具选型</a>
+        <a href="#pipeline">3. 标准 RAG 步骤</a>
+        <a href="#indexing">4. 数据与索引</a>
+        <a href="#retrieval">5. 检索与重排</a>
+        <a href="#generation">6. 生成与防幻觉</a>
+        <a href="#evaluation">7. 评估与观测</a>
+        <a href="#advanced">8. 增强型 RAG</a>
+        <a href="#production">9. 生产架构</a>
+        <a href="#interview">10. 面试回答</a>
+        <a href="#quiz">11. 自测题</a>
+        <a href="#sources">12. 资料来源</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <span class="crumb">Today: Retrieval-Augmented Generation</span>
+        <h1>RAG 完全掌握：从工具选型到前沿增强</h1>
+        <p>把 RAG 当成一个“可验证的信息供应链”：先把知识整理成可检索资产，再按问题召回证据，最后让大模型只基于证据回答。今天学完，你要能画架构、讲流程、选工具、调效果、做评估，并回答面试官的连续追问。</p>
+        <div class="hero-grid">
+          <div class="metric"><b>6 步</b><span>从采集到回答</span></div>
+          <div class="metric"><b>4 层</b><span>框架、向量库、重排、评估</span></div>
+          <div class="metric"><b>10 类</b><span>增强 RAG 范式</span></div>
+          <div class="metric"><b>1 页</b><span>学完即可复盘</span></div>
+        </div>
+      </header>
+
+      <section id="map">
+        <h2>1. 一句话与全局地图</h2>
+        <p class="lead">RAG 不是“把文档塞进向量库”。RAG 是用检索系统给大模型提供外部证据，让答案更准确、更新、更可追溯。</p>
+        <div class="grid-3">
+          <div class="box">
+            <h3>RAG 解决什么</h3>
+            <ul>
+              <li>模型训练知识过期：用外部知识库补实时信息。</li>
+              <li>企业私有知识：不用把全部内部文档训练进模型。</li>
+              <li>幻觉问题：要求答案引用检索证据。</li>
+              <li>成本问题：比微调更轻，更新文档即可更新知识。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>RAG 不解决什么</h3>
+            <ul>
+              <li>知识库本身是错的，RAG 也会错。</li>
+              <li>问题需要复杂业务计算，单靠检索不够。</li>
+              <li>权限、审计、数据治理缺失时，RAG 可能泄露信息。</li>
+              <li>召回不到关键证据时，模型仍可能编。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>面试总括</h3>
+            <p>我会把 RAG 分成离线索引和在线问答两条链路。离线链路负责文档解析、清洗、切块、Embedding、入库；在线链路负责查询改写、混合检索、重排、上下文压缩、提示词约束、答案生成和评估观测。</p>
+          </div>
+        </div>
+        <div class="pipeline">
+          <div class="step"><b>采集</b><span>PDF、网页、数据库、工单、代码、Confluence、飞书、Notion。</span></div>
+          <div class="step"><b>解析</b><span>OCR、表格、版面、标题层级、元数据、权限标签。</span></div>
+          <div class="step"><b>切块</b><span>按语义、标题、窗口、父子块或递归规则切分。</span></div>
+          <div class="step"><b>索引</b><span>Embedding、稀疏索引、向量库、知识图谱、全文索引。</span></div>
+          <div class="step"><b>检索</b><span>TopK、混合检索、过滤、重排、上下文压缩。</span></div>
+          <div class="step"><b>生成</b><span>带引用回答、拒答、评估、反馈闭环。</span></div>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="selection">
+        <h2>2. 市面 RAG 工具选型</h2>
+        <p class="lead">2026 年主流做法已经不是“选一个万能框架”，而是组合四层：编排框架 + 检索存储 + 重排/Embedding + 评估观测。</p>
+
+        <h3>2.1 框架层：谁负责把流程串起来</h3>
+        <table>
+          <thead>
+            <tr><th>工具</th><th>适合场景</th><th>强项</th><th>注意点</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>LlamaIndex</b></td>
+              <td>文档型知识库、企业资料问答、复杂索引</td>
+              <td>数据连接器、索引抽象、检索器组合、文档管道友好</td>
+              <td>Agent 编排生态通常不如 LangChain/LangGraph 灵活</td>
+            </tr>
+            <tr>
+              <td><b>LangChain</b></td>
+              <td>原型、工具调用、LLM 应用编排</td>
+              <td>生态大、集成多、上手快</td>
+              <td>生产系统要控制抽象层复杂度，关键链路建议显式化</td>
+            </tr>
+            <tr>
+              <td><b>LangGraph</b></td>
+              <td>Agentic RAG、多步状态机、可恢复工作流</td>
+              <td>图式状态流、循环检索、人工介入、持久化</td>
+              <td>复杂度高于朴素 RAG，适合真正需要规划的任务</td>
+            </tr>
+            <tr>
+              <td><b>Haystack</b></td>
+              <td>偏工程化、合规、管道清晰的 RAG</td>
+              <td>Pipeline 结构明确，组件边界清楚</td>
+              <td>社区热度和集成数量通常小于 LangChain</td>
+            </tr>
+            <tr>
+              <td><b>DSPy</b></td>
+              <td>想自动优化 prompt、检索参数和推理程序</td>
+              <td>声明式程序 + 优化器，适合追求指标提升</td>
+              <td>学习曲线更高，评测集质量很关键</td>
+            </tr>
+            <tr>
+              <td><b>RAGFlow / Dify / AnythingLLM / Onyx</b></td>
+              <td>低代码知识库、快速交付、企业内部助手</td>
+              <td>开箱即用、连接器、管理界面</td>
+              <td>深度定制能力取决于平台开放程度</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2.2 存储与检索层：知识放在哪里</h3>
+        <table>
+          <thead>
+            <tr><th>类型</th><th>代表工具</th><th>什么时候选</th><th>判断标准</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>向量数据库</td>
+              <td>Milvus / Zilliz, Qdrant, Weaviate, Pinecone, Chroma</td>
+              <td>语义检索、海量 chunk、需要 ANN 索引</td>
+              <td>数据规模、过滤性能、多租户、部署方式、运维成本</td>
+            </tr>
+            <tr>
+              <td>搜索引擎</td>
+              <td>Elasticsearch, OpenSearch, Azure AI Search</td>
+              <td>关键词强、权限过滤强、已有搜索基础设施</td>
+              <td>BM25、混合检索、字段过滤、企业集成</td>
+            </tr>
+            <tr>
+              <td>关系数据库向量扩展</td>
+              <td>Postgres + pgvector, Redis Vector, MongoDB Atlas Vector Search</td>
+              <td>中小规模、希望少引入组件</td>
+              <td>吞吐、索引类型、事务一致性、现有技术栈</td>
+            </tr>
+            <tr>
+              <td>知识图谱</td>
+              <td>Neo4j, FalkorDB, NebulaGraph, GraphRAG</td>
+              <td>实体关系密集、跨文档推理、归因链路重要</td>
+              <td>实体抽取质量、图谱更新、查询复杂度</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2.3 Embedding、重排与评估</h3>
+        <div class="grid-3">
+          <div class="box">
+            <h3>Embedding</h3>
+            <p>选择看语言、领域、维度、价格、延迟和是否可私有化。中文场景要重点测中文召回，不要只看英文榜单。</p>
+            <span class="tag">OpenAI</span><span class="tag">BGE</span><span class="tag">Jina</span><span class="tag">Cohere</span><span class="tag">Voyage</span>
+          </div>
+          <div class="box">
+            <h3>Reranker</h3>
+            <p>重排通常是 RAG 性价比最高的增强之一：先粗召回 30-100 条，再用交叉编码器或 LLM judge 排出最相关证据。</p>
+            <span class="tag ok">Cohere Rerank</span><span class="tag ok">BGE Reranker</span><span class="tag ok">Jina Reranker</span>
+          </div>
+          <div class="box">
+            <h3>评估观测</h3>
+            <p>RAGAS、DeepEval、TruLens、Phoenix、LangSmith、W&B、MLflow、Braintrust 都常见。关键是建立自己的黄金问答集。</p>
+            <span class="tag warn">Faithfulness</span><span class="tag warn">Recall</span><span class="tag warn">Latency</span>
+          </div>
+        </div>
+
+        <div class="note">
+          <b>选型口诀：</b>文档重就 LlamaIndex，流程/Agent 重就 LangChain + LangGraph，企业搜索底座强就 Elasticsearch/Azure AI Search，低代码交付看 Dify/RAGFlow/Onyx，指标优化看 DSPy + 评估闭环。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="pipeline">
+        <h2>3. 标准 RAG 的各种步骤</h2>
+        <p class="lead">可以把 RAG 拆成离线索引链路和在线查询链路。面试时先讲这两条链路，再补每一步的坑。</p>
+
+        <h3>3.1 离线索引链路</h3>
+        <ol>
+          <li><b>数据接入：</b>从文件、网页、数据库、对象存储、工单系统接入，记录来源、更新时间、作者、权限。</li>
+          <li><b>文档解析：</b>处理 PDF 版面、图片 OCR、表格、代码块、标题层级，尽量保留结构。</li>
+          <li><b>清洗去重：</b>去页眉页脚、目录噪声、重复段落、空白块、乱码，并处理敏感信息。</li>
+          <li><b>切块：</b>按语义、标题、段落、token 长度、滑动窗口、父子块策略切分。</li>
+          <li><b>Embedding：</b>把 chunk 转成向量，同时保留原文、元数据、权限标签。</li>
+          <li><b>索引入库：</b>写入向量库、全文索引、图谱或多种索引，并维护版本。</li>
+        </ol>
+
+        <h3>3.2 在线查询链路</h3>
+        <ol>
+          <li><b>问题理解：</b>识别意图、实体、时间范围、用户权限、是否需要检索。</li>
+          <li><b>查询改写：</b>把口语问题改成更适合检索的查询，可拆成多个子问题。</li>
+          <li><b>召回：</b>向量检索、关键词检索、混合检索、元数据过滤、图检索。</li>
+          <li><b>重排：</b>用 reranker 或 LLM 对候选 chunk 重新排序，剔除弱相关内容。</li>
+          <li><b>上下文构造：</b>去重、合并父子块、按 token 预算压缩，带引用编号。</li>
+          <li><b>生成回答：</b>提示词要求“只基于证据回答，不足则说明不知道”。</li>
+          <li><b>后处理：</b>格式化、引用、敏感信息过滤、事实核查、缓存。</li>
+          <li><b>观测反馈：</b>记录 query、召回文档、答案、用户反馈、延迟、成本。</li>
+        </ol>
+
+        <pre><code>用户问题
+  -> Query Rewrite / Decompose
+  -> Hybrid Retrieve: Dense + BM25 + Metadata Filter
+  -> Rerank TopN
+  -> Context Compression + Citation
+  -> LLM Answer
+  -> Faithfulness / Recall / Latency Evaluation</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="indexing">
+        <h2>4. 数据、切块与索引技术点</h2>
+        <div class="grid-2">
+          <div class="box">
+            <h3>Chunking 怎么选</h3>
+            <ul>
+              <li><b>固定长度：</b>简单稳定，适合纯文本，但可能切断语义。</li>
+              <li><b>递归切分：</b>按标题、段落、句子逐级切，通用性好。</li>
+              <li><b>语义切分：</b>按语义相似度断点切，质量高但成本更高。</li>
+              <li><b>滑动窗口：</b>加 overlap 防止上下文断裂，但会增加冗余。</li>
+              <li><b>父子块：</b>小块负责召回，大块负责生成上下文。</li>
+              <li><b>Late Chunking：</b>先用长上下文模型编码，再切块保留跨段语义。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>Chunk 大小经验</h3>
+            <ul>
+              <li>FAQ：100-300 tokens，问题和答案尽量完整。</li>
+              <li>技术文档：300-800 tokens，按标题层级保留结构。</li>
+              <li>法律/合同：500-1200 tokens，保留条款编号和上下文。</li>
+              <li>代码：按函数、类、文件结构切，不要按固定字符粗切。</li>
+              <li>表格：转成 Markdown 或结构化 JSON，并保留列名。</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Embedding 与索引要点</h3>
+        <table>
+          <thead>
+            <tr><th>问题</th><th>做法</th><th>为什么</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>同义词召回差</td><td>选更好的 embedding，增加 query rewrite，混合检索</td><td>语义向量不一定覆盖业务词表</td></tr>
+            <tr><td>长文档丢关键上下文</td><td>父子块、标题路径、摘要索引、多粒度索引</td><td>小块易召回，大块利于回答</td></tr>
+            <tr><td>多租户权限</td><td>元数据过滤、ACL 标签、检索前权限裁剪</td><td>不能靠 prompt 防泄露</td></tr>
+            <tr><td>知识更新</td><td>增量索引、版本号、删除 tombstone、定时重建</td><td>避免旧知识和新知识同时命中</td></tr>
+            <tr><td>重复内容</td><td>hash 去重、相似度去重、canonical source</td><td>重复块会挤占上下文窗口</td></tr>
+          </tbody>
+        </table>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="retrieval">
+        <h2>5. 检索、重排与上下文压缩</h2>
+        <p class="lead">RAG 的上限往往由检索质量决定。模型再强，如果证据错了，答案也会跟着错。</p>
+        <div class="grid-3">
+          <div class="box">
+            <h3>Dense Retrieval</h3>
+            <p>把问题和 chunk 都转成向量，按向量相似度召回。适合同义表达、自然语言问题，但对数字、专有名词、精确匹配可能不稳。</p>
+            <span class="tag">Embedding</span><span class="tag">ANN</span>
+          </div>
+          <div class="box">
+            <h3>Sparse Retrieval</h3>
+            <p>BM25/关键词检索，适合术语、编号、错误码、产品名、法律条款等精确匹配。</p>
+            <span class="tag">BM25</span><span class="tag">全文索引</span>
+          </div>
+          <div class="box">
+            <h3>Hybrid Retrieval</h3>
+            <p>把 dense 与 sparse 融合，常用 RRF 或加权分数。生产 RAG 通常优先考虑混合检索。</p>
+            <span class="tag ok">RRF</span><span class="tag ok">TopK Fusion</span>
+          </div>
+        </div>
+
+        <h3>重排为什么重要</h3>
+        <p>向量库负责“粗召回”，reranker 负责“精排序”。常见做法是召回 Top 50，再重排取 Top 5-10 放进上下文。它能显著减少“召回了很多但真正证据排在后面”的问题。</p>
+        <pre><code>retrieve_top_k = 60
+rerank_top_k = 8
+context_budget = 6000 tokens
+
+候选文档 = dense_top_30 + bm25_top_30
+去重后 -> reranker(query, chunk)
+按相关性、权限、时效、来源可信度排序
+压缩为可引用上下文</code></pre>
+
+        <h3>上下文压缩</h3>
+        <ul>
+          <li><b>Extractive compression：</b>只抽取与问题相关的句子，引用更稳。</li>
+          <li><b>Abstractive compression：</b>让模型摘要候选证据，省 token 但有摘要失真风险。</li>
+          <li><b>MMR 去冗余：</b>既考虑相关性，也避免多个 chunk 内容重复。</li>
+          <li><b>Contextual RAG：</b>给每个 chunk 增加标题路径、来源说明、术语解释，减少孤立片段误读。</li>
+        </ul>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="generation">
+        <h2>6. 生成、引用与防幻觉</h2>
+        <div class="grid-2">
+          <div class="box">
+            <h3>好的 RAG Prompt</h3>
+            <pre><code>你是企业知识库助手。
+请只依据给定资料回答。
+如果资料不足，请说“当前资料不足以确认”，并列出还需要什么信息。
+回答必须包含引用编号，如 [1] [2]。
+不要使用资料外的猜测补全事实。</code></pre>
+          </div>
+          <div class="box">
+            <h3>答案后处理</h3>
+            <ul>
+              <li>检查每个关键结论是否有引用支撑。</li>
+              <li>引用来源要能回跳到原文、页码或文档段落。</li>
+              <li>敏感字段脱敏，按用户权限过滤。</li>
+              <li>对于高风险问题触发拒答或人工审核。</li>
+              <li>对结构化问题输出 JSON schema，便于前端消费。</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>常见幻觉来源</h3>
+        <table>
+          <thead><tr><th>来源</th><th>表现</th><th>处理</th></tr></thead>
+          <tbody>
+            <tr><td>召回错</td><td>回答看似有引用，但引用不支持结论</td><td>提升召回、重排、faithfulness 评估</td></tr>
+            <tr><td>上下文冲突</td><td>旧文档和新文档同时命中</td><td>版本控制、时间过滤、来源优先级</td></tr>
+            <tr><td>问题歧义</td><td>用户问“这个政策”，系统不知道是哪一个</td><td>追问澄清或 query disambiguation</td></tr>
+            <tr><td>Prompt 太松</td><td>模型把常识和资料混在一起</td><td>强制证据引用、拒答规则、答案校验</td></tr>
+          </tbody>
+        </table>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="evaluation">
+        <h2>7. RAG 评估与观测</h2>
+        <p class="lead">RAG 的评估要拆开看：检索有没有找对，生成有没有忠实，系统有没有稳定、快、省钱。</p>
+        <div class="grid-3">
+          <div class="box">
+            <h3>检索指标</h3>
+            <ul>
+              <li>Recall@K：正确证据是否在前 K 个。</li>
+              <li>MRR / NDCG：正确证据排得是否靠前。</li>
+              <li>Context Precision：放进上下文的内容是否相关。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>生成指标</h3>
+            <ul>
+              <li>Faithfulness：答案是否被上下文支持。</li>
+              <li>Answer Relevancy：是否回答了问题。</li>
+              <li>Groundedness：关键结论是否可追溯。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>工程指标</h3>
+            <ul>
+              <li>延迟：P50/P95/P99。</li>
+              <li>成本：embedding、rerank、generation token。</li>
+              <li>可用性：错误率、超时率、缓存命中率。</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>评估工具怎么用</h3>
+        <table>
+          <thead><tr><th>工具</th><th>定位</th><th>适合</th></tr></thead>
+          <tbody>
+            <tr><td>RAGAS</td><td>RAG 指标评估</td><td>快速评估 faithfulness、context precision/recall</td></tr>
+            <tr><td>DeepEval</td><td>Python 测试框架</td><td>把 LLM/RAG 质量做成 CI 测试</td></tr>
+            <tr><td>TruLens</td><td>可解释评估</td><td>分析输入、上下文、输出之间的质量链路</td></tr>
+            <tr><td>Arize Phoenix</td><td>开源观测与 tracing</td><td>查看请求链路、检索结果、评估分数</td></tr>
+            <tr><td>LangSmith</td><td>LangChain 生态 tracing/eval</td><td>调试链、Agent 和数据集回归</td></tr>
+            <tr><td>W&B / MLflow / Braintrust</td><td>实验管理与评估平台</td><td>团队协作、版本对比、线上回归</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <b>重点：</b>不要只看 LLM judge 分数。你还需要人工抽样、黄金问答集、困难负样本、权限测试、时间敏感问题测试和线上反馈闭环。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="advanced">
+        <h2>8. 前沿增强型 RAG</h2>
+        <p class="lead">增强型 RAG 的本质是补齐朴素 RAG 的短板：检索不准、问题复杂、上下文冲突、证据不足、需要多跳推理。</p>
+
+        <table>
+          <thead>
+            <tr><th>范式</th><th>核心思想</th><th>适合场景</th><th>代价</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Advanced RAG</b></td>
+              <td>查询改写、混合检索、重排、压缩、评估闭环</td>
+              <td>大多数生产知识库</td>
+              <td>中等复杂度</td>
+            </tr>
+            <tr>
+              <td><b>HyDE</b></td>
+              <td>先让模型生成“假设答案/文档”，再用它去检索</td>
+              <td>用户问题短、抽象、缺少关键词</td>
+              <td>多一次 LLM 调用，假设可能偏</td>
+            </tr>
+            <tr>
+              <td><b>Multi-Query RAG</b></td>
+              <td>把一个问题扩展成多个检索查询</td>
+              <td>同一问题有多种表达方式</td>
+              <td>召回成本上升，需要去重</td>
+            </tr>
+            <tr>
+              <td><b>Query Decomposition</b></td>
+              <td>把复杂问题拆成子问题分别检索</td>
+              <td>多跳问答、对比、归因</td>
+              <td>链路变长，错误会传播</td>
+            </tr>
+            <tr>
+              <td><b>Corrective RAG / CRAG</b></td>
+              <td>检索后判断证据质量，不足则重检索或走外部搜索</td>
+              <td>开放域、资料不完整、可靠性要求高</td>
+              <td>需要检索质量判别器</td>
+            </tr>
+            <tr>
+              <td><b>Self-RAG</b></td>
+              <td>模型自我判断是否需要检索、证据是否支持、是否要修正</td>
+              <td>希望动态决定检索和回答策略</td>
+              <td>训练/提示设计复杂，延迟更高</td>
+            </tr>
+            <tr>
+              <td><b>Agentic RAG</b></td>
+              <td>Agent 规划、调用多个检索工具、评估证据、循环补查</td>
+              <td>研究型任务、长链路业务助手</td>
+              <td>成本、延迟、可控性压力最大</td>
+            </tr>
+            <tr>
+              <td><b>GraphRAG</b></td>
+              <td>抽取实体关系形成图谱，按社区/关系路径检索与摘要</td>
+              <td>跨文档关系、组织知识、供应链、投研、案情分析</td>
+              <td>构图成本高，实体关系抽取质量决定上限</td>
+            </tr>
+            <tr>
+              <td><b>RAPTOR</b></td>
+              <td>递归聚类并摘要，形成树状多层索引</td>
+              <td>长文档、跨章节综合问答</td>
+              <td>摘要维护成本，更新链路复杂</td>
+            </tr>
+            <tr>
+              <td><b>Multimodal RAG</b></td>
+              <td>检索图片、表格、音频、视频帧、版面结构</td>
+              <td>合同扫描件、产品手册、图表问答、工业巡检</td>
+              <td>解析、OCR、视觉 embedding 成本更高</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>怎么决定用哪种增强</h3>
+        <div class="grid-2">
+          <div class="box">
+            <h3>先做低成本增强</h3>
+            <ol>
+              <li>改 chunk 与元数据。</li>
+              <li>加 BM25 + 向量混合检索。</li>
+              <li>加 reranker。</li>
+              <li>建黄金集跑评估。</li>
+              <li>做查询改写和上下文压缩。</li>
+            </ol>
+          </div>
+          <div class="box">
+            <h3>再做复杂增强</h3>
+            <ol>
+              <li>多跳问题多：Query Decomposition。</li>
+              <li>关系问题多：GraphRAG。</li>
+              <li>资料不足频繁：CRAG。</li>
+              <li>任务需要规划：Agentic RAG。</li>
+              <li>长文档综合：RAPTOR / 摘要索引。</li>
+            </ol>
+          </div>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="production">
+        <h2>9. 生产级 RAG 架构</h2>
+        <p class="lead">生产 RAG 不是 notebook，而是有权限、版本、观测、缓存、回滚和评估的系统。</p>
+
+        <pre><code>                ┌──────────────┐
+数据源 ────────>│ Ingestion Job │──解析/清洗/切块──┐
+                └──────────────┘                  │
+                                                   v
+          ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+          │ Object Store│   │ Vector Store│   │ Search Index │
+          └─────────────┘   └─────────────┘   └─────────────┘
+                                                   ^
+用户 ─> API ─> 权限校验 ─> Query Rewrite ─> Hybrid Retrieve ─> Rerank
+                                                   │
+                                                   v
+                         Context Builder ─> LLM ─> Answer + Citation
+                                                   │
+                                                   v
+                              Trace / Eval / Feedback / Cache</code></pre>
+
+        <h3>必须考虑的工程问题</h3>
+        <div class="grid-3">
+          <div class="box">
+            <h3>权限</h3>
+            <p>检索前做 ACL 过滤，chunk 级别保留租户、部门、角色、文档权限。不要把无权限内容交给模型再靠 prompt 约束。</p>
+          </div>
+          <div class="box">
+            <h3>更新</h3>
+            <p>支持增量重建、删除同步、版本隔离。线上可用蓝绿索引：新索引构建完成后再切流。</p>
+          </div>
+          <div class="box">
+            <h3>缓存</h3>
+            <p>缓存 query rewrite、检索结果、rerank 结果、最终答案。注意权限和知识版本变化会影响缓存有效性。</p>
+          </div>
+          <div class="box">
+            <h3>成本</h3>
+            <p>减少无效 LLM 调用，优先小模型做改写/判断，rerank 控制候选数，按业务价值选择上下文长度。</p>
+          </div>
+          <div class="box">
+            <h3>稳定性</h3>
+            <p>向量库、LLM、reranker 都要有超时、降级和熔断。必要时退化为关键词搜索或只返回相关文档。</p>
+          </div>
+          <div class="box">
+            <h3>安全</h3>
+            <p>防 prompt injection、越权检索、敏感信息泄漏、恶意文档指令。文档内容是数据，不是系统指令。</p>
+          </div>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="interview">
+        <h2>10. 面试回答模板与追问</h2>
+        <details open>
+          <summary>Q1：请你讲一下 RAG 的完整流程。</summary>
+          <div>我会分成离线和在线两条链路。离线链路从数据源采集文档，做解析、清洗、切块、Embedding，然后把向量、原文、元数据和权限标签写入索引。在线链路接收用户问题后，先做意图识别和查询改写，再用向量检索、BM25 或混合检索召回候选文档，经过 reranker 排序和上下文压缩，最后把带引用的证据交给大模型生成答案。生成后还会做引用校验、敏感信息过滤、日志追踪和质量评估。</div>
+        </details>
+        <details>
+          <summary>Q2：RAG 和微调有什么区别？</summary>
+          <div>RAG 适合知识更新频繁、需要引用来源、使用企业私有资料的场景，更新知识只需更新索引。微调更适合改变模型风格、格式、任务习惯或领域能力，但不适合频繁注入大量事实知识。实际项目里常见组合是：RAG 管事实，微调或 prompt 管表达和流程。</div>
+        </details>
+        <details>
+          <summary>Q3：如何提升 RAG 准确率？</summary>
+          <div>先定位是检索问题还是生成问题。检索问题从文档解析、chunk、embedding、混合检索、metadata filter、reranker 入手；生成问题从 prompt 约束、引用校验、上下文压缩、拒答策略入手。最后用黄金问答集评估 Recall@K、context precision、faithfulness，并对线上 bad case 做闭环。</div>
+        </details>
+        <details>
+          <summary>Q4：为什么要混合检索？</summary>
+          <div>向量检索擅长语义相似，但对编号、错误码、人名、专有名词、精确短语可能不稳定；BM25 擅长关键词和精确匹配，但不懂同义表达。混合检索把两者结果融合，再加 reranker，可以兼顾召回率和精确度。</div>
+        </details>
+        <details>
+          <summary>Q5：GraphRAG 适合什么？</summary>
+          <div>GraphRAG 适合实体关系密集、需要跨文档综合的问题，比如“某个客户和哪些产品、合同、风险事件有关”。它会抽取实体和关系，形成图谱或社区摘要，再结合向量检索回答。代价是抽取、构图、更新和一致性维护更复杂。</div>
+        </details>
+        <details>
+          <summary>Q6：RAG 如何处理权限？</summary>
+          <div>权限必须在检索前处理。每个 chunk 写入租户、部门、角色、文档 ACL 等元数据，查询时先根据用户身份做过滤，再检索和生成。不能把无权限内容交给 LLM 后再要求它别说，因为 prompt 约束不是安全边界。</div>
+        </details>
+        <details>
+          <summary>Q7：RAG 的常见失败模式有哪些？</summary>
+          <div>文档解析丢结构、chunk 切得太碎或太大、embedding 不适合领域、召回 TopK 太小、没有 rerank、旧知识与新知识冲突、上下文超过 token 预算、prompt 没有拒答、没有评估集、没有线上 tracing。</div>
+        </details>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="quiz">
+        <h2>11. 自测题与记忆卡</h2>
+        <div class="flashcards">
+          <div class="flashcard"><b>RAG 核心</b>检索外部证据，增强模型回答；不是训练模型记住所有文档。</div>
+          <div class="flashcard"><b>最佳优先级</b>先修数据和检索，再调 prompt；证据不对，生成再漂亮也没用。</div>
+          <div class="flashcard"><b>最常见增强</b>混合检索 + rerank + query rewrite + context compression。</div>
+          <div class="flashcard"><b>生产底线</b>权限前置、引用可追溯、评估可回归、链路可观测。</div>
+        </div>
+
+        <h3>点击自测</h3>
+        <div class="quiz" data-answer="b">
+          <p><b>1. RAG 中最适合解决“错误码 E1023 精确匹配”的检索方式是？</b></p>
+          <button data-choice="a">纯向量检索</button>
+          <button data-choice="b">BM25/关键词或混合检索</button>
+          <button data-choice="c">只加大模型温度</button>
+        </div>
+        <div class="quiz" data-answer="c">
+          <p><b>2. 如果正确文档被召回了但总排在第 20 位，优先加什么？</b></p>
+          <button data-choice="a">更长的回答 prompt</button>
+          <button data-choice="b">把 chunk 全部塞给模型</button>
+          <button data-choice="c">reranker</button>
+        </div>
+        <div class="quiz" data-answer="a">
+          <p><b>3. RAG 权限控制应该在哪里做？</b></p>
+          <button data-choice="a">检索前/检索时按 ACL 过滤</button>
+          <button data-choice="b">让模型自己判断能不能说</button>
+          <button data-choice="c">只在前端隐藏按钮</button>
+        </div>
+        <div class="quiz" data-answer="b">
+          <p><b>4. 多跳关系型问题很多时，可以考虑哪类增强？</b></p>
+          <button data-choice="a">只调大 TopK</button>
+          <button data-choice="b">GraphRAG 或 Query Decomposition</button>
+          <button data-choice="c">关闭重排</button>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="sources">
+        <h2>12. 资料来源与继续学习</h2>
+        <p class="lead">页面内容结合了当前公开资料和工程实践整理。下面是可继续追的方向，不需要今天全部读完。</p>
+        <ul>
+          <li><a href="https://www.firecrawl.dev/blog/best-open-source-rag-frameworks" target="_blank" rel="noreferrer">Firecrawl: Open-source RAG frameworks in 2026</a></li>
+          <li><a href="https://atlan.com/know/advanced-rag-techniques/" target="_blank" rel="noreferrer">Atlan: Advanced RAG techniques</a></li>
+          <li><a href="https://neo4j.com/blog/genai/advanced-rag-techniques/" target="_blank" rel="noreferrer">Neo4j: Advanced RAG techniques</a></li>
+          <li><a href="https://arize.com/docs/phoenix/cookbook/evaluation/evaluate-rag" target="_blank" rel="noreferrer">Arize Phoenix: Evaluate RAG</a></li>
+          <li><a href="https://aimultiple.com/rag-frameworks" target="_blank" rel="noreferrer">AIMultiple: RAG framework comparison</a></li>
+          <li><a href="https://www.getmaxim.ai/articles/top-5-tools-to-evaluate-rag-performance-in-2026/" target="_blank" rel="noreferrer">Maxim AI: RAG evaluation tools in 2026</a></li>
+          <li><a href="https://github.com/NirDiamant/RAG_Techniques" target="_blank" rel="noreferrer">Nir Diamant: RAG Techniques notebooks</a></li>
+        </ul>
+        <div class="note">
+          <b>今天收工前的验收标准：</b>你能不看资料讲出“离线索引 + 在线检索生成”两条链路；能解释 chunk、embedding、hybrid retrieval、rerank、faithfulness；能说出 LlamaIndex、LangChain、Haystack、向量库、RAGAS/Phoenix 的定位；能判断什么时候用 GraphRAG、CRAG、Self-RAG、Agentic RAG。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll(".quiz").forEach((quiz) => {
+      const answer = quiz.dataset.answer;
+      quiz.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          quiz.querySelectorAll("button").forEach((item) => {
+            item.classList.remove("correct", "wrong");
+          });
+          button.classList.add(button.dataset.choice === answer ? "correct" : "wrong");
+        });
+      });
+    });
+  </script>
+</body>
+</html>
