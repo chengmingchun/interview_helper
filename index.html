@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>面试复习入口 | Interview Review Hub</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #766a5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 250, 240, 0.82);
+      --charcoal: #171511;
+      --code: #e8d9bd;
+      --accent: #d8652a;
+      --shadow: 0 18px 56px rgba(60, 42, 24, 0.13);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 15% 8%, rgba(216, 101, 42, 0.13), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.65;
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 44px 0;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 20px;
+    }
+
+    .hero-copy,
+    .terminal,
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 30px;
+      background: rgba(255, 250, 240, 0.86);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 22px;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 250, 240, 0.65);
+      font-size: 13px;
+    }
+
+    h1 {
+      max-width: 780px;
+      margin: 0 0 16px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(42px, 7vw, 72px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero-copy p {
+      max-width: 720px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .terminal {
+      overflow: hidden;
+      background: var(--charcoal);
+      color: var(--code);
+    }
+
+    .terminal-bar {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(232, 217, 189, 0.16);
+      color: rgba(232, 217, 189, 0.72);
+      font-size: 13px;
+    }
+
+    .dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #a4462c;
+    }
+
+    .dots span:nth-child(2) {
+      background: #c29343;
+    }
+
+    .dots span:nth-child(3) {
+      background: #5b8a55;
+    }
+
+    .terminal-body {
+      padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .prompt {
+      color: #8ec07c;
+    }
+
+    .cmd {
+      color: #f5d49c;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      display: grid;
+      min-height: 360px;
+      padding: 24px;
+      background: var(--panel);
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 18px;
+    }
+
+    .tag {
+      padding: 5px 9px;
+      border: 1px solid rgba(216, 101, 42, 0.28);
+      border-radius: 999px;
+      color: #9f4d28;
+      background: rgba(216, 101, 42, 0.1);
+      font-size: 13px;
+    }
+
+    .card ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+      margin-top: auto;
+      padding-top: 22px;
+    }
+
+    a.button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 10px 14px;
+      border: 1px solid var(--charcoal);
+      border-radius: 8px;
+      color: var(--paper);
+      background: var(--charcoal);
+      text-decoration: none;
+    }
+
+    a.button.secondary {
+      color: var(--ink);
+      background: rgba(255, 250, 240, 0.72);
+      border-color: var(--line);
+    }
+
+    .note {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255, 250, 240, 0.62);
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page {
+        padding: 22px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Interview Review Hub / 专题入口</span>
+        <h1>选择今天要复习的专题。</h1>
+        <p>每个专题都是独立 HTML。旧的一面查漏补缺不会被今天的新主题覆盖；后面新增专题也会继续挂在这里。</p>
+      </div>
+
+      <div class="terminal" aria-label="复习终端">
+        <div class="terminal-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span>review-router</span>
+        </div>
+        <div class="terminal-body">
+          <p><span class="prompt">$</span> <span class="cmd">ls reviews</span></p>
+          <p>one-interview-gap.html</p>
+          <p>mq-architecture-rag.html</p>
+          <p><span class="prompt">$</span> <span class="cmd">choose --focus</span></p>
+          <p>先选专题，再进入大版幅学习页。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="专题列表">
+      <article class="card">
+        <div>
+          <h2>一面查漏补缺</h2>
+          <p>补旧的一面暴露问题，适合复习后端基础八股和经典场景。</p>
+          <div class="tags">
+            <span class="tag">Redis 一致性</span>
+            <span class="tag">MySQL 主从</span>
+            <span class="tag">B+ 树</span>
+            <span class="tag">复杂度</span>
+          </div>
+          <ul>
+            <li>限流器：一分钟 100 次</li>
+            <li>订单异步下发</li>
+            <li>幂等、失败重试、补偿</li>
+            <li>接口从 1 秒变 30 秒排查</li>
+          </ul>
+        </div>
+        <div class="actions">
+          <a class="button" href="./pages/one-interview-gap.html">进入复习</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div>
+          <h2>MQ / 架构 / RAG</h2>
+          <p>今天的新专题，适合把异步系统设计和 AI 知识库问答串起来。</p>
+          <div class="tags">
+            <span class="tag">MQ 可靠性</span>
+            <span class="tag">架构设计</span>
+            <span class="tag">RAG</span>
+            <span class="tag">系统设计</span>
+          </div>
+          <ul>
+            <li>消息不丢、不重、不乱</li>
+            <li>秒杀削峰、短链、feed 流</li>
+            <li>企业知识库 RAG 问答系统</li>
+            <li>DeepSeek 严厉面试官追问</li>
+          </ul>
+        </div>
+        <div class="actions">
+          <a class="button" href="./pages/mq-architecture-rag.html">进入复习</a>
+        </div>
+      </article>
+    </section>
+
+    <p class="note">后续要新增专题时，只需要新增一个 HTML 页面，再在这个入口页加一张卡片。</p>
+  </main>
+</body>
+</html>

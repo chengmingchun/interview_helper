@@ -1,0 +1,1997 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>一面查漏补缺 | Interactive Interview Desk</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --paper-deep: #e8dece;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --soft-line: rgba(32, 26, 20, 0.08);
+      --panel: rgba(255, 252, 245, 0.86);
+      --panel-solid: #fffaf0;
+      --charcoal: #171511;
+      --charcoal-2: #232018;
+      --code: #e8d9bd;
+      --accent: #d8652a;
+      --accent-2: #9f4d28;
+      --green: #427a50;
+      --blue: #386a91;
+      --shadow: 0 22px 70px rgba(60, 42, 24, 0.14);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 10%, rgba(216, 101, 42, 0.11), transparent 28%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.65;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 256px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.8);
+      backdrop-filter: blur(16px);
+      overflow: auto;
+    }
+
+    .mark {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 26px;
+    }
+
+    .logo {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--charcoal);
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-weight: 800;
+    }
+
+    .mark b {
+      display: block;
+      line-height: 1.2;
+    }
+
+    .mark span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .nav button,
+    .ghost,
+    .chip,
+    .option,
+    .micro-button {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.5);
+      cursor: pointer;
+      transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+    }
+
+    .nav button {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      padding: 11px 12px;
+      text-align: left;
+    }
+
+    .nav button:hover,
+    .nav button.active,
+    .chip.active {
+      border-color: rgba(216, 101, 42, 0.55);
+      background: rgba(216, 101, 42, 0.12);
+    }
+
+    .nav small {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .today-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.58);
+    }
+
+    .today-card h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .meter {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(32, 26, 20, 0.12);
+    }
+
+    .meter span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.2s ease;
+    }
+
+    .checkline {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      margin: 9px 0;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .checkline input {
+      margin-top: 4px;
+      accent-color: var(--accent);
+    }
+
+    main {
+      min-width: 0;
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 34px 36px 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+      gap: 20px;
+      align-items: stretch;
+      margin-bottom: 28px;
+    }
+
+    .hero-copy {
+      min-height: 380px;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(140deg, rgba(255,250,240,0.94), rgba(244,239,230,0.62));
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 22px;
+      padding: 5px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 250, 240, 0.62);
+      font-size: 13px;
+    }
+
+    .hero h1 {
+      max-width: 840px;
+      margin: 0 0 18px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(42px, 7vw, 76px);
+      line-height: 0.96;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .primary,
+    .ghost {
+      min-height: 42px;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    .primary {
+      border: 1px solid var(--charcoal);
+      color: var(--paper);
+      background: var(--charcoal);
+    }
+
+    .ghost {
+      color: var(--ink);
+    }
+
+    .terminal {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 380px;
+      overflow: hidden;
+      border: 1px solid rgba(32, 26, 20, 0.35);
+      border-radius: var(--radius);
+      background: var(--charcoal);
+      color: var(--code);
+      box-shadow: var(--shadow);
+    }
+
+    .terminal-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(232, 217, 189, 0.16);
+      color: rgba(232, 217, 189, 0.75);
+      font-size: 13px;
+    }
+
+    .dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #a4462c;
+    }
+
+    .dots span:nth-child(2) { background: #c29343; }
+    .dots span:nth-child(3) { background: #5b8a55; }
+
+    .terminal-body {
+      padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .prompt {
+      color: #8ec07c;
+    }
+
+    .cmd {
+      color: #f5d49c;
+    }
+
+    .terminal-line {
+      margin: 0 0 12px;
+    }
+
+    .layout-section {
+      margin: 34px 0;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    #knowledgeGrid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .knowledge-card .card-head {
+      padding: 26px 28px 20px;
+    }
+
+    .knowledge-card h3 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .knowledge-card .card-body {
+      padding: 20px 28px 28px;
+    }
+
+    .knowledge-card .tabs {
+      padding: 6px 28px 16px;
+      border-bottom: 1px solid var(--soft-line);
+    }
+
+    .knowledge-card .chip {
+      padding: 8px 12px;
+      background: rgba(255, 250, 240, 0.78);
+    }
+
+    .knowledge-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .knowledge-layout > div:first-child {
+      min-width: 0;
+      padding: 4px 4px 0 0;
+    }
+
+    .knowledge-card .explain {
+      font-size: 16px;
+    }
+
+    .knowledge-card .explain p {
+      margin: 0 0 14px;
+    }
+
+    .knowledge-card .explain ul {
+      margin-top: 10px;
+    }
+
+    .knowledge-card .explain li {
+      margin: 8px 0;
+    }
+
+    .study-stack {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .study-stack .study-box:first-child {
+      grid-column: 1 / -1;
+    }
+
+    .study-box {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.62);
+    }
+
+    .study-box h4 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .study-box p {
+      margin: 0;
+    }
+
+    .principle-flow {
+      display: grid;
+      gap: 8px;
+    }
+
+    .flow-step {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid var(--soft-line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.35);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .flow-step strong {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      color: var(--paper);
+      background: var(--charcoal);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .flow-step.active {
+      border-color: rgba(216, 101, 42, 0.55);
+      background: rgba(216, 101, 42, 0.12);
+    }
+
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .memory-card {
+      min-height: 96px;
+      padding: 12px;
+      border: 1px solid var(--soft-line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.36);
+    }
+
+    .memory-card b {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .drill-answer {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      background: rgba(216, 101, 42, 0.1);
+    }
+
+    .drill-answer.show {
+      display: block;
+    }
+
+    .drill-question {
+      min-height: 76px;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: var(--charcoal);
+      color: var(--code);
+    }
+
+    .study-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 14px 44px rgba(60, 42, 24, 0.1);
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      padding: 17px;
+      border-bottom: 1px solid var(--soft-line);
+    }
+
+    .card h3 {
+      margin: 0 0 4px;
+      font-size: 21px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 2px 9px;
+      border: 1px solid rgba(216, 101, 42, 0.28);
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: rgba(216, 101, 42, 0.1);
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 17px 0;
+    }
+
+    .chip {
+      padding: 7px 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chip.active {
+      color: var(--ink);
+    }
+
+    .card-body {
+      padding: 16px 17px 18px;
+    }
+
+    .explain {
+      display: none;
+    }
+
+    .explain.active {
+      display: block;
+    }
+
+    .explain ul,
+    .scenario-output ul {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+
+    .code {
+      margin: 12px 0 0;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: var(--charcoal);
+      color: var(--code);
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .scenario-board {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .scenario-menu {
+      display: grid;
+      gap: 8px;
+      align-self: start;
+      position: sticky;
+      top: 18px;
+    }
+
+    .scenario-menu button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.66);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .scenario-menu button.active {
+      border-color: rgba(216, 101, 42, 0.55);
+      background: rgba(216, 101, 42, 0.12);
+    }
+
+    .scenario-menu b {
+      display: block;
+    }
+
+    .scenario-menu span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .scenario-stage {
+      min-height: 420px;
+    }
+
+    .scenario-output {
+      padding: 18px;
+    }
+
+    .answer-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .canvas {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .mini {
+      min-height: 112px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.62);
+    }
+
+    .mini b {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .mini span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .lab {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 14px;
+    }
+
+    .form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .form label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .form input,
+    .form select,
+    .form textarea {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--ink);
+      background: rgba(255, 250, 240, 0.75);
+    }
+
+    .result {
+      min-height: 190px;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .result h3 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .token-viz {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 12px;
+    }
+
+    .token {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: rgba(66, 122, 80, 0.78);
+    }
+
+    .token.blocked {
+      background: rgba(160, 50, 44, 0.66);
+    }
+
+    .quiz {
+      display: grid;
+      gap: 12px;
+    }
+
+    .quiz-card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .quiz-card h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .option {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      text-align: left;
+      background: rgba(255, 250, 240, 0.7);
+    }
+
+    .option.correct {
+      border-color: rgba(66, 122, 80, 0.68);
+      background: rgba(66, 122, 80, 0.13);
+    }
+
+    .option.wrong {
+      border-color: rgba(160, 50, 44, 0.68);
+      background: rgba(160, 50, 44, 0.12);
+    }
+
+    .hint {
+      display: none;
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .hint.show {
+      display: block;
+    }
+
+    .ai-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      height: 100vh;
+      width: min(420px, 100vw);
+      border-left: 1px solid rgba(232, 217, 189, 0.16);
+      background: var(--charcoal);
+      color: var(--code);
+      box-shadow: -24px 0 80px rgba(23, 21, 17, 0.24);
+      transform: translateX(100%);
+      transition: transform 0.22s ease;
+    }
+
+    .ai-panel.open {
+      transform: translateX(0);
+    }
+
+    .ai-head {
+      padding: 18px;
+      border-bottom: 1px solid rgba(232, 217, 189, 0.16);
+    }
+
+    .ai-head h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+
+    .ai-head p {
+      margin: 0;
+      color: rgba(232, 217, 189, 0.68);
+      font-size: 13px;
+    }
+
+    .api-box {
+      display: grid;
+      gap: 9px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(232, 217, 189, 0.16);
+    }
+
+    .api-box input,
+    .api-box select,
+    .chat-input textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid rgba(232, 217, 189, 0.18);
+      border-radius: var(--radius);
+      color: var(--code);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .api-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .micro-button {
+      padding: 9px 10px;
+      color: var(--code);
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(232, 217, 189, 0.18);
+    }
+
+    .micro-button.primary-dark {
+      border-color: rgba(232, 217, 189, 0.4);
+      color: var(--charcoal);
+      background: var(--code);
+    }
+
+    .chat-log {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 18px;
+      overflow: auto;
+    }
+
+    .message {
+      padding: 11px;
+      border: 1px solid rgba(232, 217, 189, 0.12);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .message.user {
+      border-color: rgba(216, 101, 42, 0.35);
+      background: rgba(216, 101, 42, 0.12);
+    }
+
+    .message small {
+      display: block;
+      margin-bottom: 5px;
+      color: rgba(232, 217, 189, 0.62);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .chat-input {
+      display: grid;
+      gap: 9px;
+      padding: 14px 18px 18px;
+      border-top: 1px solid rgba(232, 217, 189, 0.16);
+    }
+
+    .floating-ai {
+      display: inline-flex;
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 15;
+      border: 1px solid var(--charcoal);
+      border-radius: 999px;
+      padding: 12px 15px;
+      color: var(--paper);
+      background: var(--charcoal);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+
+    .mobile-close {
+      display: inline-flex;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 1180px) {
+      .shell {
+        grid-template-columns: 240px minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        position: static;
+        height: auto;
+      }
+
+      .nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      main {
+        padding: 18px;
+      }
+
+      .hero,
+      .grid,
+      .knowledge-layout,
+      .scenario-board,
+      .lab {
+        grid-template-columns: 1fr;
+      }
+
+      .scenario-menu {
+        position: static;
+      }
+
+      .canvas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .memory-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .study-stack {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .nav,
+      .canvas {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-copy {
+        min-height: auto;
+        padding: 22px;
+      }
+
+      .terminal {
+        min-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="rail">
+      <div class="mark">
+        <div class="logo">八</div>
+        <div>
+          <b>Interview Desk</b>
+          <span>今天：MQ / 架构设计 / RAG</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="页面导航">
+        <button class="nav-link active" data-jump="top">Start <small>00</small></button>
+        <button class="nav-link" data-jump="knowledge">知识点 <small>01</small></button>
+        <button class="nav-link" data-jump="scenarios">场景题 <small>02</small></button>
+        <button class="nav-link" data-jump="lab">推演台 <small>03</small></button>
+        <button class="nav-link" data-jump="quiz">自测 <small>04</small></button>
+      </nav>
+
+      <div class="today-card">
+        <h2>今日进度</h2>
+        <label class="checkline"><input type="checkbox"><span>MQ：能讲清异步、削峰、解耦和可靠性。</span></label>
+        <label class="checkline"><input type="checkbox"><span>架构设计：能从需求到容量、模块、数据、容灾。</span></label>
+        <label class="checkline"><input type="checkbox"><span>RAG：能讲清切分、向量检索、重排和生成。</span></label>
+        <label class="checkline"><input type="checkbox"><span>能回答消息重复、丢失、顺序、积压。</span></label>
+        <label class="checkline"><input type="checkbox"><span>能设计一个可落地的知识库问答系统。</span></label>
+        <div class="meter"><span id="meter"></span></div>
+      </div>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <span class="eyebrow">2026-06-22 / 今日专题 / MQ · 架构设计 · RAG</span>
+          <h1>把系统设计和 AI 应用讲成一条完整链路。</h1>
+          <p>今天从 MQ 的可靠异步开始，到架构设计的方法论，再落到 RAG 知识库问答。重点不是背名词，而是能解释原理、画出链路、说清故障和取舍。</p>
+          <div class="hero-actions">
+            <button class="primary" data-jump="knowledge">开始学今日专题</button>
+            <button class="ghost" id="askTemplate">把当前页喂给 AI 提问</button>
+          </div>
+        </div>
+
+        <div class="terminal" aria-label="学习终端">
+          <div class="terminal-bar">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span>interview-gap-fix</span>
+          </div>
+          <div class="terminal-body">
+            <p class="terminal-line"><span class="prompt">$</span> <span class="cmd">focus --today</span></p>
+            <p class="terminal-line">MQ reliability / architecture design / RAG pipeline</p>
+            <p class="terminal-line"><span class="prompt">$</span> <span class="cmd">practice --scenes today</span></p>
+            <p class="terminal-line">消息可靠性 / 秒杀削峰 / 短链系统 / feed 流 / 知识库问答</p>
+            <p class="terminal-line"><span class="prompt">$</span> <span class="cmd">rule</span></p>
+            <p class="terminal-line">先结论，再链路，再异常，最后权衡。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="layout-section" id="knowledge">
+        <div class="section-head">
+          <div>
+            <h2>今日专题知识点</h2>
+            <p>MQ、架构设计、RAG 放在最前面，旧专题保留在后面串联复习。</p>
+          </div>
+        </div>
+        <div class="grid" id="knowledgeGrid"></div>
+      </section>
+
+      <section class="layout-section" id="scenarios">
+        <div class="section-head">
+          <div>
+            <h2>今日场景题</h2>
+            <p>先练今天的 MQ、架构和 RAG 场景，再回顾旧的一面场景题。</p>
+          </div>
+        </div>
+        <div class="scenario-board">
+          <div class="scenario-menu" id="scenarioMenu"></div>
+          <article class="card scenario-stage">
+            <div class="card-head">
+              <div>
+                <h3 id="scenarioTitle">场景题</h3>
+                <p id="scenarioDesc">选择一个场景开始。</p>
+              </div>
+              <span class="badge">interview mode</span>
+            </div>
+            <div class="scenario-output">
+              <div class="answer-toolbar" id="scenarioTabs"></div>
+              <div id="scenarioAnswer"></div>
+              <div class="canvas" id="scenarioCanvas"></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="layout-section" id="lab">
+        <div class="section-head">
+          <div>
+            <h2>推演台</h2>
+            <p>让限流和复杂度不再停留在“我知道大概”。</p>
+          </div>
+        </div>
+        <div class="lab">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>限流器实验</h3>
+                <p>模拟一分钟 100 次以及突刺场景。</p>
+              </div>
+              <span class="badge">Redis Lua</span>
+            </div>
+            <div class="card-body">
+              <div class="form">
+                <label>窗口秒数 <input id="windowSec" type="number" value="60" min="1"></label>
+                <label>允许次数 <input id="limitCount" type="number" value="100" min="1"></label>
+                <label>当前请求数 <input id="requestCount" type="number" value="118" min="0"></label>
+                <label>算法
+                  <select id="limitAlgo">
+                    <option value="sliding">滑动窗口</option>
+                    <option value="fixed">固定窗口</option>
+                    <option value="token">令牌桶</option>
+                  </select>
+                </label>
+                <button class="primary" id="runLimit">运行判断</button>
+              </div>
+            </div>
+          </div>
+          <div class="result" id="limitResult">点击运行后，这里会画出通过和被限流的请求。</div>
+        </div>
+
+        <div class="lab" style="margin-top:14px;">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>复杂度速判</h3>
+                <p>选一种代码形态，得到表达模板。</p>
+              </div>
+              <span class="badge">Big O</span>
+            </div>
+            <div class="card-body">
+              <div class="form">
+                <label>代码形态
+                  <select id="complexityKind">
+                    <option value="one">单层循环</option>
+                    <option value="two">两层独立循环</option>
+                    <option value="half">每次折半</option>
+                    <option value="sort">排序后遍历</option>
+                    <option value="subset">枚举子集</option>
+                  </select>
+                </label>
+                <label>输入规模 n <input id="inputN" type="number" value="1000" min="1"></label>
+                <button class="primary" id="runComplexity">生成表达</button>
+              </div>
+            </div>
+          </div>
+          <div class="result" id="complexityResult">点击生成后，这里会给出复杂度、数量级和面试说法。</div>
+        </div>
+      </section>
+
+      <section class="layout-section" id="quiz">
+        <div class="section-head">
+          <div>
+            <h2>自测纠错</h2>
+            <p>即时反馈，错了就回对应知识卡。</p>
+          </div>
+          <button class="ghost" id="resetQuiz">重做</button>
+        </div>
+        <div class="quiz" id="quizList"></div>
+      </section>
+    </main>
+
+    <aside class="ai-panel" id="aiPanel">
+      <div class="ai-head">
+        <h2>DeepSeek 严厉面试官</h2>
+        <p>填入自己的 API Key 后，让它按真实一面追问你、打断空话、指出漏洞。Key 只保存在本机浏览器 localStorage。</p>
+        <button class="micro-button mobile-close" id="closeAi">关闭面板</button>
+      </div>
+      <div class="api-box">
+        <input id="apiKey" type="password" placeholder="DeepSeek API Key，例如 sk-..." autocomplete="off">
+        <select id="modelName">
+          <option value="deepseek-v4-flash">deepseek-v4-flash</option>
+          <option value="deepseek-v4-pro">deepseek-v4-pro</option>
+          <option value="deepseek-chat">deepseek-chat</option>
+        </select>
+        <div class="api-actions">
+          <button class="micro-button primary-dark" id="saveKey">保存 Key</button>
+          <button class="micro-button" id="clearKey">清除</button>
+        </div>
+      </div>
+      <div class="chat-log" id="chatLog">
+        <div class="message">
+          <small>assistant</small>
+          默认是严厉面试官模式。建议直接发：“开始模拟一面，围绕今天 4 个知识点和 5 个场景连续追问我。一次只问一题。”
+        </div>
+      </div>
+      <div class="chat-input">
+        <textarea id="question" rows="4" placeholder="输入：开始面试。或直接回答面试官的问题。Shift+Enter 换行，Enter 发送。"></textarea>
+        <button class="micro-button primary-dark" id="sendQuestion">发送给 DeepSeek</button>
+      </div>
+    </aside>
+  </div>
+
+  <button class="floating-ai" id="openAi">问 DeepSeek</button>
+
+  <script>
+    const knowledge = [
+      {
+        title: "MQ 消息队列",
+        tag: "异步可靠",
+        intro: "MQ 的核心不是会用 RabbitMQ/Kafka/RocketMQ，而是能解释为什么要异步，以及如何处理丢失、重复、顺序和积压。",
+        tabs: {
+          "结论": `<p><b>MQ 的本质：</b>把同步调用拆成异步消息，让生产者和消费者解耦，同时承担削峰、缓冲、广播、最终一致性的职责。</p><ul><li><b>异步：</b>下单后发消息，支付、库存、通知等后续任务慢慢消费。</li><li><b>削峰：</b>瞬时流量先进队列，消费者按能力处理。</li><li><b>解耦：</b>生产者只关心事件，不直接依赖多个下游接口。</li><li><b>最终一致：</b>跨服务事务通常不做强一致，而是靠消息、幂等、重试和补偿达成最终一致。</li></ul>`,
+          "模型": `<p>典型链路是：生产者发送消息到 Broker，Broker 持久化并投递给消费者，消费者处理成功后确认 ack。</p><pre class="code">Producer
+  -> send message
+  -> Broker topic/queue
+  -> persist / replicate
+  -> Consumer pull or push
+  -> business handle
+  -> ack / retry / dead letter</pre><ul><li><b>Queue：</b>点对点消费，一条消息通常被一个消费者处理。</li><li><b>Topic：</b>发布订阅，同一事件可被多个订阅方消费。</li><li><b>Consumer Group：</b>组内负载均衡，组间广播。</li></ul>`,
+          "可靠性": `<ul><li><b>生产端不丢：</b>发送确认、失败重试、本地消息表/outbox、事务消息。</li><li><b>Broker 不丢：</b>消息持久化、副本复制、刷盘策略。</li><li><b>消费端不丢：</b>业务处理成功后再 ack；失败不 ack 或进入重试队列。</li><li><b>重复消费：</b>MQ 通常只能保证至少一次投递，所以消费者必须幂等。</li><li><b>顺序消息：</b>同一业务 key 路由到同一分区/队列，单线程顺序消费，但吞吐会受限。</li></ul>`,
+          "故障": `<ul><li><b>消息积压：</b>先判断生产突增还是消费变慢；临时扩消费者、提高批量消费、拆分队列、降级非核心消息。</li><li><b>重复消息：</b>用业务唯一键、幂等表、状态机或去重缓存。</li><li><b>消息丢失：</b>按生产端、Broker、消费端三段排查确认和持久化。</li><li><b>消息乱序：</b>检查分区路由 key 是否稳定，是否多线程并发消费同一业务实体。</li><li><b>死信堆积：</b>说明重试后仍失败，需要告警、补偿任务或人工处理。</li></ul>`,
+          "背诵版": `<p>面试可以这样说：MQ 主要解决异步、削峰和解耦。引入 MQ 后系统从同步调用变成事件驱动，但也带来消息丢失、重复、乱序和积压问题。可靠性要分三段看：生产者发送要有 confirm 或本地消息表，Broker 要持久化和副本，消费者要处理成功后 ack。因为 MQ 常见语义是至少一次，所以消费端必须做幂等；如果要求顺序，要按业务 key 路由到同一队列或分区，但吞吐会下降。消息积压时先看生产和消费速率，再扩消费者、批量消费、拆分队列或降级非核心任务。</p>`
+        }
+      },
+      {
+        title: "架构设计方法",
+        tag: "系统设计",
+        intro: "架构设计不是直接画微服务，而是从需求、容量、数据、模块、可靠性和演进路径一步步推导。",
+        tabs: {
+          "结论": `<p><b>架构设计的本质：</b>在业务目标、性能、成本、复杂度和可靠性之间做取舍。面试里最重要的是推导过程，而不是背一个固定架构图。</p><ul><li><b>先问需求：</b>核心功能、用户规模、读写比例、延迟目标、一致性要求。</li><li><b>估容量：</b>QPS、峰值、存储量、带宽、热点比例。</li><li><b>拆模块：</b>API、业务服务、数据存储、缓存、MQ、搜索、对象存储。</li><li><b>补可靠性：</b>限流、熔断、降级、重试、幂等、监控、容灾。</li></ul>`,
+          "步骤": `<pre class="code">1. Clarify: 问清业务边界和非功能需求
+2. Estimate: 估 QPS、存储、峰值、热点
+3. API: 定义核心接口
+4. Data: 设计数据模型和索引
+5. Components: 拆服务、缓存、MQ、搜索、存储
+6. Scale: 分库分表、读写分离、水平扩展
+7. Reliability: 限流、熔断、降级、容灾、监控</pre><p>答题时要不断解释“为什么这样选”，比如为什么缓存、为什么 MQ、为什么最终一致。</p>`,
+          "核心取舍": `<ul><li><b>一致性 vs 可用性：</b>强一致成本高，很多互联网业务选择最终一致。</li><li><b>同步 vs 异步：</b>同步简单但链路长；异步解耦但要处理消息可靠性。</li><li><b>缓存 vs DB：</b>缓存提高读性能，但会引入一致性问题。</li><li><b>单体 vs 微服务：</b>微服务利于团队和扩展，但带来分布式事务、链路追踪、部署复杂度。</li><li><b>预计算 vs 实时计算：</b>预计算读快但写复杂，实时计算灵活但延迟高。</li></ul>`,
+          "常用组件": `<ul><li><b>网关：</b>认证、限流、路由、灰度。</li><li><b>缓存：</b>热点数据、会话、计数器，但要处理穿透、击穿、雪崩。</li><li><b>MQ：</b>异步、削峰、最终一致。</li><li><b>搜索：</b>复杂检索和排序，常用 Elasticsearch/OpenSearch。</li><li><b>对象存储：</b>图片、视频、文件，配合 CDN。</li><li><b>监控：</b>指标、日志、trace、告警，是架构能上线的底线。</li></ul>`,
+          "背诵版": `<p>面试可以这样说：我设计系统时会先澄清功能和非功能需求，比如用户量、QPS、读写比例、延迟和一致性要求。然后做容量估算，决定数据模型和核心接口。接着拆组件：网关接入，业务服务承载核心逻辑，DB 存核心数据，Redis 扛热点读，MQ 做异步和削峰，搜索引擎处理复杂检索。最后补可靠性：限流、熔断、降级、幂等、重试、监控告警和容灾。每个选择都要说明取舍，而不是上来就堆技术名词。</p>`
+        }
+      },
+      {
+        title: "RAG 检索增强生成",
+        tag: "AI 应用",
+        intro: "RAG 的核心是让模型回答时先查知识库，把外部知识作为上下文，再生成可追溯的答案。",
+        tabs: {
+          "结论": `<p><b>RAG 的本质：</b>Retrieval-Augmented Generation，先检索相关知识，再把检索结果放进 prompt，让大模型基于材料回答。它解决模型知识过期、私有知识缺失、幻觉难控的问题。</p><ul><li><b>离线：</b>文档清洗、切分、向量化、入库。</li><li><b>在线：</b>用户问题改写、向量检索、重排、拼 prompt、生成答案。</li><li><b>评估：</b>看召回是否准、答案是否忠实、引用是否可追溯。</li></ul>`,
+          "流程": `<pre class="code">Document
+  -> clean / parse
+  -> chunk
+  -> embedding
+  -> vector database
+
+Question
+  -> query rewrite
+  -> retrieve topK
+  -> rerank
+  -> build context
+  -> LLM answer with citations</pre><p>RAG 的效果通常不是模型一个点决定的，而是切分、召回、重排、prompt 和评估共同决定。</p>`,
+          "关键点": `<ul><li><b>文档解析：</b>PDF、Word、网页要保留标题、层级、表格和来源。</li><li><b>Chunk 切分：</b>太短会丢上下文，太长会降低召回精度；常用按标题/段落语义切分。</li><li><b>Embedding：</b>把文本变成向量，用语义相似度召回。</li><li><b>Hybrid Search：</b>向量检索 + 关键词检索，兼顾语义和精确词。</li><li><b>Rerank：</b>用重排模型重新排序 topK，提升上下文质量。</li><li><b>引用：</b>答案附来源，便于用户验证。</li></ul>`,
+          "常见问题": `<ul><li><b>答非所问：</b>可能是 query 改写差、chunk 不合理、召回 topK 不准。</li><li><b>幻觉：</b>prompt 要要求“只基于材料回答”，无依据时说不知道。</li><li><b>上下文太长：</b>需要重排、压缩、去重，保留最相关片段。</li><li><b>更新延迟：</b>增量索引、版本号、删除同步要设计好。</li><li><b>权限问题：</b>检索前或检索后必须做 ACL 过滤，防止越权回答。</li></ul>`,
+          "背诵版": `<p>面试可以这样说：RAG 是先检索再生成。离线阶段把文档解析、清洗、切分成 chunk，做 embedding 后写入向量库；在线阶段对用户问题做改写，召回 topK 文档片段，再用 rerank 排序，把最相关上下文和问题一起交给大模型生成答案。RAG 的关键不是只接一个向量库，还要处理 chunk 策略、混合检索、重排、引用、权限过滤和效果评估。常见问题是召回不准、上下文太长和模型幻觉，对应要优化切分、检索、重排和 prompt 约束。</p>`
+        }
+      },
+      {
+        title: "Redis 缓存一致性",
+        tag: "最终一致",
+        intro: "核心不是背延迟双删，而是知道缓存和 DB 为什么会不一致，以及你能接受哪种一致性。",
+        tabs: {
+          "结论": `<p><b>缓存一致性本质：</b>缓存是数据库之外的一份副本，只要存在并发读写、网络失败、删除失败、主从延迟，就不可能天然强一致。工程上通常接受“最终一致”，通过策略缩短不一致窗口。</p><ul><li><b>读路径：</b>先读 Redis，未命中查 MySQL，再回填缓存。</li><li><b>写路径：</b>先更新 MySQL，事务提交成功后删除 Redis key。</li><li><b>兜底：</b>TTL、延迟双删、删除失败重试、订阅 binlog 删除缓存。</li></ul>`,
+          "机制": `<p><b>为什么是更新 DB 后删除缓存？</b></p><ul><li>更新缓存看起来更快，但缓存值可能来自多表聚合、复杂计算、不同查询维度，直接更新容易漏。</li><li>删除缓存让下一次读从 DB 重建，逻辑更简单，也更不容易把旧结构写回缓存。</li><li>先删缓存再写 DB 会有风险：删完后另一个线程读到旧 DB 并回填，随后写 DB 成功，缓存却留下旧值。</li></ul><pre class="code">推荐写路径：
+begin transaction
+  update mysql
+commit
+delete cache(key);
+delay 300ms~1s;
+delete cache(key) again;</pre>`,
+          "并发坑": `<ul><li><b>旧值回填：</b>A 查缓存未命中，查到旧 DB；B 更新 DB 并删缓存；A 把旧值回填。解决：短 TTL、延迟双删、互斥锁、版本号。</li><li><b>删除失败：</b>DB 更新成功但 Redis 删除失败。解决：重试队列、消息表、binlog 监听、定期对账。</li><li><b>缓存击穿：</b>热点 key 失效，大量请求打 DB。解决：互斥锁、逻辑过期、热点预热。</li><li><b>缓存雪崩：</b>大量 key 同时失效。解决：TTL 加随机抖动、分批预热、限流降级。</li><li><b>缓存穿透：</b>查询不存在数据。解决：缓存空值、布隆过滤器、参数校验。</li></ul>`,
+          "方案对比": `<ul><li><b>Cache Aside：</b>最常用，业务代码控制读写缓存，适合大多数系统。</li><li><b>Read/Write Through：</b>应用只访问缓存层，由缓存层同步 DB，国内业务系统较少直接用。</li><li><b>Write Behind：</b>先写缓存，异步刷 DB，吞吐高但数据丢失风险更高。</li><li><b>binlog 订阅：</b>通过 Canal/Debezium 等监听 DB 变更后删缓存，适合缓存删除需要和业务解耦的场景。</li></ul>`,
+          "背诵版": `<p>面试可以这样说：缓存和数据库通常做不到强一致，我会先判断业务能不能接受最终一致。常见做法是 Cache Aside：读缓存未命中查 DB 回填，写时先更新 DB，事务提交后删除缓存。为了处理并发读写导致的旧值回填，可以用短 TTL、延迟双删、互斥锁或版本号；为了处理删除失败，可以把删除事件放进重试队列，或者监听 binlog 做补偿删除。热点 key 还要考虑击穿、雪崩、穿透，分别用互斥锁或逻辑过期、TTL 随机抖动、缓存空值或布隆过滤器。</p>`
+        }
+      },
+      {
+        title: "MySQL 主从复制",
+        tag: "binlog",
+        intro: "主从复制要讲清三件事：日志怎么来、从库怎么追、延迟怎么处理。",
+        tabs: {
+          "结论": `<p><b>主从复制本质：</b>主库把数据变更记录到 binlog，从库把 binlog 拉过来写成 relay log，再重放这些日志，让从库最终追上主库。</p><ul><li><b>主库：</b>事务提交时写 binlog。</li><li><b>从库 IO 线程：</b>连接主库，拉取 binlog。</li><li><b>从库 SQL 线程：</b>读取 relay log 并执行。</li><li><b>目标：</b>读写分离、容灾备份、扩展读能力。</li></ul>`,
+          "链路": `<pre class="code">Client write
+  -> Master 执行事务
+  -> redo log prepare
+  -> 写 binlog
+  -> redo log commit
+  -> Slave IO thread 拉 binlog
+  -> 写 relay log
+  -> Slave SQL thread 重放</pre><p>如果开启 GTID，每个事务有全局事务 ID，从库可以基于 GTID 追踪复制位置，比手动维护 binlog file + position 更方便。</p>`,
+          "模式": `<ul><li><b>异步复制：</b>主库提交不等从库确认，性能好，但主库宕机时可能丢最后一段已提交但未同步的事务。</li><li><b>半同步复制：</b>主库至少等一个从库确认收到 binlog 后再返回，降低丢数据风险，但会增加写延迟。</li><li><b>组复制/MGR：</b>更强一致和高可用，但复杂度更高，面试里点到即可。</li></ul>`,
+          "延迟排查": `<ul><li><b>现象：</b>刚写完读从库读不到、报表数据落后、缓存回填旧数据。</li><li><b>原因：</b>大事务、无索引更新、从库机器差、从库也承担复杂查询、网络抖动、复制线程卡住。</li><li><b>处理：</b>关键读走主库、读写绑定、等待 GTID 追平、拆小事务、优化慢 SQL、从库隔离分析任务。</li><li><b>监控：</b>Seconds_Behind_Master、relay log 堆积、复制线程状态、主从位点差。</li></ul>`,
+          "背诵版": `<p>面试可以这样说：MySQL 主从复制是基于 binlog 的。主库提交事务后记录 binlog，从库 IO 线程拉取 binlog 写入 relay log，从库 SQL 线程重放 relay log。默认异步复制性能好但可能有延迟和少量丢数据风险；半同步会等至少一个从库确认收到日志，可靠性更好但写延迟更高。读写分离时最大的问题是主从延迟，关键读可以走主库，或者用 GTID 等待从库追到指定事务，再读从库。</p>`
+        }
+      },
+      {
+        title: "B+ 树",
+        tag: "索引结构",
+        intro: "别只会说“多叉平衡树”，要讲到磁盘页、树高、范围扫描和回表。",
+        tabs: {
+          "结论": `<p><b>B+ 树本质：</b>数据库索引要减少磁盘 IO，而不是只追求 CPU 比较次数。B+ 树每个节点对应一个磁盘页，一个节点能放很多 key 和指针，所以树高很低；数据都在叶子节点，叶子之间有序链表，所以范围查询很强。</p><ul><li>非叶子节点：存 key 和子节点指针，用于导航。</li><li>叶子节点：存真实数据或主键值，并按 key 有序。</li><li>所有叶子在同一层，查询路径稳定。</li></ul>`,
+          "图解": `<div class="canvas"><div class="mini"><b>Root</b><span>[30, 60]</span></div><div class="mini"><b>Leaf A</b><span>10 -> 20</span></div><div class="mini"><b>Leaf B</b><span>30 -> 40 -> 50</span></div><div class="mini"><b>Leaf C</b><span>60 -> 70 -> 90</span></div></div><p>查范围时先定位起点叶子，再沿叶子链表向后扫。</p>`,
+          "为什么快": `<ul><li><b>树高低：</b>一个 16KB 页能放很多索引项，千万级数据通常也只有 3 到 4 层，IO 次数少。</li><li><b>范围查询强：</b>找到起点后沿叶子链表顺序扫，天然适合 between、order by、分页范围扫描。</li><li><b>磁盘预读友好：</b>叶子节点有序，顺序扫描比随机 IO 更友好。</li><li><b>高度稳定：</b>所有数据在叶子，查询路径长度相近。</li></ul>`,
+          "InnoDB": `<ul><li><b>聚簇索引：</b>主键索引的叶子节点存整行数据，所以按主键查很快。</li><li><b>二级索引：</b>叶子节点存二级索引 key 和主键值；如果查询字段不在二级索引里，需要用主键再查一次聚簇索引，这叫回表。</li><li><b>覆盖索引：</b>查询字段都在二级索引里，不需要回表。</li><li><b>最左前缀：</b>联合索引按从左到右的 key 排序，查询条件要尽量命中左侧连续列。</li></ul>`,
+          "对比": `<ul><li><b>红黑树：</b>内存结构很好，但树高相对高，磁盘 IO 次数多，不适合数据库页模型。</li><li><b>B 树：</b>非叶子也存数据，范围查询时可能需要中序遍历多个层级；B+ 树叶子链表更适合范围扫描。</li><li><b>哈希索引：</b>等值查询快，但不支持范围、有序、最左前缀这类能力。</li></ul>`,
+          "背诵版": `<p>面试可以这样说：MySQL InnoDB 选择 B+ 树，是因为数据库索引的主要成本是磁盘 IO。B+ 树是多叉平衡树，一个页能放很多 key，所以树高低，查找通常只要几次页读取。它的数据都在叶子节点，叶子节点之间还有有序链表，所以范围查询可以先定位起点再顺序扫描。InnoDB 主键索引是聚簇索引，叶子存整行；二级索引叶子存主键，如果查询字段不在索引里就需要回表。</p>`
+        }
+      },
+      {
+        title: "算法复杂度表达",
+        tag: "Big O",
+        intro: "复杂度不是背符号，而是能把一段代码的增长趋势说清楚。",
+        tabs: {
+          "结论": `<p><b>复杂度本质：</b>描述输入规模 n 增长时，时间或额外空间如何增长。大 O 看增长上界，通常忽略常数项和低阶项。面试里要说明你讨论的是最坏、平均、最好还是均摊。</p><ul><li>时间复杂度：运行步骤随 n 的增长趋势。</li><li>空间复杂度：额外占用内存随 n 的增长趋势。</li><li>不要说“这个算法复杂度是 n”，要说“时间复杂度是 O(n)”。</li></ul>`,
+          "速记": `<ul><li><b>O(1)：</b>数组下标访问、哈希表平均查找。</li><li><b>O(log n)：</b>二分查找、平衡树高度、B+ 树索引查找层数。</li><li><b>O(n)：</b>一次完整遍历。</li><li><b>O(n log n)：</b>归并排序、堆排序、快排平均。</li><li><b>O(n²)：</b>两层独立循环、朴素两数配对。</li><li><b>O(2^n)：</b>枚举所有子集。</li><li><b>O(n!)：</b>全排列搜索。</li></ul>`,
+          "判断方法": `<ul><li><b>循环：</b>看循环次数是否依赖 n。两层循环不一定都是 O(n²)，内层如果每次折半可能是 O(n log n)。</li><li><b>递归：</b>看递归调用次数、每层工作量、递归深度。</li><li><b>数据结构：</b>说明平均和最坏，比如 HashMap 平均 O(1)，极端冲突最坏 O(n)。</li><li><b>多阶段：</b>相加取高阶，比如排序 O(n log n) + 遍历 O(n)，整体 O(n log n)。</li><li><b>嵌套但非独立：</b>双指针虽然有 while 嵌套感，但左右指针总共最多移动 n 次，所以是 O(n)。</li></ul>`,
+          "边界概念": `<ul><li><b>最好复杂度：</b>最理想输入下的成本，比如插入排序数组已基本有序时接近 O(n)。</li><li><b>最坏复杂度：</b>任何输入下都不会超过的上界，面试最常问。</li><li><b>平均复杂度：</b>按输入分布取平均，通常需要假设。</li><li><b>均摊复杂度：</b>单次可能贵，但摊到一串操作上很便宜，如动态数组扩容，单次扩容 O(n)，追加均摊 O(1)。</li></ul>`,
+          "背诵版": `<p>面试可以这样说：我先看输入规模 n，再看代码里哪些操作随 n 增长。单层遍历通常是 O(n)，两层独立循环是 O(n²)，每轮规模减半是 O(log n)，排序通常是 O(n log n)。如果是递归，我会看递归树的层数和每层工作量。表达时要区分最坏、平均和均摊，比如 HashMap 平均查找 O(1)，但冲突极端时可能退化；动态数组扩容单次 O(n)，但连续追加的均摊复杂度是 O(1)。</p>`
+        }
+      }
+    ];
+
+    const knowledgeExtras = {
+      "MQ 消息队列": {
+        slogan: "记忆主线：为什么用 MQ，怎么保证可靠，出问题怎么排查。",
+        flow: [
+          ["生产", "业务服务把事件发送给 Broker，发送成功要有确认或本地消息表兜底。"],
+          ["存储", "Broker 把消息写入队列或 topic，按配置持久化和复制。"],
+          ["投递", "消费者按 consumer group 拉取或接收消息，组内分摊消费。"],
+          ["确认", "业务处理成功后 ack，失败进入重试、延迟队列或死信队列。"],
+          ["治理", "用幂等、监控、告警、限流、补偿处理重复、积压和失败。"]
+        ],
+        memory: [
+          ["一句口诀", "生产确认，Broker 持久，消费 ack，失败重试，重复幂等。"],
+          ["核心矛盾", "异步提高吞吐和解耦，但牺牲了简单性和强一致。"],
+          ["面试关键词", "confirm、ack、幂等、死信、延迟队列、消费积压。"],
+          ["工程边界", "顺序、可靠和高吞吐很难同时拉满，必须按业务取舍。"]
+        ],
+        traps: [
+          "只说 MQ 解耦，不说引入后的重复消费和消息丢失。",
+          "把重试当万能方案，却没有幂等保护。",
+          "顺序消息只说单线程消费，不说吞吐下降。",
+          "消息积压只说加机器，不分析生产速率和消费耗时。"
+        ],
+        extensions: [
+          "Outbox 模式适合解决 DB 事务和消息发送的一致性。",
+          "延迟队列可用于订单超时关闭、重试退避、定时任务触发。",
+          "Kafka 更偏日志流和高吞吐，RabbitMQ 更偏灵活路由，RocketMQ 常用于事务消息和业务消息。"
+        ],
+        drills: [
+          ["如何保证消息不丢？", "分生产端、Broker、消费端三段：生产端 confirm 或 outbox，Broker 持久化和副本，消费端业务成功后 ack，失败重试或死信。"],
+          ["消息重复消费怎么处理？", "消费者做幂等：业务唯一键、幂等表、状态机校验、去重缓存；重复消息返回同一结果，不重复产生副作用。"],
+          ["消息积压怎么排查？", "看生产速率是否突增、消费耗时是否变长、消费者是否异常、下游是否慢；临时扩容消费者、批量消费、拆队列、降级非核心消息。"]
+        ]
+      },
+      "架构设计方法": {
+        slogan: "记忆主线：需求先行，容量推导，组件拆分，可靠性收尾。",
+        flow: [
+          ["澄清", "问清核心功能、用户量、读写比例、延迟、一致性和可用性目标。"],
+          ["估算", "估 QPS、峰值、存储量、带宽、热点和增长速度。"],
+          ["建模", "设计核心实体、表结构、索引、缓存 key 和接口。"],
+          ["拆分", "拆 API、服务、DB、缓存、MQ、搜索、对象存储等组件。"],
+          ["保障", "补限流、熔断、降级、重试、幂等、监控、容灾和演进路径。"]
+        ],
+        memory: [
+          ["一句口诀", "问需求，估容量，定接口，画数据，拆组件，补容灾。"],
+          ["核心矛盾", "架构设计就是在成本、复杂度、性能和可靠性之间取舍。"],
+          ["面试关键词", "QPS、读写比、热点、缓存、MQ、分库分表、监控。"],
+          ["工程边界", "不要一上来微服务；先说明当前阶段为什么需要或不需要。"]
+        ],
+        traps: [
+          "不问需求直接画架构。",
+          "只堆 Redis、MQ、ES，不说明为什么需要。",
+          "没有容量估算，无法解释单库是否够用。",
+          "忽略故障、监控和降级，架构无法上线。"
+        ],
+        extensions: [
+          "高并发读多系统优先考虑缓存、CDN、读写分离和预计算。",
+          "写多系统要重点关注分区、批量写、异步化、幂等和数据一致性。",
+          "架构演进要从简单可用开始，再按瓶颈引入复杂组件。"
+        ],
+        drills: [
+          ["设计题第一步为什么不是画图？", "因为架构服务于需求，必须先问清功能边界、规模、延迟、一致性和可用性目标，否则组件选择没有依据。"],
+          ["如何判断是否要引入 MQ？", "看是否存在同步链路过长、峰值突刺、下游处理慢、多下游解耦、最终一致需求；同时评估重复、丢失和延迟成本。"],
+          ["系统设计里容量估算有什么用？", "容量估算决定单机/集群、DB 分片、缓存容量、带宽、队列长度和扩容策略，不估算就无法解释架构取舍。"]
+        ]
+      },
+      "RAG 检索增强生成": {
+        slogan: "记忆主线：文档入库，问题检索，重排压缩，带引用生成。",
+        flow: [
+          ["解析", "把 PDF、网页、Word 等文档解析成带标题、段落和来源的文本。"],
+          ["切分", "按语义、标题、段落切 chunk，保留元数据和来源。"],
+          ["向量", "用 embedding 模型把 chunk 转成向量并写入向量库。"],
+          ["检索", "用户问题先改写，再做向量检索、关键词检索或混合检索。"],
+          ["生成", "重排后把相关上下文放进 prompt，让模型基于材料回答并给引用。"]
+        ],
+        memory: [
+          ["一句口诀", "切得好，召得准，排得对，答得稳，有引用。"],
+          ["核心矛盾", "RAG 不是模型万能，答案质量首先取决于检索到的上下文质量。"],
+          ["面试关键词", "chunk、embedding、vector DB、hybrid search、rerank、citation、ACL。"],
+          ["工程边界", "私有知识和权限控制必须进检索链路，不能只靠 prompt。"]
+        ],
+        traps: [
+          "以为接入向量库就是 RAG，忽略文档解析和 chunk 策略。",
+          "只做向量检索，不考虑关键词精确匹配和 rerank。",
+          "没有引用来源，用户无法验证答案。",
+          "忘记权限过滤，导致知识库越权泄露。"
+        ],
+        extensions: [
+          "Hybrid search 能兼顾语义相似和关键词精确命中。",
+          "Query rewrite 可把口语问题改写成更适合检索的查询。",
+          "RAG 评估常看 faithfulness、answer relevance、context precision、context recall。"
+        ],
+        drills: [
+          ["RAG 为什么能减少幻觉？", "因为模型生成前拿到了外部检索材料，prompt 约束它基于材料回答；但前提是检索材料正确且相关。"],
+          ["Chunk 太大或太小分别有什么问题？", "太小会丢上下文，答案不完整；太大会降低召回精度，占用上下文窗口，还容易带入噪声。"],
+          ["知识库问答答非所问怎么排查？", "从 query 改写、chunk 切分、embedding 质量、topK 召回、rerank、prompt 约束和文档权限逐层排查。"]
+        ]
+      },
+      "Redis 缓存一致性": {
+        slogan: "记忆主线：先承认最终一致，再讲 Cache Aside，再补并发窗口和补偿。",
+        flow: [
+          ["读", "读请求先查 Redis；命中直接返回，未命中再查 MySQL。"],
+          ["回填", "查 DB 后写入 Redis，并设置 TTL，最好加随机抖动。"],
+          ["写", "写请求先更新 MySQL，事务提交成功后删除缓存。"],
+          ["并发", "警惕旧值回填、删除失败、热点 key 失效带来的不一致窗口。"],
+          ["补偿", "用延迟双删、重试队列、binlog 订阅、定期校验兜底。"]
+        ],
+        memory: [
+          ["一句口诀", "读缓存，写数据库，删缓存，失败补偿。"],
+          ["核心矛盾", "缓存是副本，副本和源数据之间天然有时间差。"],
+          ["面试关键词", "Cache Aside、最终一致、延迟双删、binlog 删除缓存。"],
+          ["工程边界", "强一致要牺牲吞吐；热点要考虑击穿和雪崩。"]
+        ],
+        traps: [
+          "把缓存一致性说成强一致，却没有解释代价。",
+          "只说延迟双删，不说明它解决的是旧值回填窗口。",
+          "忽略删除缓存失败后的重试和对账。",
+          "没有区分击穿、穿透、雪崩。"
+        ],
+        extensions: [
+          "Canal/Debezium 监听 binlog 删除缓存，适合缓存删除逻辑和业务写路径解耦。",
+          "逻辑过期适合热点 key：旧值可短暂返回，后台异步刷新。",
+          "缓存空值和布隆过滤器能缓解穿透，但要考虑误判和空值 TTL。"
+        ],
+        drills: [
+          ["为什么推荐更新 DB 后删除缓存，而不是更新 DB 后更新缓存？", "因为缓存可能是复杂聚合结果，直接更新容易遗漏、乱序或写入旧结构；删除缓存让下一次读从 DB 重建，更简单稳妥。"],
+          ["延迟双删到底在防什么？", "防并发读在写事务附近把旧 DB 值回填到缓存。第一次删减少旧缓存，延迟后再删清理可能被回填的旧值。"],
+          ["Redis 删除失败怎么办？", "把删除事件写入重试队列或消息表，失败告警；也可以监听 binlog 做异步补偿删除，并用 TTL 和定期校验兜底。"]
+        ]
+      },
+      "MySQL 主从复制": {
+        slogan: "记忆主线：主库写 binlog，从库拉 relay log，再重放；问题集中在延迟和一致性。",
+        flow: [
+          ["提交", "主库执行事务，提交阶段记录 binlog。"],
+          ["拉取", "从库 IO 线程连接主库，请求某个位点或 GTID 之后的 binlog。"],
+          ["中继", "从库把拉到的日志写入 relay log。"],
+          ["重放", "从库 SQL 线程执行 relay log，让数据追上主库。"],
+          ["读写", "读写分离提升读能力，但必须处理刚写完读不到的问题。"]
+        ],
+        memory: [
+          ["一句口诀", "主写 binlog，从拉 relay，SQL 重放，延迟要防。"],
+          ["核心矛盾", "主库提交和从库重放不是同一瞬间，中间有复制延迟。"],
+          ["面试关键词", "binlog、relay log、IO 线程、SQL 线程、GTID、半同步。"],
+          ["工程边界", "越强一致，写入延迟和系统复杂度越高。"]
+        ],
+        traps: [
+          "把 redo log 和 binlog 混为一谈。",
+          "只会说读写分离，不会说主从延迟导致读旧数据。",
+          "不知道从库有 IO 线程和 SQL 线程两个阶段。",
+          "半同步说成完全不丢数据。"
+        ],
+        extensions: [
+          "GTID 可以让主从切换和复制定位更简单，减少手工找 file/position。",
+          "大事务会让从库长时间重放，线上要控制批量更新大小。",
+          "分析型慢查询不要直接压在复制从库上，否则会放大延迟。"
+        ],
+        drills: [
+          ["用户下单成功后立刻查订单，读从库查不到怎么办？", "关键读走主库，或读写绑定到主库一段时间；更精细可以等待从库追到写事务的 GTID 后再读。"],
+          ["主从延迟常见原因有哪些？", "大事务、慢 SQL、无索引更新、从库资源不足、网络抖动、从库承担复杂查询、复制线程卡住。"],
+          ["异步复制和半同步复制区别是什么？", "异步复制主库提交不等从库确认；半同步至少等一个从库确认收到日志再返回，可靠性更好但写延迟更高。"]
+        ]
+      },
+      "B+ 树": {
+        slogan: "记忆主线：数据库怕 IO，B+ 树靠低树高和叶子链表减少 IO、优化范围扫描。",
+        flow: [
+          ["页", "磁盘读取以页为单位，InnoDB 默认页大小通常是 16KB。"],
+          ["多叉", "一个页里放很多 key 和指针，分叉多，树高低。"],
+          ["导航", "非叶子节点只做导航，比较 key 后找到下一层页。"],
+          ["叶子", "数据集中在叶子节点，叶子按 key 有序并相互连接。"],
+          ["范围", "定位起点叶子后沿链表顺序扫描，范围查询效率高。"]
+        ],
+        memory: [
+          ["一句口诀", "非叶导航，叶子存数，叶间成链，范围顺扫。"],
+          ["核心矛盾", "索引不是怕比较，而是怕随机磁盘 IO。"],
+          ["面试关键词", "磁盘页、低树高、叶子链表、聚簇索引、回表。"],
+          ["工程边界", "索引能加速查询，也会增加写入维护成本。"]
+        ],
+        traps: [
+          "只说 B+ 树是平衡树，不说为什么适合磁盘。",
+          "不知道聚簇索引和二级索引叶子节点存的东西不同。",
+          "把覆盖索引和回表讲反。",
+          "忽略联合索引的最左前缀。"
+        ],
+        extensions: [
+          "覆盖索引能避免回表，常用于高频查询字段组合优化。",
+          "索引下推可以在存储引擎层提前过滤，减少回表次数。",
+          "页分裂会影响写入性能，所以自增主键通常比随机 UUID 更友好。"
+        ],
+        drills: [
+          ["为什么 B+ 树比红黑树适合 MySQL 索引？", "红黑树分叉少、树高高，磁盘 IO 次数多；B+ 树一个页能存很多 key，树高低，更适合磁盘页读取。"],
+          ["二级索引为什么会回表？", "InnoDB 二级索引叶子通常存二级 key 和主键值，如果查询字段不在二级索引里，需要用主键再查聚簇索引。"],
+          ["为什么 B+ 树范围查询强？", "叶子节点有序链表，定位起点后可以顺序扫描，不需要反复回到上层节点。"]
+        ]
+      },
+      "算法复杂度表达": {
+        slogan: "记忆主线：先找 n，再看增长次数，最后区分最坏、平均和均摊。",
+        flow: [
+          ["规模", "明确输入规模 n 是什么，比如数组长度、节点数、字符串长度。"],
+          ["次数", "数关键操作执行次数，而不是数代码行。"],
+          ["取高", "多阶段相加时保留最高阶，省略常数和低阶项。"],
+          ["递归", "递归看层数、分支数、每层工作量。"],
+          ["边界", "说明最坏、平均、最好或均摊，不要混着说。"]
+        ],
+        memory: [
+          ["一句口诀", "单层 n，折半 log，排序 nlogn，双层 n²，子集 2ⁿ。"],
+          ["核心矛盾", "复杂度看增长趋势，不看机器速度和常数优化。"],
+          ["面试关键词", "最坏、平均、均摊、递归树、空间复杂度。"],
+          ["工程边界", "大 O 忽略常数，但线上小 n 场景常数也可能重要。"]
+        ],
+        traps: [
+          "看到两层循环就机械说 O(n²)，忽略双指针总移动次数。",
+          "只说时间复杂度，不说额外空间。",
+          "把 HashMap 永远说成 O(1)，不提平均和最坏。",
+          "递归只看递归深度，不看分支数量。"
+        ],
+        extensions: [
+          "动态规划复杂度通常看状态数乘以每个状态转移成本。",
+          "图算法复杂度常用 V 和 E 表达，比如 BFS 是 O(V+E)。",
+          "均摊分析常见于动态数组、哈希表扩容、并查集路径压缩。"
+        ],
+        drills: [
+          ["为什么双指针通常是 O(n)，不是 O(n²)？", "虽然有循环嵌套感，但左右指针总共最多移动 n 次，每个元素被访问常数次，所以是 O(n)。"],
+          ["HashMap 查找复杂度怎么严谨表达？", "平均 O(1)，但哈希冲突严重时可能退化；Java 里链表树化后最坏可接近 O(log n)，具体要看实现。"],
+          ["动态数组 append 为什么均摊 O(1)？", "扩容那次要搬 O(n)，但不是每次都扩容；把搬迁成本摊到多次 append 上，平均每次仍是常数级。"]
+        ]
+      }
+    };
+
+    const scenarios = [
+      {
+        title: "如何保证 MQ 消息不丢、不重、不乱",
+        desc: "考 MQ 可靠性、幂等、顺序和工程取舍。",
+        answers: {
+          "短答": ["消息可靠性要分生产端、Broker、消费端三段看。", "不丢靠 confirm/outbox、持久化副本、消费成功后 ack。", "不重靠消费端幂等；不乱靠同一业务 key 路由到同一队列或分区。"],
+          "展开": ["生产端发送成功不等于业务事务一定一致，所以订单这类场景常用本地消息表或事务消息。", "Broker 要开启持久化和副本，但可靠性越强，吞吐和延迟成本越高。", "消费者要先处理业务再 ack，失败进入重试或死信；因为至少一次投递会重复，所以幂等是底线。"],
+          "追问": ["如果 DB 成功但消息没发出去怎么办？用 outbox，同事务写业务表和消息表，后台扫描投递。", "顺序消息为什么吞吐低？同一 key 必须串行消费，不能无限并发。", "死信队列堆积说明什么？说明重试后仍失败，需要告警、补偿或人工介入。"],
+          "复盘": ["三段可靠性", "消费者幂等", "顺序取舍", "死信补偿"]
+        }
+      },
+      {
+        title: "秒杀场景如何用 MQ 削峰",
+        desc: "考高并发入口、队列缓冲、库存一致性。",
+        answers: {
+          "短答": ["入口先限流、防刷、校验资格。", "库存预扣或令牌化，成功请求写入 MQ 排队。", "消费者按能力创建订单，失败释放库存或补偿。"],
+          "展开": ["MQ 不是直接解决超卖，超卖要靠库存扣减的原子性，比如 Redis Lua 或 DB 乐观锁。", "MQ 的作用是把瞬时请求变成可控消费速率，保护下游订单和支付系统。", "用户体验上可以返回排队中，再异步查询结果；同时要设置超时关闭和补偿。"],
+          "追问": ["MQ 积压用户一直等怎么办？返回排队状态，设置超时，必要时降级或关闭入口。", "如何防重复下单？用户商品维度唯一键、幂等表、状态机。", "库存扣了订单失败怎么办？补偿释放库存，或用状态机和定时任务兜底。"],
+          "复盘": ["入口限流", "库存原子扣减", "MQ 排队", "异步结果", "补偿释放"]
+        }
+      },
+      {
+        title: "设计一个短链系统",
+        desc: "考架构设计流程、容量估算、缓存和数据模型。",
+        answers: {
+          "短答": ["核心接口是创建短链和访问短链跳转。", "短码可用发号器、自增 ID 转 base62 或随机码冲突重试。", "读多写少，短码映射适合 Redis 缓存 + DB 持久化。"],
+          "展开": ["先问规模、有效期、自定义短链、统计需求、是否防刷。", "数据表存 short_code、long_url、用户、过期时间、状态；short_code 建唯一索引。", "访问链路要极短：解析短码，查缓存，未命中查 DB 回填，返回 301/302。统计点击可以异步写 MQ。"],
+          "追问": ["301 和 302 怎么选？301 永久跳转利于缓存但不利于统计变化；302 临时跳转更灵活。", "热点短链怎么办？缓存预热、本地缓存、限流。", "如何统计 UV/PV？点击事件异步进 MQ，实时或离线聚合。"],
+          "复盘": ["需求澄清", "短码生成", "缓存 DB", "跳转状态码", "异步统计"]
+        }
+      },
+      {
+        title: "设计一个 feed 流系统",
+        desc: "考架构设计、推拉模式、缓存和扩散策略。",
+        answers: {
+          "短答": ["feed 流主要有拉模式、推模式和推拉结合。", "普通用户可 fanout on write，把发布内容推到粉丝收件箱。", "大 V 粉丝多，适合 fanout on read，读时聚合。"],
+          "展开": ["写扩散读快，但大 V 发布会造成巨大写放大；读扩散写快，但读取要聚合多个来源。", "常见方案是普通用户写扩散，大 V 读扩散，时间线用 Redis/ZSet 或专门存储维护。", "点赞评论计数可异步聚合，内容详情和用户信息用缓存。"],
+          "追问": ["如何保证时间线顺序？按时间戳或全局递增 ID 排序，注意分页游标。", "如何处理删除动态？收件箱标记过滤或异步清理。", "如何降级？只展示最近缓存、减少聚合源、关闭非核心计数。"],
+          "复盘": ["推拉模式", "大 V 特殊处理", "时间线存储", "异步计数", "分页游标"]
+        }
+      },
+      {
+        title: "设计一个企业知识库 RAG 问答系统",
+        desc: "考 RAG 链路、权限、评估和幻觉控制。",
+        answers: {
+          "短答": ["离线把文档解析、切分、embedding 后写入向量库。", "在线对问题改写，检索 topK，rerank 后拼上下文给模型回答。", "答案要带引用；检索前后都要做权限过滤。"],
+          "展开": ["文档解析要保留标题、层级、表格、来源和版本。chunk 要按语义切，不能机械固定长度。", "检索可用向量 + 关键词混合检索，再用 rerank 提升相关性。", "prompt 要要求只基于材料回答，无依据就说不知道，并返回引用片段。"],
+          "追问": ["答非所问怎么排查？看 query rewrite、chunk、embedding、topK、rerank 和 prompt。", "如何防越权？文档入库带 ACL 元数据，检索时按用户权限过滤。", "如何评估效果？看召回率、上下文精确率、答案忠实度、人工标注集。"],
+          "复盘": ["文档入库", "混合检索", "rerank", "引用", "权限", "评估"]
+        }
+      },
+      {
+        title: "设计一个限流器：一分钟 100 次",
+        desc: "考 Redis、原子性、边界窗口、降级。",
+        answers: {
+          "短答": ["单机可用令牌桶或滑动窗口，分布式用 Redis。", "按 userId、IP、appId、接口路径组合成限流 key。", "Redis Lua 原子完成计数、过期和判断，超过阈值返回 429 或降级。"],
+          "展开": ["固定窗口简单但边界会突刺；滑动窗口更平滑；令牌桶支持可控突发。", "生产里要有白名单、灰度阈值、本地兜底、监控告警。", "Redis 异常时可短暂走本地限流，或者保守拒绝高风险请求。"],
+          "追问": ["为什么 Lua？多个 Redis 操作必须原子化。", "怎么防突刺？用滑动窗口或令牌桶，不只用固定窗口。", "返回什么？HTTP 429、排队提示、降级结果，取决于业务。"],
+          "复盘": ["说清限流维度", "说清算法取舍", "说清 Redis 原子性", "说清异常兜底"]
+        }
+      },
+      {
+        title: "订单异步下发怎么做",
+        desc: "考 MQ、事务一致性、状态机。",
+        answers: {
+          "短答": ["下单先落库，订单状态为待下发。", "同事务写 outbox 消息，由后台或 CDC 投递 MQ。", "消费者调用下游，成功更新状态，失败进入重试或死信。"],
+          "展开": ["不要在下单事务里同步调下游，避免下游慢拖垮核心链路。", "本地消息表让订单和消息具备原子性。", "消费端必须幂等，订单状态机要限制重复流转。"],
+          "追问": ["消息重复怎么办？消费端唯一键和状态机幂等。", "消息丢了怎么办？outbox 未发送扫描、MQ confirm、对账补偿。", "下游不可用怎么办？暂停消费、限速重试、死信告警。"],
+          "复盘": ["订单事务", "outbox/MQ", "消费幂等", "失败补偿"]
+        }
+      },
+      {
+        title: "幂等怎么保证",
+        desc: "考唯一键、状态机、重复请求。",
+        answers: {
+          "短答": ["幂等是同一请求执行多次，结果和一次一致。", "入口用 requestId、业务单号或幂等 token 做唯一约束。", "重复请求返回第一次结果或当前业务状态。"],
+          "展开": ["DB 唯一索引是关键防线，Redis setnx 只能做短期拦截。", "幂等表要保存请求摘要，避免同一个 key 携带不同参数。", "状态机要限制已支付、已发货这类终态再次执行副作用。"],
+          "追问": ["只靠前端按钮置灰行不行？不行。", "Redis 过期后重复怎么办？关键业务用持久化幂等表。", "重试为什么依赖幂等？因为重试天然会重复执行。"],
+          "复盘": ["唯一业务键", "数据库约束", "状态机", "重复返回策略"]
+        }
+      },
+      {
+        title: "失败重试和补偿怎么做",
+        desc: "考可靠性、退避、死信和人工兜底。",
+        answers: {
+          "短答": ["先区分可重试和不可重试失败。", "可重试用指数退避加随机抖动，设置最大次数。", "超过阈值进死信、补偿任务或人工处理。"],
+          "展开": ["网络抖动、5xx、超时通常可重试；参数错误一般不可重试。", "重试要配合幂等，避免重复扣款或重复发货。", "补偿要看业务语义，不一定是简单反向操作。"],
+          "追问": ["如何避免打爆下游？退避、限速、熔断。", "补偿失败怎么办？告警并进入人工任务池。", "如何排查？每次失败记录上下文和 traceId。"],
+          "复盘": ["错误分类", "退避重试", "幂等保护", "死信补偿"]
+        }
+      },
+      {
+        title: "接口突然从 1 秒变成 30 秒怎么排查",
+        desc: "考线上排障路径。",
+        answers: {
+          "短答": ["先确认范围：单接口、单实例、全量、某区域还是某用户。", "看监控分层定位：网关、应用、DB、Redis、MQ、下游。", "用 trace、慢 SQL、线程栈、日志找到耗时点。"],
+          "展开": ["先看是否刚发布、流量突增、配置变更。", "应用层看 CPU、GC、线程池、连接池、锁等待。", "DB 看慢 SQL、索引、锁、主从延迟；缓存看命中率和慢日志。"],
+          "追问": ["只有 P99 变慢？看尾延迟、少量慢下游、锁竞争、GC。", "怎么止血？限流、降级、扩容、回滚、切读主库。", "下游慢怎么办？超时、熔断、隔离线程池。"],
+          "复盘": ["确认范围", "看发布流量", "分层监控", "trace 钻取", "止血方案"]
+        }
+      }
+    ];
+
+    const quizzes = [
+      ["MQ 消息重复消费最核心的处理方式是？", ["消费者幂等", "加大队列容量", "减少 topic 数量"], 0, "MQ 常见是至少一次投递，重复不可完全避免，消费端幂等是底线。"],
+      ["消息可靠性排查应该分哪几段？", ["生产端、Broker、消费端", "前端、网关、浏览器", "CPU、内存、磁盘"], 0, "不丢消息要分发送确认、Broker 持久化/副本、消费 ack 三段看。"],
+      ["架构设计题第一步应该做什么？", ["澄清需求和非功能指标", "直接画微服务架构", "先选数据库"], 0, "不问规模、延迟、一致性和读写比例，后面的组件选择都没有依据。"],
+      ["RAG 在线链路最合理的顺序是？", ["问题改写 -> 检索 -> 重排 -> 拼上下文 -> 生成", "生成 -> 检索 -> 切分 -> 入库", "训练模型 -> 删除文档 -> 生成"], 0, "RAG 是先检索再生成，重排和上下文构造会显著影响效果。"],
+      ["企业 RAG 最容易被忽略但很危险的问题是？", ["权限过滤", "按钮颜色", "字体大小"], 0, "知识库里常有私有文档，检索链路必须做 ACL 过滤，不能靠 prompt 防越权。"],
+      ["缓存一致性常用写路径是？", ["更新 DB 后删除缓存", "只更新缓存", "先删缓存再异步写 DB"], 0, "Cache Aside 写路径常见是先更新 DB，再删除缓存。"],
+      ["MySQL 从库重放主库变更依赖？", ["redo log", "binlog 和 relay log", "Redis AOF"], 1, "主库写 binlog，从库拉取后写 relay log 并重放。"],
+      ["B+ 树适合范围查询是因为？", ["叶子节点有序链表", "所有节点都有整行数据", "只能走等值查询"], 0, "定位到起点叶子后可以沿链表顺序扫描。"],
+      ["两层独立 n 循环复杂度是？", ["O(log n)", "O(n)", "O(n²)"], 2, "n 乘 n，省略常数后是 O(n²)。"],
+      ["失败重试最需要配合什么？", ["幂等", "更长超时", "更多机器"], 0, "重试会重复执行，关键副作用必须幂等。"]
+    ];
+
+    const contextText = `
+你现在不是讲课老师，而是严格、挑剔、追根问底的后端一面面试官。你的目标是检验候选人是否真的掌握，而不是安慰候选人。
+
+候选人今天要补的知识点：
+1. MQ 消息队列：异步、削峰、解耦、confirm、ack、持久化、重复消费、顺序消息、死信队列、消息积压、outbox。
+2. 架构设计方法：需求澄清、容量估算、接口设计、数据模型、缓存、MQ、搜索、分库分表、限流熔断降级、监控容灾。
+3. RAG 检索增强生成：文档解析、chunk、embedding、向量库、混合检索、rerank、prompt、引用、权限过滤、效果评估。
+4. 复习串联：Redis 缓存一致性、MySQL 主从复制、B+ 树、算法复杂度表达。
+
+必须覆盖的场景题：
+1. 如何保证 MQ 消息不丢、不重、不乱。
+2. 秒杀场景如何用 MQ 削峰。
+3. 设计一个短链系统。
+4. 设计一个 feed 流系统。
+5. 设计一个企业知识库 RAG 问答系统。
+6. 复习旧题：限流器、订单异步下发、幂等、失败重试补偿、慢接口排查。
+
+面试规则：
+- 一次只问一个问题，不要连续抛出多个问题。
+- 优先让候选人先回答，不要一上来给标准答案。
+- 候选人回答后，先给 0-10 分，再指出具体漏洞，不能只说“不错”。
+- 如果候选人回答空泛，要追问“落到具体流程/异常/数据结构/指标”。
+- 如果候选人只背概念，要追问工程场景和失败路径。
+- 如果候选人答错，要明确纠正，并给一个更好的 60 秒回答模板。
+- 每轮最后必须给下一道追问，难度逐步提高。
+- 语气严厉但专业，不羞辱人，不跑题。
+- 所有问题和点评都围绕上面的知识点和场景题。
+`;
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    document.querySelectorAll("[data-jump]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = byId(button.dataset.jump);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.querySelectorAll(".nav-link").forEach((item) => item.classList.remove("active"));
+        if (button.classList.contains("nav-link")) button.classList.add("active");
+      });
+    });
+
+    function renderKnowledge() {
+      const grid = byId("knowledgeGrid");
+      grid.innerHTML = "";
+      knowledge.forEach((item) => {
+        const card = document.createElement("article");
+        card.className = "card knowledge-card";
+        const tabNames = Object.keys(item.tabs);
+        const extra = knowledgeExtras[item.title];
+        card.innerHTML = `
+          <div class="card-head">
+            <div><h3>${item.title}</h3><p>${item.intro}</p></div>
+            <span class="badge">${item.tag}</span>
+          </div>
+          <div class="tabs">
+            ${tabNames.map((name, index) => `<button class="chip ${index === 0 ? "active" : ""}" data-tab="${name}">${name}</button>`).join("")}
+          </div>
+          <div class="card-body">
+            <div class="knowledge-layout">
+              <div>
+                ${tabNames.map((name, index) => `<div class="explain ${index === 0 ? "active" : ""}" data-panel="${name}">${item.tabs[name]}</div>`).join("")}
+              </div>
+              <aside class="study-stack">
+                <div class="study-box">
+                  <h4>原理链路</h4>
+                  <p>${extra.slogan}</p>
+                  <div class="principle-flow" style="margin-top:10px;">
+                    ${extra.flow.map((step, index) => `
+                      <button class="flow-step ${index === 0 ? "active" : ""}" data-step-detail="${step[1]}">
+                        <strong>${index + 1}</strong>
+                        <span><b>${step[0]}</b><br>${step[1]}</span>
+                      </button>
+                    `).join("")}
+                  </div>
+                </div>
+                <div class="study-box">
+                  <h4>记忆卡片</h4>
+                  <div class="memory-grid">
+                    ${extra.memory.map((pair) => `<div class="memory-card"><b>${pair[0]}</b><span>${pair[1]}</span></div>`).join("")}
+                  </div>
+                </div>
+                <div class="study-box">
+                  <h4>随机追问</h4>
+                  <div class="drill-question">${extra.drills[0][0]}</div>
+                  <div class="drill-answer">${extra.drills[0][1]}</div>
+                  <div class="study-actions">
+                    <button class="ghost drill-new" type="button">换一道</button>
+                    <button class="ghost drill-toggle" type="button">显示答案</button>
+                  </div>
+                </div>
+                <div class="study-box">
+                  <h4>易错点</h4>
+                  <ul>${extra.traps.map((trap) => `<li>${trap}</li>`).join("")}</ul>
+                </div>
+                <div class="study-box">
+                  <h4>拓展知识</h4>
+                  <ul>${extra.extensions.map((line) => `<li>${line}</li>`).join("")}</ul>
+                </div>
+              </aside>
+            </div>
+          </div>
+        `;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((node) => node.classList.remove("active"));
+            card.querySelectorAll(".explain").forEach((node) => node.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelectorAll(".flow-step").forEach((step) => {
+          step.addEventListener("click", () => {
+            card.querySelectorAll(".flow-step").forEach((node) => node.classList.remove("active"));
+            step.classList.add("active");
+          });
+        });
+        let drillIndex = 0;
+        const questionBox = card.querySelector(".drill-question");
+        const answerBox = card.querySelector(".drill-answer");
+        card.querySelector(".drill-new").addEventListener("click", () => {
+          drillIndex = (drillIndex + 1) % extra.drills.length;
+          questionBox.textContent = extra.drills[drillIndex][0];
+          answerBox.textContent = extra.drills[drillIndex][1];
+          answerBox.classList.remove("show");
+          card.querySelector(".drill-toggle").textContent = "显示答案";
+        });
+        card.querySelector(".drill-toggle").addEventListener("click", (event) => {
+          answerBox.classList.toggle("show");
+          event.currentTarget.textContent = answerBox.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    let selectedScenario = 0;
+    let selectedScenarioTab = "短答";
+
+    function renderScenarioMenu() {
+      const menu = byId("scenarioMenu");
+      menu.innerHTML = "";
+      scenarios.forEach((item, index) => {
+        const button = document.createElement("button");
+        button.className = index === selectedScenario ? "active" : "";
+        button.innerHTML = `<b>${index + 1}. ${item.title}</b><span>${item.desc}</span>`;
+        button.addEventListener("click", () => {
+          selectedScenario = index;
+          selectedScenarioTab = "短答";
+          renderScenarioMenu();
+          renderScenario();
+        });
+        menu.appendChild(button);
+      });
+    }
+
+    function renderScenario() {
+      const item = scenarios[selectedScenario];
+      byId("scenarioTitle").textContent = item.title;
+      byId("scenarioDesc").textContent = item.desc;
+      const tabs = Object.keys(item.answers);
+      byId("scenarioTabs").innerHTML = tabs.map((tab) => `<button class="chip ${tab === selectedScenarioTab ? "active" : ""}" data-scene-tab="${tab}">${tab}</button>`).join("");
+      byId("scenarioTabs").querySelectorAll(".chip").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedScenarioTab = button.dataset.sceneTab;
+          renderScenario();
+        });
+      });
+      byId("scenarioAnswer").innerHTML = `<ul>${item.answers[selectedScenarioTab].map((line) => `<li>${line}</li>`).join("")}</ul>`;
+      byId("scenarioCanvas").innerHTML = item.answers["复盘"].map((line) => `<div class="mini"><b>${line}</b><span>回答时要主动覆盖。</span></div>`).join("");
+    }
+
+    function renderQuiz() {
+      const list = byId("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, options, answer, hint], qIndex) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `
+          <h3>${qIndex + 1}. ${q}</h3>
+          ${options.map((option, index) => `<button class="option" data-answer="${index}">${option}</button>`).join("")}
+          <p class="hint">${hint}</p>
+        `;
+        card.querySelectorAll(".option").forEach((option) => {
+          option.addEventListener("click", () => {
+            card.querySelectorAll(".option").forEach((node) => node.disabled = true);
+            const picked = Number(option.dataset.answer);
+            option.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll(".option")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    document.querySelectorAll(".checkline input").forEach((box) => {
+      box.addEventListener("change", () => {
+        const all = [...document.querySelectorAll(".checkline input")];
+        const done = all.filter((item) => item.checked).length;
+        byId("meter").style.width = `${done / all.length * 100}%`;
+      });
+    });
+
+    byId("runLimit").addEventListener("click", () => {
+      const seconds = Number(byId("windowSec").value);
+      const limit = Number(byId("limitCount").value);
+      const count = Number(byId("requestCount").value);
+      const algo = byId("limitAlgo").value;
+      const blocked = Math.max(0, count - limit);
+      const allowed = Math.min(count, limit);
+      const qps = limit / seconds;
+      const algoText = {
+        sliding: "滑动窗口更适合控制边界突刺，Redis 可用 zset 记录时间戳。",
+        fixed: "固定窗口实现最简单，但窗口边界可能瞬间放过两倍流量。",
+        token: "令牌桶按速率补充令牌，桶容量决定允许突发的大小。"
+      }[algo];
+      byId("limitResult").innerHTML = `
+        <h3>${blocked > 0 ? "需要限流" : "允许通过"}</h3>
+        <p>${seconds} 秒内限制 ${limit} 次，平均 ${qps.toFixed(2)} QPS。当前 ${count} 次，允许 ${allowed} 次，拦截 ${blocked} 次。</p>
+        <p>${algoText}</p>
+        <div class="token-viz">
+          ${Array.from({ length: Math.min(count, 140) }, (_, i) => `<span class="token ${i >= limit ? "blocked" : ""}"></span>`).join("")}
+        </div>
+      `;
+    });
+
+    byId("runComplexity").addEventListener("click", () => {
+      const kind = byId("complexityKind").value;
+      const n = Number(byId("inputN").value);
+      const log = Math.ceil(Math.log2(Math.max(n, 1)));
+      const map = {
+        one: ["O(n)", `遍历 ${n} 个元素，规模线性增长。`, "这段代码只有一层依赖 n 的循环，所以时间复杂度是 O(n)，额外空间看是否开新数组。"],
+        two: ["O(n²)", `大约 ${n * n} 次组合检查。`, "两层循环都和 n 相关，总成本是 n*n，省略常数后是 O(n²)。"],
+        half: ["O(log n)", `大约 ${log} 轮可以缩小到 1。`, "每轮把问题规模减半，典型是二分查找，所以是 O(log n)。"],
+        sort: ["O(n log n)", `排序主成本约 n*log₂n = ${n * log}。`, "排序 O(n log n)，后续一次遍历 O(n) 是低阶项，所以整体 O(n log n)。"],
+        subset: ["O(2^n)", n <= 30 ? `子集数量约 ${2 ** n}。` : "增长极快，n 稍大就不可接受。", "每个元素都有选或不选两种状态，所以是 O(2^n)。"]
+      };
+      const [bigO, scale, script] = map[kind];
+      byId("complexityResult").innerHTML = `<h3>${bigO}</h3><p>${scale}</p><p><b>面试说法：</b>${script}</p>`;
+    });
+
+    const savedKey = localStorage.getItem("deepseek_api_key");
+    if (savedKey) byId("apiKey").value = savedKey;
+    let interviewMessages = [];
+
+    byId("saveKey").addEventListener("click", () => {
+      localStorage.setItem("deepseek_api_key", byId("apiKey").value.trim());
+      addMessage("assistant", "已保存到本机浏览器。注意：纯前端调用会让浏览器持有你的 key，不适合共享电脑。");
+    });
+
+    byId("clearKey").addEventListener("click", () => {
+      localStorage.removeItem("deepseek_api_key");
+      byId("apiKey").value = "";
+      addMessage("assistant", "已清除本地保存的 API Key。");
+    });
+
+    byId("openAi").addEventListener("click", () => byId("aiPanel").classList.add("open"));
+    byId("closeAi").addEventListener("click", () => byId("aiPanel").classList.remove("open"));
+
+    byId("askTemplate").addEventListener("click", () => {
+      byId("question").value = "开始一场严格后端一面。请从 MQ 消息队列开始问我第一个问题，然后逐步追问架构设计和 RAG。一次只问一个问题，等我回答后再打分、指出漏洞并继续追问。";
+      byId("aiPanel").classList.add("open");
+      byId("question").focus();
+    });
+
+    function addMessage(role, text) {
+      const node = document.createElement("div");
+      node.className = `message ${role === "user" ? "user" : ""}`;
+      node.innerHTML = `<small>${role}</small>${escapeHtml(text)}`;
+      byId("chatLog").appendChild(node);
+      byId("chatLog").scrollTop = byId("chatLog").scrollHeight;
+      return node;
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    async function sendQuestion() {
+      const key = byId("apiKey").value.trim() || localStorage.getItem("deepseek_api_key");
+      const model = byId("modelName").value;
+      const question = byId("question").value.trim();
+      if (!question) return;
+      if (!key) {
+        addMessage("assistant", "先填 DeepSeek API Key。为了安全，我不会把 key 写入文件，只会保存在你的浏览器 localStorage。");
+        return;
+      }
+      addMessage("user", question);
+      interviewMessages.push({ role: "user", content: question });
+      byId("question").value = "";
+      const pending = addMessage("assistant", "思考中...");
+      try {
+        const response = await fetch("https://api.deepseek.com/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${key}`
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: contextText },
+              ...interviewMessages.slice(-12)
+            ],
+            temperature: 0.4,
+            max_tokens: 1200
+          })
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`${response.status} ${errorText.slice(0, 260)}`);
+        }
+        const data = await response.json();
+        const answerText = data.choices?.[0]?.message?.content || "没有返回内容。";
+        interviewMessages.push({ role: "assistant", content: answerText });
+        pending.innerHTML = `<small>assistant</small>${escapeHtml(answerText)}`;
+      } catch (error) {
+        interviewMessages.pop();
+        pending.innerHTML = `<small>assistant</small>${escapeHtml("调用失败：" + error.message + "\\n如果浏览器提示 CORS 或网络拦截，需要改成后端代理模式，避免前端直连暴露 key。")}`;
+      }
+    }
+
+    byId("sendQuestion").addEventListener("click", sendQuestion);
+    byId("question").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendQuestion();
+      }
+    });
+
+    byId("resetQuiz").addEventListener("click", renderQuiz);
+
+    renderKnowledge();
+    renderScenarioMenu();
+    renderScenario();
+    renderQuiz();
+  </script>
+</body>
+</html>
