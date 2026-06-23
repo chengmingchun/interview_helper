@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data Agent 与 AI Coding 面试专题</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --paper-deep: #e8dece;
+      --panel: rgba(255, 252, 245, 0.86);
+      --panel-solid: #fffaf0;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --soft-line: rgba(32, 26, 20, 0.08);
+      --accent: #d8652a;
+      --accent-2: #9f4d28;
+      --green: #427a50;
+      --green-soft: rgba(66, 122, 80, 0.13);
+      --blue: #386a91;
+      --blue-soft: rgba(56, 106, 145, 0.12);
+      --red: #b91c1c;
+      --red-soft: #feecec;
+      --dark: #171511;
+      --dark-2: #232018;
+      --code: #e8d9bd;
+      --shadow: 0 22px 70px rgba(60, 42, 24, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 10%, rgba(216, 101, 42, 0.11), transparent 28%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.65;
+    }
+
+    a { color: var(--accent-2); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+      width: min(1380px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 52px;
+    }
+
+    aside {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(244, 239, 230, 0.8);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+    }
+
+    aside strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    aside a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    aside a:hover {
+      color: var(--accent-2);
+      background: rgba(216, 101, 42, 0.12);
+    }
+
+    main { min-width: 0; }
+
+    .hero {
+      min-height: 430px;
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #fffaf0;
+      background:
+        linear-gradient(135deg, rgba(23, 21, 17, 0.94), rgba(159, 77, 40, 0.86)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500' viewBox='0 0 900 500'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.16'%3E%3Cpath d='M110 120h180v76H110zM390 86h180v76H390zM620 240h170v76H620zM260 330h230v76H260z'/%3E%3Cpath d='M290 158h100M570 124c72 0 72 154 72 154M490 368c110 0 118-90 130-90M200 196c0 116 60 142 60 172'/%3E%3Ccircle cx='110' cy='120' r='5' fill='%23fff'/%3E%3Ccircle cx='290' cy='158' r='5' fill='%23fff'/%3E%3Ccircle cx='390' cy='124' r='5' fill='%23fff'/%3E%3Ccircle cx='570' cy='124' r='5' fill='%23fff'/%3E%3Ccircle cx='620' cy='278' r='5' fill='%23fff'/%3E%3Ccircle cx='790' cy='278' r='5' fill='%23fff'/%3E%3Ccircle cx='260' cy='368' r='5' fill='%23fff'/%3E%3Ccircle cx='490' cy='368' r='5' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      box-shadow: var(--shadow);
+    }
+
+    .crumb {
+      display: inline-flex;
+      margin-bottom: 22px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--code);
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h1 {
+      max-width: 920px;
+      margin: 0 0 18px;
+      font-size: clamp(38px, 7vw, 72px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 900px;
+      margin: 0;
+      color: rgba(232, 217, 189, 0.86);
+      font-size: 18px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .metric {
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .metric b { display: block; font-size: 22px; }
+    .metric span { color: rgba(232, 217, 189, 0.82); font-size: 13px; }
+
+    section {
+      margin-top: 18px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 20px;
+    }
+
+    p { margin: 0 0 12px; }
+    ul, ol { margin: 0 0 14px; padding-left: 22px; }
+    li + li { margin-top: 5px; }
+
+    .lead {
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .box {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-solid);
+    }
+
+    .box h3:first-child { margin-top: 0; }
+
+    .tag {
+      display: inline-flex;
+      margin: 3px 5px 3px 0;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: rgba(216, 101, 42, 0.12);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .ok { color: var(--green); background: var(--green-soft); }
+    .info { color: var(--blue); background: var(--blue-soft); }
+    .risk { color: var(--red); background: var(--red-soft); }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .step {
+      min-height: 132px;
+      padding: 14px;
+      border: 1px solid rgba(216, 101, 42, 0.22);
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--panel-solid), rgba(244, 239, 230, 0.62));
+    }
+
+    .step b {
+      display: block;
+      color: var(--accent-2);
+      font-size: 15px;
+    }
+
+    .step span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      color: var(--ink);
+      background: rgba(232, 222, 206, 0.56);
+      font-size: 13px;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      color: var(--ink);
+      background: rgba(32, 26, 20, 0.08);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 16px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    pre code { padding: 0; color: inherit; background: transparent; }
+
+    details {
+      margin: 10px 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-solid);
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 800;
+    }
+
+    details > div {
+      padding: 0 14px 14px;
+      color: var(--muted);
+    }
+
+    .note {
+      padding: 14px 16px;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(216, 101, 42, 0.1);
+    }
+
+    .quiz button {
+      display: inline-flex;
+      margin: 4px 6px 4px 0;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--panel-solid);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .quiz button.correct { border-color: rgba(66, 122, 80, 0.42); background: var(--green-soft); color: var(--green); }
+    .quiz button.wrong { border-color: #f3b4b4; background: var(--red-soft); color: var(--red); }
+
+    .toplink {
+      display: inline-flex;
+      margin-top: 10px;
+      font-size: 13px;
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; max-height: none; }
+      aside nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pipeline { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .hero-grid, .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .layout { width: min(100% - 20px, 1380px); padding-top: 10px; }
+      .hero, section { padding: 18px; }
+      aside nav, .grid-2, .grid-3, .hero-grid, .pipeline { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="top">
+    <aside>
+      <strong>Data Agent / AI Coding</strong>
+      <nav>
+        <a href="#overview">1. 两条主线</a>
+        <a href="#data-agent">2. Data Agent 是什么</a>
+        <a href="#data-architecture">3. Data Agent 架构</a>
+        <a href="#text-to-sql">4. Text-to-SQL 技术点</a>
+        <a href="#semantic-layer">5. 语义层与指标口径</a>
+        <a href="#data-eval">6. 数据智能体评估</a>
+        <a href="#ai-coding">7. AI Coding 面试</a>
+        <a href="#coding-workflow">8. 编码智能体工作流</a>
+        <a href="#tool-selection">9. 工具选型</a>
+        <a href="#interview">10. 面试回答模板</a>
+        <a href="#quiz">11. 自测题</a>
+        <a href="#sources">12. 资料来源</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <span class="crumb">Today: Data Agent + AI Coding Interview</span>
+        <h1>Data Agent 与面试 AI Coding：从架构到实战</h1>
+        <p>这页只解决两个方向：一个是“让 AI 安全、准确地分析企业数据”的 Data Agent；另一个是“面试里如何用 AI Coding 展示工程能力”。学完要能画架构、讲风险、做工具选型，并把 AI 当成结对工程师而不是答案生成器。</p>
+        <div class="hero-grid">
+          <div class="metric"><b>2 条线</b><span>数据智能体 + 编码面试</span></div>
+          <div class="metric"><b>6 层</b><span>语义层、SQL、执行、校验、可视化、权限</span></div>
+          <div class="metric"><b>5 步</b><span>AI Coding 面试闭环</span></div>
+          <div class="metric"><b>1 页</b><span>能背、能讲、能练</span></div>
+        </div>
+      </header>
+
+      <section id="overview">
+        <h2>1. 两条主线先讲清楚</h2>
+        <p class="lead">Data Agent 和 AI Coding 都是 Agent，但评估标准不同：Data Agent 追求“数字可信”，AI Coding 追求“代码可运行、可维护、可解释”。</p>
+        <div class="grid-2">
+          <div class="box">
+            <h3>Data Agent</h3>
+            <p>让用户用自然语言问业务数据，系统能理解指标、选择数据源、生成查询、执行 SQL、解释结果、画图，并在不确定时追问或拒答。</p>
+            <span class="tag">Text-to-SQL</span><span class="tag">Semantic Layer</span><span class="tag">BI Agent</span><span class="tag">Data Governance</span>
+          </div>
+          <div class="box">
+            <h3>AI Coding 面试</h3>
+            <p>在面试或现场 coding 中使用 AI 辅助拆题、写代码、补测试、排错。核心不是“让 AI 代写”，而是展示你能控制需求、验证结果、审查风险。</p>
+            <span class="tag">Codex</span><span class="tag">Claude Code</span><span class="tag">Cursor</span><span class="tag">Copilot</span>
+          </div>
+        </div>
+        <div class="note">
+          <b>一句话总结：</b>Data Agent 是“自然语言到可信数据分析链路”；AI Coding 是“自然语言到可验证代码变更链路”。两者都要有计划、工具调用、校验和人类审查。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="data-agent">
+        <h2>2. Data Agent 是什么</h2>
+        <p class="lead">Data Agent 不是简单 Text-to-SQL。Text-to-SQL 只解决“写查询”，Data Agent 还要解决“问得对、查得准、算得对、解释得清、权限安全”。</p>
+        <div class="pipeline">
+          <div class="step"><b>理解问题</b><span>识别指标、维度、时间、过滤条件、业务实体。</span></div>
+          <div class="step"><b>找数据</b><span>选择表、视图、指标层、数据集或知识文档。</span></div>
+          <div class="step"><b>生成计划</b><span>决定 SQL、Python、图表、RAG 或追问。</span></div>
+          <div class="step"><b>执行工具</b><span>只读查询、沙箱执行、限制扫描量和超时。</span></div>
+          <div class="step"><b>校验结果</b><span>语法、执行、口径、异常值、行数和权限校验。</span></div>
+          <div class="step"><b>解释输出</b><span>结论、图表、引用 SQL、口径说明、下一步建议。</span></div>
+        </div>
+
+        <h3>典型需求</h3>
+        <ul>
+          <li>“上个月华东地区 GMV 为什么下降？”要拆成指标口径、时间范围、地区维度、同比环比、分渠道/品类归因。</li>
+          <li>“帮我看最近留存异常。”要先定位指标、拉取趋势、检测异常点，再做分群下钻。</li>
+          <li>“生成一个销售日报。”要调用固定指标、生成图表、输出摘要，并保证权限与口径一致。</li>
+        </ul>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="data-architecture">
+        <h2>3. Data Agent 生产架构</h2>
+        <pre><code>用户问题
+  -> Intent Router: 数据查询 / 口径解释 / 图表生成 / 异常分析 / 无法回答
+  -> Context Builder: 用户权限 + 语义层 + 表结构 + 样例查询 + 指标文档
+  -> Planner: 拆任务、选择 SQL / Python / BI / RAG 工具
+  -> SQL Generator: 生成只读 SQL，带字段解释和假设
+  -> Guardrails: 权限、黑名单、扫描量、超时、敏感字段、SQL 注入
+  -> Executor: 查询数据库或沙箱
+  -> Verifier: 语法、执行结果、行数、异常值、指标口径、二次查询
+  -> Presenter: 结论、图表、SQL、数据来源、置信度、追问建议</code></pre>
+
+        <div class="grid-3">
+          <div class="box">
+            <h3>Agent 层</h3>
+            <p>负责意图识别、规划、工具选择、循环校验。可用 LangGraph、OpenAI Agents SDK、LlamaIndex Workflows、CrewAI、Mastra 等。</p>
+          </div>
+          <div class="box">
+            <h3>Data Context 层</h3>
+            <p>包括 schema、字段注释、指标定义、血缘、样例 SQL、数据质量规则、权限标签。没有这层，模型只能猜。</p>
+          </div>
+          <div class="box">
+            <h3>Execution 层</h3>
+            <p>执行 SQL/Python/BI 查询，必须只读、限时、限资源、可审计。高风险操作走人工确认。</p>
+          </div>
+        </div>
+
+        <h3>关键安全边界</h3>
+        <table>
+          <thead><tr><th>风险</th><th>表现</th><th>工程处理</th></tr></thead>
+          <tbody>
+            <tr><td>越权访问</td><td>用户问到了无权限表或字段</td><td>检索 schema 前按 ACL 过滤；SQL 执行层二次校验</td></tr>
+            <tr><td>错误指标口径</td><td>把订单数当用户数，把 GMV 当收入</td><td>语义层、指标字典、query rewrite 中注入口径</td></tr>
+            <tr><td>SQL 高成本</td><td>全表扫、无分区、笛卡尔积</td><td>SQL lint、成本估算、limit、超时、只读副本</td></tr>
+            <tr><td>静默错误</td><td>SQL 能跑但数字错</td><td>执行结果 sanity check、对照查询、异常检测、人工验收集</td></tr>
+            <tr><td>Prompt injection</td><td>文档或字段注释诱导模型忽略规则</td><td>把数据说明当非可信输入，系统指令和工具策略隔离</td></tr>
+          </tbody>
+        </table>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="text-to-sql">
+        <h2>4. Text-to-SQL 技术点</h2>
+        <p class="lead">Text-to-SQL 的难点不在“把中文翻成 SQL”，而在 schema linking、业务口径、join 路径、时间逻辑和结果校验。</p>
+        <div class="grid-2">
+          <div class="box">
+            <h3>生成 SQL 前要给模型什么</h3>
+            <ul>
+              <li>相关表结构：表名、字段、类型、注释、主外键。</li>
+              <li>业务术语：GMV、收入、活跃、留存、退款的定义。</li>
+              <li>样例 SQL：高质量 few-shot 比泛泛描述更有用。</li>
+              <li>数据分布：枚举值、时间分区、空值、单位。</li>
+              <li>权限上下文：哪些库表字段可用。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>SQL 生成后要校验什么</h3>
+            <ul>
+              <li>语法是否通过 parser/linter。</li>
+              <li>是否只读，禁止 DDL/DML。</li>
+              <li>是否命中分区和 limit。</li>
+              <li>join key 是否正确，聚合粒度是否正确。</li>
+              <li>结果是否为空、极端、重复、违反口径。</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Text-to-SQL 常用增强</h3>
+        <table>
+          <thead><tr><th>增强</th><th>核心思路</th><th>适合场景</th></tr></thead>
+          <tbody>
+            <tr><td>Schema Linking</td><td>先召回相关表和字段，再生成 SQL</td><td>库表很多，直接塞全量 schema 不现实</td></tr>
+            <tr><td>Few-shot SQL</td><td>给相似业务问题和正确 SQL</td><td>团队已有分析模板和口径沉淀</td></tr>
+            <tr><td>SQL Repair</td><td>执行失败后把错误信息交给模型修复</td><td>语法、字段名、方言差异问题</td></tr>
+            <tr><td>Self-check</td><td>让模型解释 SQL 意图，再检查是否符合问题</td><td>防止 join 和聚合粒度错误</td></tr>
+            <tr><td>Execution-guided Decoding</td><td>生成候选 SQL，执行/验证后选择</td><td>准确率要求高但可接受更高延迟</td></tr>
+            <tr><td>Semantic Evidence</td><td>自动生成或检索字段/值的业务证据</td><td>业务术语和库表命名差距大</td></tr>
+          </tbody>
+        </table>
+
+        <pre><code>生成 SQL 的好提示词骨架：
+1. 你只能生成 SELECT 查询。
+2. 优先使用给定语义层指标，不要自造口径。
+3. 必须说明使用了哪些表、字段、过滤条件和时间范围。
+4. 如果问题缺少必要条件，先追问，不要猜。
+5. 输出 JSON: { "thought_summary": "...", "sql": "...", "assumptions": [] }</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="semantic-layer">
+        <h2>5. 语义层与指标口径</h2>
+        <p class="lead">生产 Data Agent 最重要的分水岭：让 LLM 直接写任意 SQL，还是让它通过语义层查询确定性指标。</p>
+        <div class="grid-2">
+          <div class="box">
+            <h3>直接 Text-to-SQL</h3>
+            <ul>
+              <li>优点：灵活，能探索任意表和临时问题。</li>
+              <li>缺点：容易错口径、错 join、错聚合粒度。</li>
+              <li>适合：数据分析师辅助、低风险探索、内部实验。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>语义层优先</h3>
+            <ul>
+              <li>优点：指标、维度、实体关系确定，结果更可信。</li>
+              <li>缺点：覆盖范围取决于建模，没建的指标回答不了。</li>
+              <li>适合：经营看板、核心指标、面向业务用户。</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>面试里的正确观点</h3>
+        <p>不是“语义层 vs Text-to-SQL 二选一”，而是分层：核心指标走语义层，探索分析走 Text-to-SQL，复杂归因走 Agent 规划多步查询。语义层回答不了时，系统应该明确说覆盖不足，而不是返回一个看起来正确的错数。</p>
+        <div class="note">
+          <b>记忆句：</b>Data Agent 的可信度来自“业务语义确定性 + SQL 执行可验证 + 结果解释可追溯”，不是来自模型口才。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="data-eval">
+        <h2>6. 数据智能体评估</h2>
+        <p class="lead">评估 Data Agent 要同时看 SQL、结果、解释和用户体验。只看“SQL 能不能跑”是不够的。</p>
+        <table>
+          <thead><tr><th>维度</th><th>指标</th><th>怎么测</th></tr></thead>
+          <tbody>
+            <tr><td>语义理解</td><td>意图、指标、维度、时间识别准确率</td><td>构造业务问法黄金集</td></tr>
+            <tr><td>SQL 正确</td><td>Execution Accuracy、Exact Match、SQL lint 通过率</td><td>对比标准 SQL 和执行结果</td></tr>
+            <tr><td>结果可信</td><td>数值误差、口径一致性、异常值识别</td><td>和 BI 报表、人工分析结果对齐</td></tr>
+            <tr><td>安全合规</td><td>越权率、敏感字段泄露率、高成本 SQL 拦截率</td><td>红队测试和权限矩阵测试</td></tr>
+            <tr><td>体验效率</td><td>P95 延迟、追问率、一次解决率、用户采纳率</td><td>线上 tracing + 反馈闭环</td></tr>
+          </tbody>
+        </table>
+        <div class="grid-2">
+          <div class="box">
+            <h3>公开基准</h3>
+            <p>Spider 强调跨域复杂 SQL，BIRD 更贴近真实数据库并关注执行效率。但公开基准不能代替公司自己的业务黄金集。</p>
+            <span class="tag info">Spider</span><span class="tag info">BIRD</span><span class="tag info">Execution Accuracy</span>
+          </div>
+          <div class="box">
+            <h3>企业黄金集</h3>
+            <p>从真实看板、日报、业务复盘、分析师 SQL 中抽取问题，覆盖高频指标、复杂 join、权限边界、时间口径、异常场景。</p>
+            <span class="tag ok">业务口径</span><span class="tag ok">权限测试</span><span class="tag ok">回归评估</span>
+          </div>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="ai-coding">
+        <h2>7. 面试 AI Coding 的核心打法</h2>
+        <p class="lead">面试官看的是你的工程判断：你如何拆需求、约束 AI、验证代码、解释取舍、处理错误。不要把 AI 当黑盒答案机。</p>
+        <div class="pipeline">
+          <div class="step"><b>复述需求</b><span>确认输入、输出、边界、复杂度、禁用能力。</span></div>
+          <div class="step"><b>先给方案</b><span>自己讲算法/架构，再让 AI 辅助补代码。</span></div>
+          <div class="step"><b>小步生成</b><span>一次只让 AI 做函数、测试或修 bug。</span></div>
+          <div class="step"><b>运行验证</b><span>跑单测、样例、边界、复杂度检查。</span></div>
+          <div class="step"><b>审查修正</b><span>读 diff，找越界、并发、异常、可维护性问题。</span></div>
+          <div class="step"><b>总结表达</b><span>解释最终方案、复杂度、tradeoff 和 AI 使用方式。</span></div>
+        </div>
+
+        <h3>AI Coding 面试禁忌</h3>
+        <ul>
+          <li>一上来直接粘题给 AI，不先分析需求和边界。</li>
+          <li>AI 给了代码就提交，不读、不测、不解释。</li>
+          <li>把复杂问题一次性丢给 AI，导致不可控的大段修改。</li>
+          <li>隐藏使用 AI 的过程，无法说明每个决策为什么正确。</li>
+          <li>忽略面试约束：有些公司允许 AI，有些只允许补全，有些完全不允许。</li>
+        </ul>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="coding-workflow">
+        <h2>8. 编码智能体工作流</h2>
+        <p class="lead">2026 年 AI Coding 已经从 autocomplete 走向 coding agent：能读仓库、制定计划、改代码、跑测试、提交 PR。但你仍然要做 owner。</p>
+        <pre><code>面试/实战工作流：
+1. Clarify: 我先问清楚边界和约束。
+2. Plan: 我写出方案和数据结构，不让 AI 先发散。
+3. Prompt: 让 AI 只实现一个清晰函数或测试。
+4. Verify: 本地运行样例、单测、边界和性能检查。
+5. Review: 我读 diff，解释风险和改动原因。
+6. Iterate: 失败时把错误日志交给 AI，但我决定修复方向。</code></pre>
+
+        <h3>常用提示词模板</h3>
+        <div class="grid-2">
+          <div class="box">
+            <h3>算法题</h3>
+            <pre><code>请先不要写代码。
+帮我检查这个解法是否正确：
+- 思路：
+- 数据结构：
+- 时间复杂度：
+- 边界条件：
+请指出漏洞，然后给 3 个反例测试。</code></pre>
+          </div>
+          <div class="box">
+            <h3>工程题</h3>
+            <pre><code>你只修改这个模块，不要重构无关代码。
+要求：
+1. 保持现有接口兼容。
+2. 添加最小必要测试。
+3. 输出变更摘要和风险点。
+4. 如果信息不足，先问问题。</code></pre>
+          </div>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="tool-selection">
+        <h2>9. 工具选型</h2>
+        <h3>Data Agent 工具栈</h3>
+        <table>
+          <thead><tr><th>层</th><th>代表工具</th><th>选择建议</th></tr></thead>
+          <tbody>
+            <tr><td>Agent 编排</td><td>LangGraph, OpenAI Agents SDK, LlamaIndex Workflows, CrewAI, Mastra</td><td>多步状态流和可恢复任务优先 LangGraph；OpenAI 栈可看 Agents SDK；文档/索引强相关可看 LlamaIndex。</td></tr>
+            <tr><td>Text-to-SQL</td><td>Vanna, DB-GPT, Wren AI, Dataherald, 自研</td><td>原型可用开源方案；生产更关注 schema 管理、权限、评估和 SQL 安全。</td></tr>
+            <tr><td>语义层</td><td>dbt Semantic Layer, Cube, LookML, MetricFlow</td><td>核心经营指标优先语义层，减少 LLM 自造口径。</td></tr>
+            <tr><td>查询与湖仓</td><td>Postgres, ClickHouse, DuckDB, Snowflake, BigQuery, Databricks</td><td>面向分析的只读副本或沙箱，避免直接打生产库。</td></tr>
+            <tr><td>观测评估</td><td>Phoenix, LangSmith, W&B, MLflow, 自研日志</td><td>必须记录问题、prompt、SQL、结果、错误、成本和人工反馈。</td></tr>
+          </tbody>
+        </table>
+
+        <h3>AI Coding 工具栈</h3>
+        <table>
+          <thead><tr><th>工具</th><th>适合</th><th>面试使用建议</th></tr></thead>
+          <tbody>
+            <tr><td>Codex</td><td>仓库级任务、代码修改、测试、PR 工作流</td><td>适合展示“给目标、看计划、验 diff、跑测试”的工程闭环。</td></tr>
+            <tr><td>Claude Code</td><td>长上下文代码理解、终端式 agent 工作流</td><td>适合复杂仓库探索，但要控制权限和范围。</td></tr>
+            <tr><td>Cursor</td><td>IDE 内快速编辑、上下文补全、多文件改动</td><td>适合现场 coding，但要保持自己讲解主导。</td></tr>
+            <tr><td>GitHub Copilot</td><td>补全、聊天、企业集成、云端 coding agent</td><td>适合团队规范环境，面试中可用于补测试和样板代码。</td></tr>
+            <tr><td>Aider / Cline / Roo Code</td><td>开源可控、本地仓库 agent</td><td>适合练习透明 diff 和命令执行边界。</td></tr>
+            <tr><td>Devin / Replit Agent / Lovable / Bolt</td><td>端到端任务、原型、应用生成</td><td>适合产品原型，不适合替代算法和系统设计能力展示。</td></tr>
+          </tbody>
+        </table>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="interview">
+        <h2>10. 面试回答模板</h2>
+        <details open>
+          <summary>Q1：请你设计一个企业 Data Agent。</summary>
+          <div>我会分成数据上下文层、Agent 编排层、工具执行层和评估观测层。用户提问后先做意图识别和权限校验，再从语义层、schema、字段注释和样例 SQL 中构造上下文。Agent 规划是否需要 Text-to-SQL、指标查询、Python 分析或 RAG 解释。SQL 生成后经过只读校验、权限过滤、成本估算和执行验证，再输出结论、图表、SQL、数据来源和置信度。线上记录 trace，并用黄金问答集持续回归。</div>
+        </details>
+        <details>
+          <summary>Q2：Data Agent 最大风险是什么？</summary>
+          <div>最大风险是静默返回错误数字。代码错了可能报错，数据错了可能看起来很合理。所以要把核心指标放进语义层，SQL 执行前做安全和成本校验，执行后做结果 sanity check，并对关键场景建立人工标注黄金集。</div>
+        </details>
+        <details>
+          <summary>Q3：Text-to-SQL 为什么生产困难？</summary>
+          <div>因为真实库表命名复杂、业务口径隐含、join 路径多、时间逻辑细、权限严格，而且 SQL 能跑不代表数字对。生产系统需要 schema linking、语义层、样例 SQL、执行校验、SQL repair 和人工评估闭环。</div>
+        </details>
+        <details>
+          <summary>Q4：AI Coding 面试时你怎么用 AI？</summary>
+          <div>我会先自己复述需求和边界，再给出解法和复杂度。AI 只用于局部实现、生成测试、检查反例或根据错误日志辅助排查。每次生成后我都会读代码、跑测试、解释 diff 和风险。这样能展示我在控制工程过程，而不是把答案外包给 AI。</div>
+        </details>
+        <details>
+          <summary>Q5：AI 生成代码不对怎么办？</summary>
+          <div>先用测试和日志定位错误，再判断是需求理解错、边界漏了、状态管理错了还是复杂度不满足。然后把最小错误信息反馈给 AI，让它修一个局部问题。我不会让 AI 大范围重写，除非我已经确认原方案方向错了。</div>
+        </details>
+        <details>
+          <summary>Q6：如何评价一个 AI Coding Agent？</summary>
+          <div>看它是否能理解仓库、制定可执行计划、做小步修改、运行测试、解释 diff、遵守权限边界，并在失败时利用日志迭代。企业场景还要看安全、审计、私有代码保护、成本和团队工作流集成。</div>
+        </details>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="quiz">
+        <h2>11. 自测题</h2>
+        <div class="quiz" data-answer="b">
+          <p><b>1. 企业 Data Agent 最危险的问题是？</b></p>
+          <button data-choice="a">回答太短</button>
+          <button data-choice="b">静默返回错误数字</button>
+          <button data-choice="c">图表颜色不好看</button>
+        </div>
+        <div class="quiz" data-answer="a">
+          <p><b>2. 核心经营指标最适合优先通过什么保证口径？</b></p>
+          <button data-choice="a">语义层/指标层</button>
+          <button data-choice="b">让模型自由写 SQL</button>
+          <button data-choice="c">只靠 prompt 说不要错</button>
+        </div>
+        <div class="quiz" data-answer="c">
+          <p><b>3. AI Coding 面试中最好的做法是？</b></p>
+          <button data-choice="a">直接让 AI 写完整答案</button>
+          <button data-choice="b">不看代码直接提交</button>
+          <button data-choice="c">自己主导方案，AI 辅助局部实现和验证</button>
+        </div>
+        <div class="quiz" data-answer="b">
+          <p><b>4. SQL 能执行成功说明什么？</b></p>
+          <button data-choice="a">数字一定正确</button>
+          <button data-choice="b">只说明语法和执行层面过关，还要校验口径和结果</button>
+          <button data-choice="c">可以不用评估</button>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="sources">
+        <h2>12. 资料来源与继续学习</h2>
+        <ul>
+          <li><a href="https://www.langchain.com/resources/ai-agent-frameworks" target="_blank" rel="noreferrer">LangChain: AI agent frameworks in 2026</a></li>
+          <li><a href="https://docs.getdbt.com/blog/semantic-layer-vs-text-to-sql-2026" target="_blank" rel="noreferrer">dbt: Semantic Layer vs Text-to-SQL 2026</a></li>
+          <li><a href="https://bird-bench.github.io/" target="_blank" rel="noreferrer">BIRD Text-to-SQL benchmark</a></li>
+          <li><a href="https://yale-lily.github.io/spider" target="_blank" rel="noreferrer">Spider Text-to-SQL benchmark</a></li>
+          <li><a href="https://www.daytona.io/docs/en/guides/openai-agents/text-to-sql-agent-openai-agents-sdk/" target="_blank" rel="noreferrer">Daytona: Text-to-SQL Agent with OpenAI Agents SDK</a></li>
+          <li><a href="https://www.faros.ai/blog/best-ai-coding-agents-2026" target="_blank" rel="noreferrer">Faros AI: Best AI coding agents for developers in 2026</a></li>
+          <li><a href="https://getdx.com/blog/ai-coding-assistant-pricing/" target="_blank" rel="noreferrer">DX: AI coding assistant pricing and ROI guide 2026</a></li>
+        </ul>
+        <div class="note">
+          <b>今天验收：</b>你能讲 Data Agent 与 Text-to-SQL 的区别，能画 Data Agent 架构，能说明语义层为什么重要，能列出 SQL 校验与权限边界；同时能在 AI Coding 面试中清楚表达“我主导方案，AI 辅助实现，测试验证闭环”。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll(".quiz").forEach((quiz) => {
+      const answer = quiz.dataset.answer;
+      quiz.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          quiz.querySelectorAll("button").forEach((item) => {
+            item.classList.remove("correct", "wrong");
+          });
+          button.classList.add(button.dataset.choice === answer ? "correct" : "wrong");
+        });
+      });
+    });
+  </script>
+</body>
+</html>
