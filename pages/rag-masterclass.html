@@ -6,22 +6,28 @@
   <title>RAG 完全掌握：工具选型、流程、技术点与增强型 RAG</title>
   <style>
     :root {
-      --bg: #f7f8fb;
-      --paper: #ffffff;
-      --ink: #142033;
-      --muted: #637089;
-      --line: #dce2ee;
-      --blue: #2563eb;
-      --blue-soft: #e8f0ff;
-      --green: #0f766e;
-      --green-soft: #e5f7f4;
-      --amber: #b45309;
+      --paper: #f4efe6;
+      --paper-deep: #e8dece;
+      --panel: rgba(255, 252, 245, 0.86);
+      --panel-solid: #fffaf0;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --soft-line: rgba(32, 26, 20, 0.08);
+      --blue: #386a91;
+      --blue-soft: rgba(56, 106, 145, 0.12);
+      --green: #427a50;
+      --green-soft: rgba(66, 122, 80, 0.13);
+      --amber: #9f4d28;
       --amber-soft: #fff4df;
       --red: #b91c1c;
       --red-soft: #feecec;
-      --dark: #111827;
-      --code: #f8fafc;
-      --shadow: 0 18px 44px rgba(20, 32, 51, 0.08);
+      --accent: #d8652a;
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --dark-2: #232018;
+      --code: #e8d9bd;
+      --shadow: 0 22px 70px rgba(60, 42, 24, 0.14);
     }
 
     * { box-sizing: border-box; }
@@ -33,8 +39,10 @@
       color: var(--ink);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at 8% 0%, rgba(37, 99, 235, 0.12), transparent 32%),
-        linear-gradient(180deg, #fff 0%, var(--bg) 46%, #fff 100%);
+        radial-gradient(circle at 18% 10%, rgba(216, 101, 42, 0.11), transparent 28%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
       line-height: 1.65;
     }
 
@@ -58,7 +66,8 @@
       padding: 16px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(244, 239, 230, 0.8);
+      backdrop-filter: blur(16px);
       box-shadow: var(--shadow);
     }
 
@@ -77,7 +86,7 @@
       font-size: 14px;
     }
 
-    aside a:hover { color: var(--blue); background: var(--blue-soft); }
+    aside a:hover { color: var(--accent-2); background: rgba(216, 101, 42, 0.12); }
 
     main { min-width: 0; }
 
@@ -88,7 +97,7 @@
       border-radius: 8px;
       color: #fff;
       background:
-        linear-gradient(135deg, rgba(17, 24, 39, 0.92), rgba(30, 64, 175, 0.86)),
+        linear-gradient(135deg, rgba(23, 21, 17, 0.94), rgba(159, 77, 40, 0.86)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500' viewBox='0 0 900 500'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.16'%3E%3Cpath d='M85 120h160v80H85zM380 80h180v80H380zM640 220h170v80H640zM245 320h220v80H245z'/%3E%3Cpath d='M245 160h135M560 120c80 0 80 140 80 140M465 360c120 0 120-100 175-100M165 200c0 130 80 160 80 160'/%3E%3Ccircle cx='85' cy='120' r='5' fill='%23fff'/%3E%3Ccircle cx='245' cy='160' r='5' fill='%23fff'/%3E%3Ccircle cx='380' cy='120' r='5' fill='%23fff'/%3E%3Ccircle cx='560' cy='120' r='5' fill='%23fff'/%3E%3Ccircle cx='640' cy='260' r='5' fill='%23fff'/%3E%3Ccircle cx='810' cy='260' r='5' fill='%23fff'/%3E%3Ccircle cx='245' cy='360' r='5' fill='%23fff'/%3E%3Ccircle cx='465' cy='360' r='5' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E");
       background-size: cover;
       box-shadow: var(--shadow);
@@ -99,7 +108,7 @@
       margin-bottom: 22px;
       padding: 5px 10px;
       border-radius: 999px;
-      color: #bfdbfe;
+      color: var(--code);
       background: rgba(255, 255, 255, 0.1);
       font-size: 13px;
       font-weight: 800;
@@ -116,7 +125,7 @@
     .hero p {
       max-width: 850px;
       margin: 0;
-      color: #dbeafe;
+      color: rgba(232, 217, 189, 0.86);
       font-size: 18px;
     }
 
@@ -135,14 +144,14 @@
     }
 
     .metric b { display: block; font-size: 22px; }
-    .metric span { color: #bfdbfe; font-size: 13px; }
+    .metric span { color: rgba(232, 217, 189, 0.82); font-size: 13px; }
 
     section {
       margin-top: 18px;
       padding: 26px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.94);
+      background: var(--panel);
       box-shadow: var(--shadow);
     }
 
@@ -183,7 +192,7 @@
       padding: 16px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--paper);
+      background: var(--panel-solid);
     }
 
     .box h3:first-child { margin-top: 0; }
@@ -193,8 +202,8 @@
       margin: 3px 5px 3px 0;
       padding: 4px 8px;
       border-radius: 999px;
-      color: #1d4ed8;
-      background: var(--blue-soft);
+      color: var(--accent-2);
+      background: rgba(216, 101, 42, 0.12);
       font-size: 12px;
       font-weight: 800;
     }
@@ -213,14 +222,14 @@
     .step {
       min-height: 132px;
       padding: 14px;
-      border: 1px solid #c9d6f1;
+      border: 1px solid rgba(216, 101, 42, 0.22);
       border-radius: 8px;
-      background: linear-gradient(180deg, #fff, #f7faff);
+      background: linear-gradient(180deg, var(--panel-solid), rgba(244, 239, 230, 0.62));
     }
 
     .step b {
       display: block;
-      color: var(--blue);
+      color: var(--accent-2);
       font-size: 15px;
     }
 
@@ -249,8 +258,8 @@
     }
 
     th {
-      color: #24324a;
-      background: #f2f5fb;
+      color: var(--ink);
+      background: rgba(232, 222, 206, 0.56);
       font-size: 13px;
     }
 
@@ -259,8 +268,8 @@
     code {
       padding: 2px 5px;
       border-radius: 5px;
-      color: #0f172a;
-      background: #eef2f7;
+      color: var(--ink);
+      background: rgba(32, 26, 20, 0.08);
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
       font-size: 0.92em;
     }
@@ -281,7 +290,7 @@
       margin: 10px 0;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #fff;
+      background: var(--panel-solid);
     }
 
     summary {
@@ -305,10 +314,10 @@
       padding: 15px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #fff;
+      background: var(--panel-solid);
     }
 
-    .flashcard b { display: block; margin-bottom: 6px; color: var(--blue); }
+    .flashcard b { display: block; margin-bottom: 6px; color: var(--accent-2); }
 
     .quiz button {
       display: inline-flex;
@@ -317,7 +326,7 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       color: var(--ink);
-      background: #fff;
+      background: var(--panel-solid);
       cursor: pointer;
       font: inherit;
     }
@@ -327,10 +336,10 @@
 
     .note {
       padding: 14px 16px;
-      border-left: 4px solid var(--blue);
+      border-left: 4px solid var(--accent);
       border-radius: 8px;
-      color: #34445f;
-      background: var(--blue-soft);
+      color: var(--ink);
+      background: rgba(216, 101, 42, 0.1);
     }
 
     .toplink {
