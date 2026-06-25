@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Java / 算法 / DB 核心题</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --green: #3e7b4f;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+    }
+
+    button, textarea { font: inherit; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.82);
+      overflow: auto;
+    }
+
+    .brand {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand b {
+      display: block;
+      font-size: 18px;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    nav button,
+    .chip,
+    .ghost,
+    .answer-toggle {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.68);
+      cursor: pointer;
+    }
+
+    nav button {
+      padding: 10px 12px;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    nav button.active,
+    .chip.active {
+      color: var(--accent-2);
+      border-color: rgba(216, 101, 42, 0.45);
+      background: var(--accent-soft);
+    }
+
+    main {
+      width: min(1180px, 100%);
+      padding: 34px 36px 56px;
+    }
+
+    .hero,
+    .card,
+    .quiz-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 18px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 920px;
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(40px, 7vw, 72px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-head p,
+    .card-head p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .section {
+      margin: 34px 0;
+    }
+
+    .section-head {
+      margin-bottom: 14px;
+    }
+
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 26px 18px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .card-head h3 {
+      margin: 0 0 6px;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .badge {
+      display: inline-flex;
+      height: 28px;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 26px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .chip {
+      padding: 8px 11px;
+      color: var(--muted);
+    }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      padding: 22px 26px 26px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .panel p { margin: 0 0 13px; }
+    .panel li { margin: 8px 0; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .side {
+      display: grid;
+      gap: 12px;
+      align-self: start;
+    }
+
+    .box {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.7);
+    }
+
+    .box h4 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .box p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .drill {
+      padding: 12px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+    }
+
+    .answer {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent-soft);
+    }
+
+    .answer.show { display: block; }
+
+    .answer-toggle,
+    .ghost {
+      padding: 9px 11px;
+      margin-top: 10px;
+    }
+
+    .practice {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    .output {
+      min-height: 160px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+    }
+
+    .quiz-card {
+      padding: 18px;
+      margin-bottom: 12px;
+      box-shadow: none;
+    }
+
+    .quiz-card h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .option {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option.correct { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+    .option.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+
+    .hint {
+      display: none;
+      color: var(--muted);
+    }
+
+    .hint.show { display: block; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .card-body, .practice { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      .card-head { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Java Core Drill</b>
+        <span>手撕题 + 八股原理 + 数据库缓存</span>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">今日专题 / Java · 算法 · JVM · MySQL · Redis</span>
+        <h1>把高频手撕题和底层原理一起练。</h1>
+        <p>重复项已去重：线程安全单例、最大子数组和、反转链表、二叉树对称/反转/层序、LRU、JVM 内存区域和 GC Roots、索引失效和 Explain、Redis 缓存一致性。</p>
+      </section>
+
+      <section class="section" id="knowledge">
+        <div class="section-head">
+          <h2>知识与手撕题</h2>
+          <p>每张卡先看结论，再看代码，最后用右侧追问遮答案练表达。</p>
+        </div>
+        <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="practice">
+        <div class="section-head">
+          <h2>口述训练台</h2>
+          <p>选一个主题，先自己写 60 秒回答，再点生成检查清单。</p>
+        </div>
+        <div class="practice">
+          <div class="box">
+            <h4>你的回答</h4>
+            <textarea id="answerText" placeholder="比如：我先说线程安全单例。DCL 的关键是 volatile..."></textarea>
+            <button class="ghost" id="checkAnswer">生成检查清单</button>
+          </div>
+          <div class="output" id="answerOutput">等待你的回答。</div>
+        </div>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>自测纠错</h2>
+          <p>错了就回到对应知识卡，别硬背。</p>
+        </div>
+        <div id="quizList"></div>
+        <button class="ghost" id="resetQuiz">重做自测</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: "singleton",
+        title: "线程安全单例",
+        tag: "Java 并发",
+        intro: "重点不是写出单例，而是解释为什么线程安全、为什么需要 volatile、有哪些更推荐写法。",
+        tabs: {
+          "结论": `<p><b>单例要保证三件事：</b>全局只有一个实例、延迟或非延迟初始化可控、多线程下不会创建多个实例或读到半初始化对象。</p><ul><li><b>推荐写法：</b>枚举单例、静态内部类。</li><li><b>DCL：</b>双重检查锁可用，但 instance 必须加 volatile。</li><li><b>面试陷阱：</b>只加 synchronized 能安全但性能一般；DCL 不加 volatile 可能指令重排。</li></ul>`,
+          "代码": `<pre>public class Singleton {
+    private static volatile Singleton instance;
+    private Singleton() {}
+
+    public static Singleton getInstance() {
+        if (instance == null) {
+            synchronized (Singleton.class) {
+                if (instance == null) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}</pre><p>volatile 的作用：禁止指令重排，保证其他线程不会看到“引用已赋值但对象未初始化完”的状态。</p>`,
+          "拓展": `<ul><li><b>静态内部类：</b>利用类加载机制保证线程安全，懒加载，写法简洁。</li><li><b>枚举：</b>天然防反射和反序列化破坏单例，是 Effective Java 推荐写法。</li><li><b>Spring Bean：</b>默认 singleton 是容器级单例，不等于 JVM 全局单例。</li></ul><pre>public class HolderSingleton {
+    private HolderSingleton() {}
+    private static class Holder {
+        static final HolderSingleton INSTANCE = new HolderSingleton();
+    }
+    public static HolderSingleton getInstance() {
+        return Holder.INSTANCE;
+    }
+}</pre>`
+        },
+        memory: "DCL 必须 volatile；静态内部类靠类加载；枚举最稳。",
+        drill: ["DCL 为什么要加 volatile？", "因为 new 对象可能被拆成分配内存、初始化对象、引用赋值三步，发生重排后其他线程可能拿到未初始化完成的对象。volatile 禁止这种重排并保证可见性。"]
+      },
+      {
+        id: "max-subarray",
+        title: "最大子数组和",
+        tag: "Kadane",
+        intro: "手撕题核心是状态定义：以当前位置结尾的最大连续子数组和。",
+        tabs: {
+          "结论": `<p><b>状态：</b>dp 表示“必须以当前元素结尾”的最大子数组和。转移：要么接在前面，要么从当前元素重新开始。</p><pre>dp = max(nums[i], dp + nums[i])
+ans = max(ans, dp)</pre><ul><li>时间复杂度 O(n)。</li><li>空间复杂度 O(1)。</li><li>全负数也能正确处理，初始化要用 nums[0]。</li></ul>`,
+          "代码": `<pre>public int maxSubArray(int[] nums) {
+    int cur = nums[0];
+    int ans = nums[0];
+    for (int i = 1; i < nums.length; i++) {
+        cur = Math.max(nums[i], cur + nums[i]);
+        ans = Math.max(ans, cur);
+    }
+    return ans;
+}</pre>`,
+          "拓展": `<ul><li><b>为什么 cur 小于 0 可以丢掉？</b>负前缀只会拖累后续子数组。</li><li><b>如果要返回区间？</b>在重新开始时记录 start，更新 ans 时记录 bestStart/bestEnd。</li><li><b>变体：</b>环形最大子数组和、乘积最大子数组、二维最大子矩阵。</li></ul>`
+        },
+        memory: "当前要么接上前缀，要么自己开头；负前缀不要。",
+        drill: ["为什么不能把 ans 初始化成 0？", "如果数组全是负数，最大子数组和也应该是其中最大的负数。初始化为 0 会错误返回空子数组。"]
+      },
+      {
+        id: "reverse-list",
+        title: "反转链表",
+        tag: "指针",
+        intro: "核心是三指针：prev、cur、next，防止断链。",
+        tabs: {
+          "结论": `<p><b>反转链表的本质：</b>遍历每个节点，把 cur.next 从指向后一个节点，改成指向前一个节点。</p><ul><li>prev 表示已经反转好的头。</li><li>cur 表示当前处理节点。</li><li>next 临时保存后继，避免断链。</li></ul>`,
+          "代码": `<pre>public ListNode reverseList(ListNode head) {
+    ListNode prev = null;
+    ListNode cur = head;
+    while (cur != null) {
+        ListNode next = cur.next;
+        cur.next = prev;
+        prev = cur;
+        cur = next;
+    }
+    return prev;
+}</pre>`,
+          "拓展": `<ul><li><b>递归写法：</b>先反转 head.next，再把 head.next.next 指向 head。</li><li><b>常见变体：</b>反转链表 II、K 个一组反转、回文链表。</li><li><b>面试表达：</b>每次循环只改一条边，next 用来保住剩余链表。</li></ul>`
+        },
+        memory: "先存 next，再改 cur.next，最后 prev/cur 前进。",
+        drill: ["反转链表最容易写错哪里？", "忘记先保存 next，导致改 cur.next 后丢失后续链表；或者返回 head 而不是 prev。"]
+      },
+      {
+        id: "tree",
+        title: "二叉树对称 / 反转 / 层序",
+        tag: "树遍历",
+        intro: "三题覆盖 DFS 和 BFS：对称看镜像比较，反转看左右交换，层序看队列。",
+        tabs: {
+          "对称": `<p><b>对称二叉树：</b>左子树和右子树互为镜像。递归比较 left.left 和 right.right，left.right 和 right.left。</p><pre>boolean isMirror(TreeNode a, TreeNode b) {
+    if (a == null || b == null) return a == b;
+    return a.val == b.val
+        && isMirror(a.left, b.right)
+        && isMirror(a.right, b.left);
+}</pre>`,
+          "反转": `<p><b>反转二叉树：</b>每个节点交换左右子树，前序/后序都可以。</p><pre>public TreeNode invertTree(TreeNode root) {
+    if (root == null) return null;
+    TreeNode tmp = root.left;
+    root.left = invertTree(root.right);
+    root.right = invertTree(tmp);
+    return root;
+}</pre>`,
+          "层序": `<p><b>层序遍历：</b>BFS，用队列维护当前层节点。每轮先记录 size，保证只处理当前层。</p><pre>List&lt;List&lt;Integer&gt;&gt; levelOrder(TreeNode root) {
+    List&lt;List&lt;Integer&gt;&gt; ans = new ArrayList&lt;&gt;();
+    if (root == null) return ans;
+    Queue&lt;TreeNode&gt; q = new ArrayDeque&lt;&gt;();
+    q.offer(root);
+    while (!q.isEmpty()) {
+        int size = q.size();
+        List&lt;Integer&gt; level = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; size; i++) {
+            TreeNode node = q.poll();
+            level.add(node.val);
+            if (node.left != null) q.offer(node.left);
+            if (node.right != null) q.offer(node.right);
+        }
+        ans.add(level);
+    }
+    return ans;
+}</pre>`
+        },
+        memory: "对称是镜像递归；反转是交换左右；层序是队列加 size。",
+        drill: ["层序遍历为什么要先记录 size？", "因为队列里会不断加入下一层节点。先记录当前层 size，才能把一层的节点划分到同一个结果列表。"]
+      },
+      {
+        id: "lru",
+        title: "LRU 缓存",
+        tag: "HashMap + 双链表",
+        intro: "LRU 要做到 get/put 都 O(1)，核心是 HashMap 定位节点，双向链表维护新旧顺序。",
+        tabs: {
+          "结论": `<p><b>LRU：</b>最近最少使用。访问或写入一个 key 后，把它移动到链表头；容量超出时淘汰链表尾。</p><ul><li>HashMap：key -> node，O(1) 找节点。</li><li>双向链表：O(1) 删除和插入节点。</li><li>虚拟头尾节点：减少边界判断。</li></ul>`,
+          "代码": `<pre>class LRUCache {
+    class Node {
+        int key, val;
+        Node prev, next;
+        Node(int k, int v) { key = k; val = v; }
+    }
+    private final int cap;
+    private final Map&lt;Integer, Node&gt; map = new HashMap&lt;&gt;();
+    private final Node head = new Node(0, 0);
+    private final Node tail = new Node(0, 0);
+
+    public LRUCache(int capacity) {
+        cap = capacity;
+        head.next = tail;
+        tail.prev = head;
+    }
+
+    public int get(int key) {
+        Node node = map.get(key);
+        if (node == null) return -1;
+        moveToHead(node);
+        return node.val;
+    }
+
+    public void put(int key, int value) {
+        Node node = map.get(key);
+        if (node != null) {
+            node.val = value;
+            moveToHead(node);
+            return;
+        }
+        node = new Node(key, value);
+        map.put(key, node);
+        addFirst(node);
+        if (map.size() &gt; cap) {
+            Node old = tail.prev;
+            remove(old);
+            map.remove(old.key);
+        }
+    }
+
+    private void moveToHead(Node node) {
+        remove(node);
+        addFirst(node);
+    }
+    private void addFirst(Node node) {
+        node.next = head.next;
+        node.prev = head;
+        head.next.prev = node;
+        head.next = node;
+    }
+    private void remove(Node node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+    }
+}</pre>`,
+          "拓展": `<ul><li><b>为什么不用单链表？</b>删除任意节点需要前驱，单链表无法 O(1) 删除。</li><li><b>线程安全？</b>这个实现不是线程安全；并发环境要加锁或用现成缓存组件。</li><li><b>工程缓存：</b>Caffeine 比手写 LRU 更适合生产，支持过期、权重、统计等。</li></ul>`
+        },
+        memory: "Map 负责找，双链表负责排，新访问放头，满了删尾。",
+        drill: ["LRU 为什么必须用双向链表？", "因为 get/put 命中后要把任意节点移动到头部，移动前必须 O(1) 删除该节点，双向链表能直接拿到前驱和后继。"]
+      },
+      {
+        id: "jvm",
+        title: "JVM 内存区域 + GC Roots",
+        tag: "JVM",
+        intro: "重点是运行时数据区分别放什么，以及可达性分析从哪些根对象开始。",
+        tabs: {
+          "内存区域": `<ul><li><b>程序计数器：</b>线程私有，记录当前字节码执行位置。</li><li><b>虚拟机栈：</b>线程私有，方法调用栈帧，局部变量表、操作数栈等。</li><li><b>本地方法栈：</b>服务 native 方法。</li><li><b>堆：</b>线程共享，主要存对象实例，是 GC 主战场。</li><li><b>方法区/元空间：</b>类元信息、常量、静态变量等相关数据。</li></ul>`,
+          "GC Roots": `<p><b>可达性分析：</b>从 GC Roots 出发，能被引用链到达的对象是存活对象，不可达对象才可能被回收。</p><ul><li>虚拟机栈中的局部变量引用。</li><li>方法区中类静态属性引用的对象。</li><li>方法区中常量引用的对象。</li><li>本地方法栈 JNI 引用的对象。</li><li>被 synchronized 持有的对象、活跃线程对象等。</li></ul>`,
+          "追问": `<ul><li><b>栈会 GC 吗？</b>栈帧随方法调用入栈出栈，不是 GC 主要处理对象。</li><li><b>堆和栈区别？</b>堆存对象，线程共享；栈存方法调用上下文，线程私有。</li><li><b>为什么不用引用计数？</b>循环引用无法处理，可达性分析可以。</li><li><b>元空间 OOM？</b>大量动态生成类、类加载器泄漏可能导致。</li></ul>`
+        },
+        memory: "线程私有：计数器、虚拟机栈、本地方法栈；线程共享：堆、方法区。",
+        drill: ["GC Roots 常见有哪些？", "栈中局部变量引用、静态属性引用、常量引用、JNI 引用、活跃线程和锁持有对象等。"]
+      },
+      {
+        id: "mysql-index",
+        title: "索引失效 + Explain",
+        tag: "MySQL",
+        intro: "面试不只问有哪些失效，还会让你看 Explain 判断是否走索引、扫了多少、怎么优化。",
+        tabs: {
+          "索引失效": `<ul><li>对索引列做函数或表达式：where date(create_time)=...</li><li>隐式类型转换：字符串列用数字比较。</li><li>like 以通配符开头：like '%abc'。</li><li>联合索引不满足最左前缀。</li><li>or 两边不是都有可用索引。</li><li>范围查询后面的联合索引列可能无法继续用于有序定位。</li><li>数据区分度太低，优化器认为全表扫更划算。</li></ul>`,
+          "Explain": `<ul><li><b>type：</b>访问类型，常见从好到差：const、eq_ref、ref、range、index、ALL。</li><li><b>possible_keys：</b>可能用到的索引。</li><li><b>key：</b>实际使用的索引。</li><li><b>rows：</b>预估扫描行数。</li><li><b>Extra：</b>Using index 表示覆盖索引；Using filesort 表示额外排序；Using temporary 表示临时表。</li></ul>`,
+          "优化": `<ul><li>让条件字段类型一致，避免隐式转换。</li><li>避免在索引列上套函数，把计算挪到右侧常量。</li><li>联合索引按等值、范围、排序、区分度综合设计。</li><li>用覆盖索引减少回表。</li><li>慢 SQL 先 Explain，再看索引、扫描行数、排序、临时表和锁等待。</li></ul>`
+        },
+        memory: "看 type、key、rows、Extra；失效重点是函数、转换、左模糊、最左前缀。",
+        drill: ["Explain 里 key 为 NULL 说明什么？", "说明优化器实际没有选择索引，可能是无可用索引、条件写法导致失效，或优化器认为全表扫描成本更低。"]
+      },
+      {
+        id: "redis-consistency",
+        title: "Redis 缓存一致性",
+        tag: "缓存",
+        intro: "重复强调是对的：缓存一致性是高频坑，核心是最终一致、并发窗口和失败补偿。",
+        tabs: {
+          "结论": `<p><b>常用模式：</b>Cache Aside。读缓存，未命中查 DB 回填；写时先更新 DB，事务提交后删除缓存。</p><ul><li>缓存和 DB 通常不追求强一致，而是最终一致。</li><li>写后删缓存比直接更新缓存更稳。</li><li>用 TTL、延迟双删、重试、binlog 订阅降低不一致窗口。</li></ul>`,
+          "并发坑": `<ul><li><b>旧值回填：</b>A 查缓存未命中读旧 DB；B 更新 DB 并删缓存；A 把旧值写回缓存。</li><li><b>删除失败：</b>DB 成功但 Redis 删除失败，缓存长期脏。</li><li><b>主从延迟：</b>读从库回填旧数据。</li><li><b>热点击穿：</b>热点 key 失效，大量请求打 DB。</li></ul>`,
+          "方案": `<ul><li>写 DB 成功后删缓存，必要时延迟双删。</li><li>删除失败进入重试队列或消息表。</li><li>监听 binlog 异步删除缓存。</li><li>热点 key 用逻辑过期或互斥锁。</li><li>TTL 加随机抖动，避免雪崩。</li></ul>`
+        },
+        memory: "先更新 DB，再删缓存；失败要重试；并发靠 TTL/双删/版本兜底。",
+        drill: ["为什么不推荐更新 DB 后直接更新缓存？", "缓存可能是复杂聚合、多查询维度或带计算结果，直接更新容易漏字段和乱序；删除缓存让下次读从 DB 重建更稳。"]
+      }
+    ];
+
+    const quizzes = [
+      ["DCL 单例为什么要加 volatile？", ["禁止指令重排并保证可见性", "让构造方法变快", "让对象进入栈内存"], 0, "volatile 防止其他线程看到半初始化对象。"],
+      ["最大子数组和的状态 cur 表示什么？", ["以当前元素结尾的最大连续和", "全局最小值", "数组总和"], 0, "cur 必须以当前元素结尾，ans 才是全局最大。"],
+      ["反转链表为什么要先保存 next？", ["避免断链丢失后续节点", "为了减少空间", "为了排序"], 0, "cur.next 被改掉前必须保留后继。"],
+      ["LRU get 命中后要做什么？", ["移动到链表头", "删除该节点", "放到链表尾"], 0, "最近访问的节点应该成为最新。"],
+      ["哪些是线程私有的 JVM 区域？", ["程序计数器、虚拟机栈、本地方法栈", "堆和方法区", "堆和直接内存"], 0, "这三个随线程创建和销毁。"],
+      ["Explain 中 type=ALL 通常表示？", ["全表扫描", "唯一索引命中", "覆盖索引"], 0, "ALL 往往需要重点优化。"],
+      ["Redis Cache Aside 写路径常见做法是？", ["先更新 DB，再删除缓存", "只更新缓存", "先删缓存再不管 DB"], 0, "先 DB 后删缓存是最常见答案。"]
+    ];
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function renderNav() {
+      const nav = byId("nav");
+      nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
+        `<button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+      nav.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          byId(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function renderTopics() {
+      const grid = byId("topicGrid");
+      grid.innerHTML = "";
+      topics.forEach((topic) => {
+        const tabs = Object.keys(topic.tabs);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.id = topic.id;
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${topic.title}</h3>
+              <p>${topic.intro}</p>
+            </div>
+            <span class="badge">${topic.tag}</span>
+          </div>
+          <div class="tabs">
+            ${tabs.map((tab, index) => `<button class="chip ${index === 0 ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}
+          </div>
+          <div class="card-body">
+            <div>
+              ${tabs.map((tab, index) => `<div class="panel ${index === 0 ? "active" : ""}" data-panel="${tab}">${topic.tabs[tab]}</div>`).join("")}
+            </div>
+            <aside class="side">
+              <div class="box">
+                <h4>记忆钩子</h4>
+                <p>${topic.memory}</p>
+              </div>
+              <div class="box">
+                <h4>面试追问</h4>
+                <div class="drill">${topic.drill[0]}</div>
+                <div class="answer">${topic.drill[1]}</div>
+                <button class="answer-toggle">显示答案</button>
+              </div>
+            </aside>
+          </div>
+        `;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((item) => item.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach((item) => item.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelector(".answer-toggle").addEventListener("click", (event) => {
+          const answer = card.querySelector(".answer");
+          answer.classList.toggle("show");
+          event.currentTarget.textContent = answer.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderQuiz() {
+      const list = byId("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, options, answer, hint], index) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${q}</h3>${options.map((option, i) => `<button class="option" data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll(".option").forEach((option) => {
+          option.addEventListener("click", () => {
+            card.querySelectorAll(".option").forEach((node) => node.disabled = true);
+            const picked = Number(option.dataset.i);
+            option.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll(".option")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    byId("checkAnswer").addEventListener("click", () => {
+      const text = byId("answerText").value.trim();
+      if (!text) {
+        byId("answerOutput").textContent = "先写一段你的口述答案。";
+        return;
+      }
+      const checks = [
+        ["结论", "有没有先给一句明确结论？"],
+        ["原理", "有没有解释为什么，而不是只背术语？"],
+        ["边界", "有没有说空链表、全负数、并发、失败等边界？"],
+        ["复杂度", "算法题有没有说时间和空间复杂度？"],
+        ["追问", "有没有准备面试官下一步会抓的坑？"]
+      ];
+      byId("answerOutput").textContent = checks.map(([name, desc]) => `- ${name}: ${desc}`).join("\\n") + "\\n\\n你的答案长度：" + text.length + " 字。下一步：对照上面 5 项补一版更完整的 60 秒回答。";
+    });
+
+    byId("resetQuiz").addEventListener("click", renderQuiz);
+
+    renderNav();
+    renderTopics();
+    renderQuiz();
+  </script>
+</body>
+</html>

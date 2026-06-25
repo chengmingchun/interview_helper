@@ -1,32 +1,42 @@
-# 一面查漏补缺 Interactive Desk
+# Interview Helper
 
-这是一个可直接打开的 HTML 复习项目，风格偏文档工作台 + 终端卡片，聚焦今天要补的内容：
-
-- MQ 消息队列
-- 架构设计方法
-- RAG 检索增强生成
-- Redis 缓存一致性
-- MySQL 主从复制
-- B+ 树
-- 算法复杂度表达
-- 5 个高频场景：限流、订单异步下发、幂等、失败重试补偿、接口变慢排查
+一个本地可直接打开的面试复习 HTML 项目。根目录 `index.html` 是专题选择入口，每个专题都是独立页面，互不覆盖。
 
 ## 使用方式
 
-直接用浏览器打开 `index.html`，先在入口页选择要复习的专题。
+直接用浏览器打开：
 
-当前专题页：
+```text
+index.html
+```
 
-- `pages/one-interview-gap.html`：一面查漏补缺，包含 Redis、MySQL 主从、B+ 树、复杂度和旧 5 个场景。
-- `pages/mq-architecture-rag.html`：今天专题，包含 MQ、架构设计、RAG 和对应系统设计场景。
+然后在入口页选择要复习的专题。
 
-页面右侧内嵌了 DeepSeek 提问面板。填入你自己的 DeepSeek API Key 后，可以围绕当前八股材料随时追问。Key 只保存在本机浏览器 localStorage，不会写入项目文件。
+## 当前专题
 
-注意：纯前端直接调用 API 会让浏览器持有 Key，适合个人本地练习；如果要部署到公网，应改成后端代理。
+- `pages/java-algorithm-core.html`
+  - Java / 算法 / DB 核心题
+  - 覆盖线程安全单例、最大子数组和、反转链表、二叉树对称/反转/层序、LRU、JVM 内存区域 + GC Roots、索引失效 + Explain、Redis 缓存一致性。
 
-建议练习顺序：
+- `pages/data-agent-ai-coding.html`
+  - Data Agent / AI Coding
+  - 覆盖 Data Agent 架构、Text-to-SQL、语义层、数据评估、AI Coding 面试打法。
 
-1. 先看“今日专题知识点”，优先学 MQ、架构设计、RAG：先读结论，再点原理链路、记忆卡、易错点、拓展知识和随机追问。
-2. 再看“今日场景题”，先练消息可靠性、秒杀削峰、短链、feed 流、企业知识库 RAG。
-3. 用“交互推演”理解限流参数和复杂度估算。
-4. 最后做“自测纠错”，错题回对应知识点复盘。
+- `pages/rag-masterclass.html`
+  - RAG 完全掌握
+  - 覆盖 RAG 工具选型、工程步骤、评估指标、生产问题和增强型 RAG。
+
+- `pages/mq-architecture-rag.html`
+  - MQ / 架构设计 / RAG
+  - 覆盖消息队列可靠性、系统架构设计、企业知识库 RAG 场景。
+
+- `pages/one-interview-gap.html`
+  - 一面查漏补缺
+  - 覆盖 Redis、MySQL 主从、B+ 树、复杂度和经典后端场景题。
+
+## 建议练习方式
+
+1. 先看专题页的结论和代码。
+2. 用右侧追问区遮答案自测。
+3. 再用口述训练台写 60 秒回答。
+4. 最后做自测题，错题回到对应知识卡。
