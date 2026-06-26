@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Python 八股速成</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --green: #3e7b4f;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    button, textarea { font: inherit; }
+    main, section, article, div, aside { min-width: 0; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.82);
+      overflow: auto;
+    }
+
+    .brand {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+
+    nav { display: grid; gap: 8px; }
+
+    nav button,
+    .chip,
+    .ghost,
+    .answer-toggle,
+    .option {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.68);
+      cursor: pointer;
+    }
+
+    nav button {
+      padding: 10px 12px;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    nav button.active,
+    .chip.active {
+      color: var(--accent-2);
+      border-color: rgba(216, 101, 42, 0.45);
+      background: var(--accent-soft);
+    }
+
+    main {
+      width: min(1180px, 100%);
+      padding: 34px 36px 56px;
+    }
+
+    .hero,
+    .card,
+    .quiz-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 18px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 920px;
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 5.8vw, 62px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-head p,
+    .card-head p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .section { margin: 34px 0; }
+
+    .section-head { margin-bottom: 14px; }
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .card { overflow: hidden; }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 26px 18px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .card-head h3 {
+      margin: 0 0 6px;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .badge {
+      display: inline-flex;
+      height: 28px;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 26px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .chip {
+      padding: 8px 11px;
+      color: var(--muted);
+    }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 20px;
+      padding: 22px 26px 26px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel p { margin: 0 0 13px; }
+    .panel li { margin: 8px 0; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .side {
+      display: grid;
+      gap: 12px;
+      align-self: start;
+    }
+
+    .box {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.7);
+    }
+
+    .box h4 { margin: 0 0 8px; font-size: 16px; }
+    .box p { margin: 0; color: var(--muted); }
+
+    .drill {
+      padding: 12px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+    }
+
+    .answer {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent-soft);
+    }
+
+    .answer.show { display: block; }
+
+    .answer-toggle,
+    .ghost {
+      padding: 9px 11px;
+      margin-top: 10px;
+    }
+
+    .practice {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    .output {
+      min-height: 160px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+    }
+
+    .quiz-card {
+      padding: 18px;
+      margin-bottom: 12px;
+      box-shadow: none;
+    }
+
+    .quiz-card h3 { margin: 0 0 10px; font-size: 18px; }
+
+    .option {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    .option.correct { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+    .option.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .card-body { grid-template-columns: minmax(0, 1fr) 300px; }
+      main { padding: 28px 24px 48px; }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .card-body, .practice { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      .card-head { display: block; }
+      main { padding: 14px; }
+      .hero { padding: 20px; }
+      .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Python Core Drill</b>
+        <span>快速学会 Python 高频八股</span>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">Python 八股速成 / 先结论，再代码，再追问</span>
+        <h1>用一页把 Python 高频面试点串起来。</h1>
+        <p>目标不是背百科，而是能在面试里讲清：Python 对象模型、可变/不可变、装饰器、迭代器生成器、GIL、内存管理、并发、拷贝、异常、性能和 Web 常见问题。</p>
+      </section>
+
+      <section class="section" id="knowledge">
+        <div class="section-head">
+          <h2>核心八股</h2>
+          <p>每张卡都按“结论、代码、追问”组织，适合 30 到 60 秒口述。</p>
+        </div>
+        <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="practice">
+        <div class="section-head">
+          <h2>口述训练台</h2>
+          <p>写一段你的回答，再用检查清单补漏洞。</p>
+        </div>
+        <div class="practice">
+          <div class="box">
+            <h4>你的回答</h4>
+            <textarea id="answerText" placeholder="比如：我先讲 GIL。GIL 是 CPython 的全局解释器锁..."></textarea>
+            <button class="ghost" id="checkAnswer">生成检查清单</button>
+          </div>
+          <div class="output" id="answerOutput">等待你的回答。</div>
+        </div>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>自测纠错</h2>
+          <p>错题回到对应知识卡复盘。</p>
+        </div>
+        <div id="quizList"></div>
+        <button class="ghost" id="resetQuiz">重做自测</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: "object-model",
+        title: "对象模型：一切皆对象",
+        tag: "对象/引用",
+        intro: "Python 变量保存的是对象引用，不是对象本身；赋值不是复制对象。",
+        tabs: {
+          "结论": `<p><b>一句话：</b>Python 中变量是名字，绑定到对象；对象有 id、type、value。赋值只是让新名字指向同一个对象。</p><ul><li><b>id：</b>对象身份，可理解为 CPython 中对象地址的抽象。</li><li><b>type：</b>对象类型，决定行为。</li><li><b>value：</b>对象值，可变对象的值可原地变化。</li></ul>`,
+          "代码": `<pre>a = [1, 2]
+b = a
+b.append(3)
+print(a)  # [1, 2, 3]
+
+x = 1
+y = x
+y += 1
+print(x, y)  # 1 2</pre><p>列表是可变对象，b 修改的是同一个列表；整数是不可变对象，y += 1 会绑定到新整数对象。</p>`,
+          "追问": `<ul><li><b>is 和 == 区别？</b>is 比较身份，== 比较值。</li><li><b>函数传参是什么？</b>对象引用传递/共享传参，函数参数名绑定到传入对象。</li><li><b>默认参数为什么危险？</b>默认参数在函数定义时创建一次，可变默认参数会被多次调用共享。</li></ul>`
+        },
+        memory: "变量是名字，赋值是绑定；is 看身份，== 看值。",
+        drill: ["为什么函数默认参数不要写 []？", "默认参数只在函数定义时创建一次，多次调用会共享同一个列表，导致状态泄漏。应使用 None 再在函数内创建新列表。"]
+      },
+      {
+        id: "mutable",
+        title: "可变/不可变 + 深浅拷贝",
+        tag: "拷贝",
+        intro: "常考列表、字典、元组、字符串，以及 copy 和 deepcopy 的区别。",
+        tabs: {
+          "结论": `<ul><li><b>不可变：</b>int、float、str、tuple、frozenset。</li><li><b>可变：</b>list、dict、set、自定义对象通常可变。</li><li><b>浅拷贝：</b>只复制外层容器，内部对象仍共享。</li><li><b>深拷贝：</b>递归复制内部对象。</li></ul>`,
+          "代码": `<pre>import copy
+
+a = [[1], [2]]
+b = copy.copy(a)
+c = copy.deepcopy(a)
+
+a[0].append(99)
+print(b)  # [[1, 99], [2]]
+print(c)  # [[1], [2]]</pre>`,
+          "追问": `<ul><li><b>tuple 一定不可变吗？</b>tuple 本身不可变，但如果元素是 list，list 仍可变。</li><li><b>切片是深拷贝吗？</b>不是，列表切片是浅拷贝。</li><li><b>什么时候 deepcopy 有风险？</b>对象图很大、循环引用、含文件/连接等外部资源时成本高或语义复杂。</li></ul>`
+        },
+        memory: "浅拷贝复制壳，深拷贝复制里面。",
+        drill: ["tuple 里有 list，能不能修改 list？", "能。tuple 不能改变元素引用，但元素指向的 list 是可变对象，可以修改 list 内容。"]
+      },
+      {
+        id: "decorator",
+        title: "装饰器",
+        tag: "闭包",
+        intro: "装饰器本质是接收函数并返回新函数的高阶函数，常用于日志、鉴权、缓存、重试。",
+        tabs: {
+          "结论": `<p><b>一句话：</b>装饰器是在不改原函数代码的情况下增强函数行为。</p><ul><li>本质：函数也是对象，可以作为参数和返回值。</li><li>@decorator 等价于 func = decorator(func)。</li><li>要用 functools.wraps 保留原函数元信息。</li></ul>`,
+          "代码": `<pre>from functools import wraps
+
+def log_time(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        print("before")
+        result = func(*args, **kwargs)
+        print("after")
+        return result
+    return wrapper
+
+@log_time
+def add(a, b):
+    return a + b</pre>`,
+          "追问": `<ul><li><b>带参数装饰器？</b>三层函数：参数层、接收函数层、wrapper 层。</li><li><b>wraps 作用？</b>保留 __name__、__doc__ 等元信息，便于调试和框架识别。</li><li><b>类装饰器？</b>实现 __call__，也可以增强函数。</li></ul>`
+        },
+        memory: "@dec 等价于 func = dec(func)，wraps 别忘。",
+        drill: ["装饰器为什么要用 *args 和 **kwargs？", "为了兼容任意函数签名，wrapper 能透传所有位置参数和关键字参数。"]
+      },
+      {
+        id: "iterator-generator",
+        title: "迭代器 / 生成器",
+        tag: "yield",
+        intro: "迭代器关注协议，生成器是写迭代器的简便方式，适合惰性计算和流式处理。",
+        tabs: {
+          "结论": `<ul><li><b>可迭代对象：</b>实现 __iter__，能用于 for。</li><li><b>迭代器：</b>实现 __iter__ 和 __next__，每次返回下一个值。</li><li><b>生成器：</b>包含 yield 的函数，调用后返回生成器对象，惰性产出值。</li></ul>`,
+          "代码": `<pre>def count_down(n):
+    while n > 0:
+        yield n
+        n -= 1
+
+for x in count_down(3):
+    print(x)  # 3, 2, 1</pre><p>yield 会暂停函数状态，下次 next 时从暂停处继续。</p>`,
+          "追问": `<ul><li><b>生成器优点？</b>省内存，适合大文件、流式数据、分页处理。</li><li><b>return 和 yield 区别？</b>return 结束函数；yield 产出一个值并暂停。</li><li><b>列表推导式和生成器表达式？</b>[] 立即构建列表，() 惰性生成。</li></ul>`
+        },
+        memory: "iterable 能 for，iterator 能 next，generator 用 yield。",
+        drill: ["为什么生成器更省内存？", "因为它不是一次性构造所有结果，而是每次迭代时按需产出一个值。"]
+      },
+      {
+        id: "gil",
+        title: "GIL 与并发",
+        tag: "并发",
+        intro: "GIL 是 CPython 高频题：它限制同一进程内多个线程同时执行 Python 字节码。",
+        tabs: {
+          "结论": `<p><b>GIL：</b>Global Interpreter Lock，全局解释器锁。CPython 中同一进程同一时刻通常只有一个线程执行 Python 字节码。</p><ul><li>I/O 密集：多线程仍然有用，因为等待 I/O 时会释放 GIL。</li><li>CPU 密集：多线程不能充分利用多核，通常用 multiprocessing 或 C 扩展。</li><li>GIL 不等于线程安全，复合操作仍可能有竞态。</li></ul>`,
+          "代码": `<pre>from threading import Thread, Lock
+
+count = 0
+lock = Lock()
+
+def inc():
+    global count
+    for _ in range(10000):
+        with lock:
+            count += 1</pre><p>即使有 GIL，count += 1 这种读-改-写复合操作仍建议加锁。</p>`,
+          "追问": `<ul><li><b>多线程适合什么？</b>I/O 密集：网络请求、文件读写、数据库调用。</li><li><b>多进程适合什么？</b>CPU 密集：计算、图像处理、大量压缩解析。</li><li><b>asyncio 适合什么？</b>高并发 I/O，单线程事件循环，协作式调度。</li></ul>`
+        },
+        memory: "I/O 用线程或 asyncio，CPU 用进程；GIL 不等于线程安全。",
+        drill: ["GIL 存在时为什么还需要锁？", "GIL 保护解释器内部状态，不保证业务级复合操作原子性。多个线程操作共享变量仍可能出现竞态。"]
+      },
+      {
+        id: "memory",
+        title: "内存管理 / 垃圾回收",
+        tag: "GC",
+        intro: "Python 内存管理常问引用计数、循环引用、分代回收和 del 的真实含义。",
+        tabs: {
+          "结论": `<ul><li><b>主要机制：</b>引用计数为主，分代 GC 处理循环引用。</li><li><b>del：</b>删除名字绑定，不一定立即释放对象。</li><li><b>循环引用：</b>引用计数无法归零，需要 GC 检测。</li><li><b>__del__：</b>析构方法，复杂循环引用里可能影响回收，慎用。</li></ul>`,
+          "代码": `<pre>import sys
+
+a = []
+b = a
+print(sys.getrefcount(a))  # 会比预期多 1，因为传参也临时引用
+
+del a
+print(b)  # 对象仍存在，因为 b 还引用它</pre>`,
+          "追问": `<ul><li><b>小整数/字符串驻留？</b>CPython 会缓存部分小整数和字符串，这是实现优化，不要依赖。</li><li><b>内存泄漏常见原因？</b>全局容器长期持有引用、缓存不清理、闭包引用、循环引用加 __del__。</li><li><b>如何排查？</b>tracemalloc、objgraph、gc 模块、监控对象数量。</li></ul>`
+        },
+        memory: "引用计数为主，分代 GC 补循环；del 删名字，不一定删对象。",
+        drill: ["del x 是删除对象吗？", "不是。del 删除变量名和对象的绑定，只有对象没有其他引用时才可能被释放。"]
+      },
+      {
+        id: "performance",
+        title: "性能与常用数据结构",
+        tag: "性能",
+        intro: "Python 性能题常绕不开 list、dict、set、字符串拼接和推导式。",
+        tabs: {
+          "结论": `<ul><li><b>list：</b>动态数组，按下标访问 O(1)，中间插入删除 O(n)。</li><li><b>dict/set：</b>哈希表，平均查找 O(1)，要求 key 可哈希。</li><li><b>字符串：</b>不可变，循环 += 可能产生大量临时对象。</li><li><b>推导式：</b>通常比手写 append 循环更简洁，性能也常更好。</li></ul>`,
+          "代码": `<pre># 推荐：大量字符串拼接用 join
+parts = ["a", "b", "c"]
+s = "".join(parts)
+
+# 去重并保持顺序
+items = [3, 1, 3, 2]
+unique = list(dict.fromkeys(items))</pre>`,
+          "追问": `<ul><li><b>dict 为什么快？</b>哈希定位，平均 O(1)。</li><li><b>什么对象可哈希？</b>生命周期内哈希值不变，并能比较相等性，通常不可变对象可哈希。</li><li><b>列表和元组区别？</b>列表可变，元组不可变；元组可作为 dict key 的前提是元素也可哈希。</li></ul>`
+        },
+        memory: "list 顺序数组，dict/set 哈希，字符串不可变，多拼接用 join。",
+        drill: ["为什么 list 中间插入是 O(n)？", "因为动态数组要移动插入位置后面的元素，元素越多移动成本越高。"]
+      },
+      {
+        id: "web",
+        title: "Python Web 高频点",
+        tag: "Web",
+        intro: "如果面 Python 后端，常问 WSGI/ASGI、Flask/Django/FastAPI、协程和部署。",
+        tabs: {
+          "结论": `<ul><li><b>WSGI：</b>同步 Web 网关接口，典型 Flask/Django 传统部署。</li><li><b>ASGI：</b>支持异步、WebSocket、长连接，典型 FastAPI/Starlette。</li><li><b>Gunicorn/uWSGI：</b>常见 WSGI 进程管理。</li><li><b>Uvicorn：</b>常见 ASGI Server。</li></ul>`,
+          "代码": `<pre># FastAPI async endpoint
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/ping")
+async def ping():
+    return {"ok": True}</pre>`,
+          "追问": `<ul><li><b>async 一定更快吗？</b>不一定。I/O 密集高并发更有优势；CPU 密集仍会阻塞事件循环。</li><li><b>Django 和 Flask 区别？</b>Django 大而全，内置 ORM/admin/auth；Flask 轻量灵活。</li><li><b>FastAPI 优势？</b>类型注解、自动文档、异步支持、Pydantic 校验。</li></ul>`
+        },
+        memory: "WSGI 偏同步，ASGI 支持异步；async 适合 I/O，不救 CPU。",
+        drill: ["async 接口里做 CPU 密集计算会怎样？", "会阻塞事件循环，影响其他请求。CPU 密集任务应丢到进程池、任务队列或独立服务。"]
+      }
+    ];
+
+    const quizzes = [
+      ["Python 赋值语句本质是什么？", ["名字绑定到对象", "复制对象内存", "创建线程"], 0, "变量是名字，赋值是绑定。"],
+      ["浅拷贝会复制嵌套对象吗？", ["不会，内部对象仍共享", "会递归复制", "只复制字符串"], 0, "浅拷贝只复制外层容器。"],
+      ["@decorator 等价于什么？", ["func = decorator(func)", "decorator = func()", "func.__dict__ = decorator"], 0, "装饰器本质是高阶函数。"],
+      ["生成器为什么省内存？", ["按需 yield，不一次性生成全部结果", "使用了多线程", "绕过了解释器"], 0, "生成器惰性产出。"],
+      ["GIL 对 CPU 密集多线程的影响是？", ["难以利用多核并行执行 Python 字节码", "一定让程序更快", "自动保证业务线程安全"], 0, "CPU 密集通常用多进程。"],
+      ["del x 一定释放对象吗？", ["不一定，只删除名字绑定", "一定释放", "会深拷贝对象"], 0, "对象还有其他引用时不会释放。"],
+      ["大量字符串拼接更推荐什么？", ["''.join(parts)", "循环 s += part", "每次都 deepcopy"], 0, "join 能减少临时字符串。"]
+    ];
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function renderNav() {
+      const nav = byId("nav");
+      nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
+        `<button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+      nav.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          byId(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function renderTopics() {
+      const grid = byId("topicGrid");
+      grid.innerHTML = "";
+      topics.forEach((topic) => {
+        const tabs = Object.keys(topic.tabs);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.id = topic.id;
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${topic.title}</h3>
+              <p>${topic.intro}</p>
+            </div>
+            <span class="badge">${topic.tag}</span>
+          </div>
+          <div class="tabs">
+            ${tabs.map((tab, index) => `<button class="chip ${index === 0 ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}
+          </div>
+          <div class="card-body">
+            <div>
+              ${tabs.map((tab, index) => `<div class="panel ${index === 0 ? "active" : ""}" data-panel="${tab}">${topic.tabs[tab]}</div>`).join("")}
+            </div>
+            <aside class="side">
+              <div class="box">
+                <h4>记忆钩子</h4>
+                <p>${topic.memory}</p>
+              </div>
+              <div class="box">
+                <h4>面试追问</h4>
+                <div class="drill">${topic.drill[0]}</div>
+                <div class="answer">${topic.drill[1]}</div>
+                <button class="answer-toggle">显示答案</button>
+              </div>
+            </aside>
+          </div>
+        `;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((item) => item.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach((item) => item.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelector(".answer-toggle").addEventListener("click", (event) => {
+          const answer = card.querySelector(".answer");
+          answer.classList.toggle("show");
+          event.currentTarget.textContent = answer.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderQuiz() {
+      const list = byId("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, options, answer, hint], index) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${q}</h3>${options.map((option, i) => `<button class="option" data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll(".option").forEach((option) => {
+          option.addEventListener("click", () => {
+            card.querySelectorAll(".option").forEach((node) => node.disabled = true);
+            const picked = Number(option.dataset.i);
+            option.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll(".option")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    byId("checkAnswer").addEventListener("click", () => {
+      const text = byId("answerText").value.trim();
+      if (!text) {
+        byId("answerOutput").textContent = "先写一段你的口述答案。";
+        return;
+      }
+      const checks = [
+        ["结论", "有没有先给一句明确结论？"],
+        ["机制", "有没有解释底层机制，而不是只背名词？"],
+        ["例子", "有没有用代码或场景举例？"],
+        ["边界", "有没有提到易错点和反例？"],
+        ["取舍", "有没有说什么时候适合、什么时候不适合？"]
+      ];
+      byId("answerOutput").textContent = checks.map(([name, desc]) => `- ${name}: ${desc}`).join("\\n") + "\\n\\n你的答案长度：" + text.length + " 字。下一步：把缺失项补进 60 秒回答。";
+    });
+
+    byId("resetQuiz").addEventListener("click", renderQuiz);
+
+    renderNav();
+    renderTopics();
+    renderQuiz();
+  </script>
+</body>
+</html>

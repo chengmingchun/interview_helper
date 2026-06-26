@@ -14,6 +14,10 @@ index.html
 
 ## 当前专题
 
+- `pages/python-core-interview.html`
+  - Python 八股速成
+  - 覆盖对象模型、可变/不可变、深浅拷贝、装饰器、迭代器/生成器、GIL、内存管理、并发、性能和 Web 高频点。
+
 - `pages/java-algorithm-core.html`
   - Java / 算法 / DB 核心题
   - 覆盖线程安全单例、最大子数组和、反转链表、二叉树对称/反转/层序、LRU、JVM 内存区域 + GC Roots、索引失效 + Explain、Redis 缓存一致性。
