@@ -22,6 +22,10 @@ index.html
   - Java / 算法 / DB 核心题
   - 覆盖线程安全单例、最大子数组和、反转链表、二叉树对称/反转/层序、LRU、JVM 内存区域 + GC Roots、索引失效 + Explain、Redis 缓存一致性。
 
+- `pages/greedy-algorithm.html`
+  - 贪心算法专题
+  - 覆盖贪心证明套路、区间贪心、射气球、跳跃游戏、买卖股票 II、分发饼干、加油站、划分字母区间、柠檬水找零和常见反例。
+
 - `pages/java-fullgc-jvm.html`
   - Java Full GC / JVM 面试知识页
   - 覆盖 JVM 内存区域、GC Roots、分代假说、Full GC 触发原因、GC 日志解读、线上排查命令、根因模式和 60 秒面试表达模板。
