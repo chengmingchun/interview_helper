@@ -18,6 +18,10 @@ index.html
   - Java / 算法 / DB 核心题
   - 覆盖线程安全单例、最大子数组和、反转链表、二叉树对称/反转/层序、LRU、JVM 内存区域 + GC Roots、索引失效 + Explain、Redis 缓存一致性。
 
+- `pages/java-fullgc-jvm.html`
+  - Java Full GC / JVM 面试知识页
+  - 覆盖 JVM 内存区域、GC Roots、分代假说、Full GC 触发原因、GC 日志解读、线上排查命令、根因模式和 60 秒面试表达模板。
+
 - `pages/data-agent-ai-coding.html`
   - Data Agent / AI Coding
   - 覆盖 Data Agent 架构、Text-to-SQL、语义层、数据评估、AI Coding 面试打法。
