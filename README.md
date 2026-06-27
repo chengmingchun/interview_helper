@@ -34,6 +34,10 @@ index.html
   - 订单项目描述深挖专题
   - 基于简历中的订单模块与性能优化经历做匿名化面试深挖，覆盖订单链路、高并发场景、幂等、重复入库、缓存一致性、状态机、异步下发、慢 SQL 优化和项目话术。
 
+- `pages/sql-optimization-cases.html`
+  - SQL 优化案例复盘专题
+  - 基于经验贴口述做匿名化整理，覆盖左模糊索引失效、WHERE/ORDER BY 索引选择误判、Hint 与稳定排序、OFFSET 深分页回表、覆盖索引子查询和延迟关联。
+
 - `pages/java-fullgc-jvm.html`
   - Java Full GC / JVM 面试知识页
   - 覆盖 JVM 内存区域、GC Roots、分代假说、Full GC 触发原因、GC 日志解读、线上排查命令、根因模式和 60 秒面试表达模板。
