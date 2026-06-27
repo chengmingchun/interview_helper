@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 辅助研发项目深挖</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    html { font-size: clamp(14px, 0.28vw + 13px, 16px); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    .layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); min-height: 100vh; }
+    aside { position: sticky; top: 0; height: 100vh; padding: 22px; border-right: 1px solid var(--line); background: rgba(244, 239, 230, 0.82); overflow: auto; }
+    .brand { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+    .back { display: inline-flex; margin-top: 12px; color: var(--accent-2); text-decoration: none; font-weight: 800; font-size: 13px; }
+    nav { display: grid; gap: 8px; }
+    nav a { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: rgba(255, 250, 240, 0.68); text-decoration: none; }
+    nav a:hover { color: var(--accent-2); border-color: rgba(216, 101, 42, 0.45); background: var(--accent-soft); }
+
+    main { width: min(1180px, 100%); padding: 34px 36px 56px; }
+    .hero, .card { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
+    .hero { padding: 30px; margin-bottom: 28px; }
+    .eyebrow { display: inline-flex; margin-bottom: 18px; padding: 5px 10px; border-radius: 999px; color: var(--accent-2); background: var(--accent-soft); font-size: 13px; font-weight: 700; }
+    h1 { max-width: 980px; margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5.8vw, 62px); line-height: 1; letter-spacing: 0; }
+    .hero p, .section-head p, .card p { margin: 0; color: var(--muted); }
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+    .section-head h2 { margin: 0 0 6px; font-family: Georgia, "Times New Roman", serif; font-size: 34px; line-height: 1; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .card { padding: 24px 26px; overflow: hidden; }
+    .card h3 { margin: 0 0 8px; font-size: 25px; line-height: 1.2; }
+    .card h4 { margin: 0 0 8px; font-size: 16px; }
+    .badge { display: inline-flex; margin-bottom: 12px; padding: 3px 10px; border-radius: 999px; color: var(--accent-2); background: var(--accent-soft); font-size: 12px; font-weight: 800; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    .box { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.7); }
+    .box p, .box li { color: var(--muted); }
+    .box p { margin: 0 0 10px; }
+    .box li { margin: 6px 0; }
+    .full { grid-column: 1 / -1; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code { padding: 2px 5px; border-radius: 6px; color: var(--accent-2); background: var(--accent-soft); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .script { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--muted); }
+    .question { color: var(--ink); font-weight: 800; }
+    .answer { color: var(--muted); }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .cols { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
+    }
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      main { padding: 14px; }
+      .hero, .card { padding: 20px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>AI Assisted Dev Drill</b>
+        <span>项目链路 · 输出物 · 迁移模式</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav>
+        <a href="#overview">项目定位</a>
+        <a href="#flow">端到端链路</a>
+        <a href="#outputs">每环节输出</a>
+        <a href="#patterns">沉淀模式</a>
+        <a href="#migration">迁移场景</a>
+        <a href="#bottleneck">当前瓶颈</a>
+        <a href="#defense">追问防守</a>
+        <a href="#script">面试话术</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">AI Assisted Development / Skill · MCP · SubAgent · SDD/TDD · RAG</span>
+        <h1>AI 辅助研发不是“让模型写代码”，而是把研发流程拆成可验证、可交付、可复用的链路。</h1>
+        <p>这个专题用于深挖 AI 增强研发与智能交付探索：每个环节做了什么、产出什么、为什么要这样产出、沉淀了什么模式、如何迁移到其他业务场景，以及当前仍然存在的工程瓶颈。</p>
+      </section>
+
+      <section class="section" id="overview">
+        <div class="section-head">
+          <h2>项目定位：先讲你解决的不是“写代码速度”</h2>
+          <p>面试官真正关心的是你有没有把 AI 落到研发工程，而不是只会使用聊天工具。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Project Context</span>
+          <h3>推荐开场</h3>
+          <p class="script">这个项目是我近半年参与的 AI 辅助研发与智能交付探索，核心不是简单让 AI 生成代码，而是把需求理解、规格生成、代码实现、人工 Review、测试验证和转测交付串成一个闭环。我实践过 Skill、MCP、SubAgent、RAG/向量检索、SDD/TDD 等方式，在试点需求中完成从 0 到 1 的穿刺验证，累计生成约 3k 行代码，并提前 2 天转测，同时也做过面向产品线的范式分享。</p>
+          <div class="cols">
+            <div class="box">
+              <h4>一句话价值</h4>
+              <p>把“人凭经验推进需求”拆成多个结构化环节，让 AI 在每个环节都有明确输入、明确输出和人工校验点，从而降低需求理解、代码生成、测试验证和交付沟通的成本。</p>
+            </div>
+            <div class="box">
+              <h4>你要主动强调</h4>
+              <ul>
+                <li>不是只让 AI 写代码，而是做研发流程工程化。</li>
+                <li>不是一次性 prompt，而是把输出物标准化。</li>
+                <li>不是完全自动化，而是人机协同、人工把关。</li>
+                <li>不是单点工具，而是 Skill、MCP、RAG、SubAgent 组合。</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="flow">
+        <div class="section-head">
+          <h2>端到端链路：每一步都要有输入、处理和输出</h2>
+          <p>这页最重要的是把链路说完整，否则面试官会觉得你只是“用了 AI”。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Workflow</span>
+          <h3>AI 辅助研发闭环</h3>
+          <pre>需求输入
+  -> 需求理解与澄清
+  -> 规格说明 / OpenSpec / 设计约束
+  -> 任务拆解 / SubAgent 分工
+  -> 知识检索 / RAG 补上下文
+  -> 代码生成 / AI Coding
+  -> 人工 Review / 风险审查
+  -> 单测 / TDD / 验证用例
+  -> 工具化交付 / MCP / Skill
+  -> 转测与复盘沉淀</pre>
+          <div class="cols">
+            <div class="box">
+              <h4>为什么要拆链路</h4>
+              <p>如果直接让模型写代码，最大风险是需求理解错、上下文缺失、输出不可验证。拆成链路后，每一步都有中间产物，可以人工确认，也能复用到下一步。</p>
+            </div>
+            <div class="box">
+              <h4>面试回答重点</h4>
+              <p>我会把 AI 研发流程理解成“结构化输入 + 中间产物 + 自动化执行 + 人工校验”。AI 负责提高吞吐，人负责做需求判断、边界确认、风险控制和最终验收。</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="outputs">
+        <div class="section-head">
+          <h2>每个环节做了什么、输出什么、为什么这样输出</h2>
+          <p>这是面试最容易深挖的部分：AI 在每个阶段到底帮了什么。</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <span class="badge">Step 1</span>
+            <h3>需求理解与澄清</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>把原始需求、聊天记录、Wiki、历史问题输入给模型，让模型先抽取业务目标、涉及模块、输入输出、边界条件和风险点。</p></div>
+              <div class="box"><h4>输出什么</h4><p>输出需求摘要、关键实体、待确认问题、影响范围和验收标准草案。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>因为需求阶段最大的问题不是不会写代码，而是不知道“到底要做什么”。先输出澄清问题和验收标准，可以把模糊需求变成可开发任务，避免后面返工。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 2</span>
+            <h3>规格生成与设计约束</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>引入 OpenSpec / SDD 思路，让模型把需求转成结构化规格：接口变化、状态变化、数据结构、异常分支、兼容性要求。</p></div>
+              <div class="box"><h4>输出什么</h4><p>输出规格文档、接口草案、状态流转、数据模型、异常处理清单和验收用例。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>规格是代码生成的边界。没有规格就直接生成代码，模型容易补全不存在的业务假设；先有规格，后面的代码、测试、Review 都能围绕同一份约束展开。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 3</span>
+            <h3>SubAgent 拆解研发任务</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>把复杂研发任务拆给不同角色：需求分析、方案设计、代码实现、测试验证、Review 审查。每个角色只负责一类输出。</p></div>
+              <div class="box"><h4>输出什么</h4><p>输出任务拆解表、模块修改清单、代码生成计划、测试计划和 Review 风险清单。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>单个模型一次性完成复杂任务容易遗漏。角色化之后，每个 Agent 的目标更窄，输出更稳定，也方便人逐段审查。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 4</span>
+            <h3>RAG / 向量检索补上下文</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>把项目知识、Wiki、会话总结、历史方案等切分成 chunk，管理向量和元信息，用余弦相似度做 topK 召回，辅助方案生成和知识检索。</p></div>
+              <div class="box"><h4>输出什么</h4><p>输出与当前需求相关的背景知识、历史实现参考、接口约束和可能影响的模块。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>模型缺少项目上下文时，会生成“看起来合理但不符合项目”的代码。RAG 的作用不是替代判断，而是把正确上下文放到模型面前，减少幻觉和错用接口。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 5</span>
+            <h3>AI Coding 与代码落地</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>基于规格、上下文和任务拆解，让 AI 生成局部代码、配置、脚本、单测和文档补充，再由人工进行 Review 和修正。</p></div>
+              <div class="box"><h4>输出什么</h4><p>输出代码 diff、接口实现、配置变更、单元测试、Mock 数据和变更说明。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>代码输出必须和 Review、测试绑定。只输出代码无法判断对错，配套测试和变更说明能让人更快定位风险。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 6</span>
+            <h3>Skill / MCP 工具化交付</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>把高频、确定性较强的操作封装成 AI 可调用能力，例如 Wiki 会话总结、热部署、知识检索、脚本执行等。</p></div>
+              <div class="box"><h4>输出什么</h4><p>输出可复用 Skill、MCP 工具、执行参数约束、调用结果和失败提示。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>模型擅长理解和生成，但不擅长可靠执行。工具化把“想做什么”和“怎么执行”分开，让模型通过受控工具完成动作，提升稳定性和可复用性。</p></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="patterns">
+        <div class="section-head">
+          <h2>探索出的好模式</h2>
+          <p>这一节回答“你到底沉淀了什么”，不要只说生成了多少代码。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Patterns</span>
+          <h3>我会总结成 5 个模式</h3>
+          <div class="cols">
+            <div class="box"><h4>1. 先规格，后代码</h4><p>先让 AI 产出规格、边界和验收标准，再生成代码。这样能减少“代码写得快但方向错”的问题。</p></div>
+            <div class="box"><h4>2. 中间产物可审查</h4><p>每一步都要有可读输出：需求摘要、任务拆解、接口草案、测试清单、Review 清单。人能审，流程才可控。</p></div>
+            <div class="box"><h4>3. 复杂任务角色化</h4><p>用 SubAgent 拆成分析、设计、编码、测试、审查，避免一个模型一次性吞掉全部复杂度。</p></div>
+            <div class="box"><h4>4. 高频操作工具化</h4><p>把热部署、知识检索、会话总结、脚本执行等封装成 Skill / MCP，让 AI 调工具，而不是每次重新解释流程。</p></div>
+            <div class="box"><h4>5. 人负责判断，AI 负责吞吐</h4><p>AI 适合生成候选方案、代码草稿和测试用例，人负责业务判断、架构取舍、风险识别和最终合并。</p></div>
+            <div class="box"><h4>一句话抽象</h4><p>这个模式不是“AI 替代研发”，而是把研发过程拆成可被 AI 增强的多个节点，并通过结构化输出和人工校验形成闭环。</p></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="migration">
+        <div class="section-head">
+          <h2>怎么迁移到其他场景</h2>
+          <p>面试官会问：这个项目是不是只能在你那个需求里用？你要回答“模式可迁移”。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Migration</span>
+          <h3>可迁移的不是代码，而是流程模板</h3>
+          <div class="cols">
+            <div class="box"><h4>订单 / 后端业务开发</h4><p>迁移为：需求澄清 -> 状态机/幂等/接口规格 -> 代码生成 -> 单测 -> Review 清单。适合订单、审批、任务流、资源编排等状态驱动业务。</p></div>
+            <div class="box"><h4>运维自动化</h4><p>迁移为：自然语言意图 -> 参数校验 -> MCP 工具执行 -> 日志回传 -> 失败诊断。适合热部署、巡检、日志分析、批量脚本执行。</p></div>
+            <div class="box"><h4>SQL / 性能排障</h4><p>迁移为：问题描述 -> SQL/日志收集 -> EXPLAIN 解读 -> 优化建议 -> 回归验证清单。适合慢 SQL、缓存问题、接口超时复盘。</p></div>
+            <div class="box"><h4>知识库 / 团队协作</h4><p>迁移为：Wiki/历史文档 -> chunk 切分 -> RAG 召回 -> 方案生成 -> 人工确认。适合新人上手、方案复用、故障复盘。</p></div>
+          </div>
+          <p class="script">推荐说法：我认为可迁移的是“结构化研发闭环”，不是某个 prompt。只要一个场景具备知识输入、标准输出、可验证结果和高频重复动作，就可以迁移这套方法。</p>
+        </article>
+      </section>
+
+      <section class="section" id="bottleneck">
+        <div class="section-head">
+          <h2>当前瓶颈：要敢讲问题，才像真的做过</h2>
+          <p>这一节能防止面试官觉得你在包装概念。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Bottlenecks</span>
+          <h3>我会讲 6 个瓶颈</h3>
+          <div class="cols">
+            <div class="box"><h4>1. 上下文准确性</h4><p>项目知识不完整或召回噪声太高时，模型会生成不符合项目约束的方案。RAG 能缓解，但依赖文档质量、chunk 策略和召回评估。</p></div>
+            <div class="box"><h4>2. 多文件一致性</h4><p>AI 生成局部代码比较强，但跨多个模块、配置、接口、测试的整体一致性仍需要人工 Review。</p></div>
+            <div class="box"><h4>3. 工具调用稳定性</h4><p>Skill / MCP 能提升执行力，但工具参数、异常处理、权限边界和失败回滚都需要工程化设计。</p></div>
+            <div class="box"><h4>4. 测试和验收不足</h4><p>没有可自动验证的测试，AI 输出就只能靠人读代码。真正提效必须把单测、集成测试、检查脚本一起纳入流程。</p></div>
+            <div class="box"><h4>5. 评价指标难量化</h4><p>生成行数不是核心指标，更应该看返工率、Review 问题数、缺陷率、转测时间、需求吞吐和交付稳定性。</p></div>
+            <div class="box"><h4>6. 人机边界</h4><p>AI 适合生成候选，不适合直接做最终业务判断。架构取舍、风险控制、灰度发布、线上问题仍需要工程师负责。</p></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="defense">
+        <div class="section-head">
+          <h2>基础追问防守卡</h2>
+          <p>这些是面试官会顺着项目继续追的点。</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <span class="badge">Defense</span>
+            <h3>AI 工程化追问</h3>
+            <div class="cols">
+              <div class="box"><h4>问：RAG 在这里解决什么？</h4><p><span class="answer">解决项目上下文缺失。它把 Wiki、历史方案、会话总结等召回给模型，减少模型凭空补业务假设。</span></p></div>
+              <div class="box"><h4>问：为什么要 Skill / MCP？</h4><p><span class="answer">模型负责理解意图，工具负责可靠执行。高频动作工具化后，输入输出和失败边界更稳定。</span></p></div>
+              <div class="box"><h4>问：SubAgent 有什么价值？</h4><p><span class="answer">它把复杂任务拆成角色，降低单次输出复杂度，也让每个角色的产物更容易审查。</span></p></div>
+              <div class="box"><h4>问：怎么保证 AI 代码质量？</h4><p><span class="answer">靠规格约束、人工 Review、测试验证、静态检查和小步提交，不把 AI 输出直接等同于可上线代码。</span></p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Defense</span>
+            <h3>项目价值追问</h3>
+            <div class="cols">
+              <div class="box"><h4>问：生成 3k 行代码有意义吗？</h4><p><span class="answer">行数不是核心，核心是从需求到转测的链路被打通。3k 行只是说明试点有真实落地产物，更重要的是提前转测和流程沉淀。</span></p></div>
+              <div class="box"><h4>问：为什么不是普通自动化脚本？</h4><p><span class="answer">普通脚本解决固定输入固定动作；AI 辅助研发解决需求理解、上下文检索、方案生成、代码草稿和验证清单这些半结构化任务。</span></p></div>
+              <div class="box"><h4>问：最大风险是什么？</h4><p><span class="answer">最大风险是模型自信地生成错误内容，所以必须让每一步产物可审查、可测试、可回滚。</span></p></div>
+              <div class="box"><h4>问：下一步怎么做？</h4><p><span class="answer">继续补工具稳定性、测试自动化、知识库质量和评价指标，把“能跑通”推进到“可复制、可度量、可治理”。</span></p></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="script">
+        <div class="section-head">
+          <h2>最终可背的话术</h2>
+          <p>用这段作为面试开场，再根据面试官兴趣展开流程、模式、迁移或瓶颈。</p>
+        </div>
+        <article class="card">
+          <span class="badge">90 Seconds</span>
+          <h3>AI 辅助研发项目 90 秒版本</h3>
+          <p class="script">我近半年重点参与了 AI 辅助研发与智能交付探索。这个项目不是简单让 AI 写代码，而是把研发流程拆成需求理解、规格生成、任务拆解、知识检索、代码生成、人工 Review、测试验证和转测交付几个环节。每个环节都有明确输出，比如需求摘要、澄清问题、OpenSpec 规格、任务拆解、RAG 召回上下文、代码 diff、测试用例和 Review 清单。这样做的原因是避免 AI 直接生成代码时需求理解错、上下文缺失和结果不可验证。我实践过 Skill、MCP、SubAgent、RAG、SDD/TDD 等方式，在试点需求中完成了从 0 到 1 的穿刺验证，累计生成约 3k 行代码，并提前 2 天转测。这个过程中我沉淀出的模式是：先规格后代码，中间产物可审查，复杂任务角色化，高频动作工具化，人负责判断，AI 负责提高吞吐。这个模式可以迁移到订单业务开发、运维自动化、SQL 排障、知识库检索和测试生成等场景。当前瓶颈主要在上下文质量、多文件一致性、工具调用稳定性、测试验收和效果度量上，所以我认为 AI 辅助研发下一阶段的关键不是更会 prompt，而是流程工程化、工具稳定化和验证自动化。</p>
+        </article>
+        <article class="card">
+          <span class="badge">30 Seconds</span>
+          <h3>AI 辅助研发项目 30 秒版本</h3>
+          <p class="script">我做的 AI 辅助研发探索，核心是把需求到转测的流程拆成多个可验证环节，而不是只让 AI 生成代码。链路包括需求理解、规格生成、任务拆解、RAG 补上下文、AI Coding、Review、测试和转测。试点里累计生成约 3k 行代码并提前 2 天转测。我的主要收获是：AI 真正有价值的地方在于结构化输出、工具化执行和人机协同，而不是完全替代研发。</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
