@@ -34,6 +34,10 @@ index.html
   - 订单项目描述深挖专题
   - 基于订单模块与性能优化经历做面试深挖，覆盖订单链路、高并发场景、幂等、重复入库、缓存一致性、状态机、异步下发、慢 SQL 优化和项目话术。
 
+- `pages/ai-assisted-dev-deep-dive.html`
+  - AI 辅助研发项目深挖专题
+  - 覆盖需求理解、规格生成、SubAgent 任务拆解、RAG/向量检索、AI Coding、Skill/MCP 工具化、SDD/TDD、迁移模式、当前瓶颈和面试追问防守。
+
 - `pages/sql-optimization-cases.html`
   - SQL 优化案例复盘专题
   - 基于经验贴口述做匿名化整理，覆盖左模糊索引失效、WHERE/ORDER BY 索引选择误判、Hint 与稳定排序、OFFSET 深分页回表、覆盖索引子查询和延迟关联。
