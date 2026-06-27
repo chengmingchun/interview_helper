@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>订单项目描述深挖专题</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --green: #3e7b4f;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div, aside { min-width: 0; }
+    button, textarea { font: inherit; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.82);
+      overflow: auto;
+    }
+
+    .brand {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+
+    .back {
+      display: inline-flex;
+      margin-top: 12px;
+      color: var(--accent-2);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    nav { display: grid; gap: 8px; }
+
+    nav button,
+    .chip,
+    .ghost,
+    .answer-toggle {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.68);
+      cursor: pointer;
+    }
+
+    nav button {
+      padding: 10px 12px;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    nav button.active,
+    .chip.active {
+      color: var(--accent-2);
+      border-color: rgba(216, 101, 42, 0.45);
+      background: var(--accent-soft);
+    }
+
+    main {
+      width: min(1180px, 100%);
+      padding: 34px 36px 56px;
+    }
+
+    .hero,
+    .card,
+    .quiz-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero { padding: 30px; margin-bottom: 28px; }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 18px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 960px;
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 5.8vw, 62px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-head p,
+    .card-head p { margin: 0; color: var(--muted); }
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .card { overflow: hidden; }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 26px 18px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .card-head h3 { margin: 0 0 6px; font-size: 25px; line-height: 1.2; }
+
+    .badge {
+      display: inline-flex;
+      height: 28px;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 26px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .chip { padding: 8px 11px; color: var(--muted); }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      padding: 22px 26px 26px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel p { margin: 0 0 13px; }
+    .panel li { margin: 8px 0; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 6px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .side { display: grid; gap: 12px; align-self: start; }
+
+    .box {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.7);
+    }
+
+    .box h4 { margin: 0 0 8px; font-size: 16px; }
+    .box p { margin: 0; color: var(--muted); }
+
+    .drill {
+      padding: 12px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+    }
+
+    .answer {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent-soft);
+    }
+
+    .answer.show { display: block; }
+    .answer-toggle, .ghost { padding: 9px 11px; margin-top: 10px; }
+
+    .practice { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    .output {
+      min-height: 160px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+    }
+
+    .quiz-card { padding: 18px; margin-bottom: 12px; box-shadow: none; }
+    .quiz-card h3 { margin: 0 0 10px; font-size: 18px; }
+
+    .option {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option.correct { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+    .option.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .card-body { grid-template-columns: minmax(0, 1fr) 300px; }
+      main { padding: 28px 24px 48px; }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .card-body, .practice { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      .card-head { display: block; }
+      main { padding: 14px; }
+      .hero { padding: 20px; }
+      .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Order Project Drill</b>
+        <span>匿名化 · 简历深挖 · 订单链路</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">Resume Deep Dive / Order · Idempotency · Cache · SQL</span>
+        <h1>把订单项目讲成一条可信的工程链路，而不是一句“我做过订单模块”。</h1>
+        <p>本页已按 GitHub Pages 公开展示做匿名化处理：不出现姓名、电话、邮箱、客户名称、内部项目代号、真实接口、真实 IP、真实表名。只保留面试需要的工程表达：订单链路、并发场景、幂等、重复入库、缓存一致性、状态机、慢 SQL 和排障闭环。</p>
+      </section>
+
+      <section class="section" id="knowledge">
+        <div class="section-head">
+          <h2>项目描述深挖卡片</h2>
+          <p>面试官问订单，本质是在问你有没有处理过真实业务链路里的状态、一致性和异常闭环。</p>
+        </div>
+        <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="practice">
+        <div class="section-head">
+          <h2>口述训练台</h2>
+          <p>写一段你的订单项目回答，检查是否有“场景、链路、问题、方案、结果”。</p>
+        </div>
+        <div class="practice">
+          <div class="box">
+            <h4>你的回答</h4>
+            <textarea id="answerText" placeholder="比如：我负责云服务管理编排平台中的订单链路，订单不是简单 CRUD，而是承接租户校验、资源参数、状态流转和下游服务下发..."></textarea>
+            <button class="ghost" id="checkAnswer">生成检查清单</button>
+          </div>
+          <div class="output" id="answerOutput">等待你的回答。</div>
+        </div>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>自测纠错</h2>
+          <p>错了就回到对应知识卡，把“订单为什么复杂”讲清楚。</p>
+        </div>
+        <div id="quizList"></div>
+        <button class="ghost" id="resetQuiz">重做自测</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: "privacy",
+        title: "公开页面脱敏边界",
+        tag: "先保密",
+        intro: "这个页面是给 GitHub Pages 展示的，所以只讲工程能力，不泄露个人和业务敏感信息。",
+        tabs: {
+          "不要写": `<ul><li>不要写姓名、手机号、邮箱、工号、真实办公地点。</li><li>不要写客户名称、运营商名称、内部项目代号、内部服务名、真实接口路径。</li><li>不要写真实 IP、域名、数据库表名、字段名、日志片段、错误码全量内容。</li><li>不要写“某客户现网”“某赛事真实名称”等可反推出业务方的信息。</li></ul>`,
+          "可以写": `<ul><li>可以写成“云服务管理编排平台”“订单模块”“服务下发模块”“下游资源系统”。</li><li>可以写技术问题：高并发提交、重复请求、缓存一致性、状态机、异步下发、慢 SQL。</li><li>可以写抽象链路：网关 -> 鉴权 -> 租户校验 -> 订单落库 -> 异步任务 -> 下游回写 -> 查询展示。</li><li>可以写脱敏指标：千万级数据、几十秒到秒内、P99、错误率、超时率。</li></ul>`,
+          "一句话": `<p><b>公开版本：</b>我参与过一个云服务管理编排平台，重点负责订单链路和服务下发相关问题。订单模块承接租户校验、资源参数、状态流转、异步下发和查询展示，核心挑战是高并发请求下的幂等、重复入库、缓存一致性、状态一致性和大数据量查询性能。</p>`
+        },
+        memory: "公开页只讲抽象工程能力，不放任何能定位个人、客户、内网和真实业务的信息。",
+        drill: ["为什么这个专题要先讲脱敏？", "因为 GitHub Pages 是公开页面。项目深挖可以讲链路、方法和结果，但不能暴露个人信息、客户信息、内部项目代号、真实接口、真实日志和真实表结构。"]
+      },
+      {
+        id: "why-order",
+        title: "为什么面试官爱问订单模块",
+        tag: "面试动机",
+        intro: "订单不是 CRUD，它天然牵涉状态、一致性、并发、异常和下游依赖。",
+        tabs: {
+          "他们想看什么": `<ul><li><b>业务理解：</b>订单是不是全链路入口，而不只是插一条记录。</li><li><b>并发能力：</b>重复点击、重试、批量提交、回调乱序怎么处理。</li><li><b>一致性能力：</b>数据库、缓存、下游状态不一致怎么兜底。</li><li><b>状态建模：</b>订单状态机是否可回放、可补偿、可追踪。</li><li><b>排障能力：</b>慢 SQL、超时、重复入库、状态卡住如何定位。</li></ul>`,
+          "你的切入点": `<p>不要说“我做订单增删改查”。要说：<b>订单是一个连接北向请求、租户权限、资源参数、下游服务下发和最终状态展示的编排链路。</b>我负责过其中的订单创建、状态推进、查询性能和异常问题闭环。</p>`,
+          "高级表达": `<pre>面试官问订单，我会主动展开四层：
+1. 业务链路：订单从创建到下发到完成怎么走；
+2. 状态模型：状态怎么流转，失败怎么补偿；
+3. 一致性：重复请求、缓存、下游回写怎么保证；
+4. 性能排障：高并发查询和慢 SQL 怎么优化。</pre>`
+        },
+        memory: "订单题 = 业务链路 + 状态机 + 幂等 + 一致性 + 排障。",
+        drill: ["面试官问：你这个订单模块复杂在哪里？", "复杂点不在 CRUD，而在它连接了租户校验、资源参数、异步下发和状态回写。并发下要防重复创建，异步下发要保证幂等，查询侧要处理缓存一致性和大数据量性能，失败还要能重试、补偿和追踪。"]
+      },
+      {
+        id: "chain",
+        title: "订单主链路怎么讲",
+        tag: "链路表达",
+        intro: "先把链路讲清楚，后面所有并发、一致性、幂等问题才有落点。",
+        tabs: {
+          "链路图": `<pre>用户/上游系统
+  -> 网关鉴权
+  -> 租户/权限/配额校验
+  -> 参数校验与业务编排
+  -> 生成业务幂等键
+  -> 订单主记录落库
+  -> 订单明细/资源参数落库
+  -> 写入异步下发任务
+  -> 下游服务下发
+  -> 状态轮询/回调回写
+  -> 查询侧展示最终状态</pre>`,
+          "你负责什么": `<ul><li>订单创建：参数校验、订单记录、状态初始化、幂等键处理。</li><li>下发链路：订单转任务，调用下游服务，处理超时、失败和重试。</li><li>状态推进：PENDING、PROCESSING、SUCCESS、FAILED、CANCELED 等状态流转。</li><li>查询优化：订单列表、详情、状态筛选、时间范围分页、慢 SQL 定位。</li><li>问题闭环：日志定位、执行计划分析、索引调整、回归验证。</li></ul>`,
+          "60 秒描述": `<p>我参与的是一个云服务管理编排平台，订单模块负责把上游的资源申请请求转成可追踪的订单和下游服务下发任务。链路上会先经过网关、鉴权、租户和配额校验，再创建订单主记录和明细参数，然后异步调用下游系统推进资源创建，最后通过状态轮询或回写更新订单状态。这个模块的难点是并发提交时的幂等、重复入库、缓存一致性、异步下发失败重试，以及大数据量下的订单查询性能。</p>`
+        },
+        memory: "先讲链路：入口、校验、落库、下发、回写、查询。",
+        drill: ["面试官问：订单从创建到完成怎么走？", "我会按入口请求、租户校验、订单落库、异步下发、状态回写、查询展示六步讲。这样能自然引出幂等、状态机、缓存和慢 SQL。"]
+      },
+      {
+        id: "concurrency",
+        title: "高并发场景怎么回答",
+        tag: "并发场景",
+        intro: "你要把“高并发”讲具体：是谁在并发，打到哪个接口，造成什么问题。",
+        tabs: {
+          "真实问法": `<ul><li>多个用户同时提交同一类资源订单，会不会重复创建？</li><li>页面重复点击、接口超时重试，会不会重复入库？</li><li>下游服务慢，订单会不会堆积？</li><li>订单列表高频刷新，会不会把数据库打爆？</li><li>状态回写乱序，会不会把成功订单覆盖成失败？</li></ul>`,
+          "回答结构": `<pre>1. 并发入口：创建订单、查询订单、状态回写；
+2. 风险：重复入库、状态乱序、缓存脏读、数据库热点、下游堆积；
+3. 方案：幂等键 + 唯一索引 + 状态机 CAS + 异步队列 + 缓存 TTL；
+4. 兜底：重试、补偿任务、人工可查日志、监控告警；
+5. 验证：压测、慢 SQL、错误率、P99、重复订单数。</pre>`,
+          "不要空泛": `<p>不要只说“用了锁、用了缓存、用了线程池”。要说锁住什么、缓存什么、线程池隔离什么、失败怎么恢复。例如：创建侧靠业务幂等键和数据库唯一索引兜底；查询侧靠索引和缓存减压；下发侧靠异步任务和状态机保证可重试。</p>`
+        },
+        memory: "高并发不是口号，要说清入口、风险、方案、兜底、验证。",
+        drill: ["面试官问：你们订单有高并发吗？", "我会说高并发主要体现在创建、查询和状态回写三个入口。创建侧要防重复请求，查询侧要避免高频刷新打爆数据库，回写侧要防乱序覆盖。我的处理思路是幂等键加唯一索引、状态机 CAS、查询索引和缓存、异步下发隔离以及失败补偿。"]
+      },
+      {
+        id: "idempotency",
+        title: "幂等与重复入库怎么讲",
+        tag: "核心追问",
+        intro: "订单面试最容易被追问：用户重复点、接口重试、网络超时，到底会不会插两条？",
+        tabs: {
+          "设计": `<ul><li><b>业务幂等键：</b>由租户、资源类型、外部请求号、业务参数摘要组成。</li><li><b>唯一索引兜底：</b>数据库层保证同一个幂等键只会成功插入一次。</li><li><b>先查后插不可靠：</b>并发下两个请求都可能查不到，所以必须有唯一约束兜底。</li><li><b>冲突返回已有订单：</b>插入冲突时查询已有订单，返回同一个 orderId。</li><li><b>下游也要幂等：</b>下发任务带同一个 requestId，避免下游重复执行。</li></ul>`,
+          "Java 伪代码": `<pre>@Transactional
+public OrderView createOrder(CreateOrderCmd cmd) {
+    String idemKey = IdemKeys.of(cmd.tenantId(), cmd.bizNo(), cmd.paramHash());
+    try {
+        orderMapper.insert(OrderDO.pending(idemKey, cmd));
+        outboxMapper.insert(OutboxTask.orderCreated(idemKey));
+    } catch (DuplicateKeyException e) {
+        return orderMapper.findViewByIdemKey(idemKey);
+    }
+    return orderMapper.findViewByIdemKey(idemKey);
+}</pre>`,
+          "面试句子": `<p><b>我不会只靠 Redis 锁防重复。</b>Redis 锁可以削峰，但真正兜底一定要落到数据库唯一索引，因为网络超时、锁过期、服务重启都可能让应用层锁失效。订单创建这类强一致入口，我会用业务幂等键 + 唯一索引 + 冲突查询已有订单来保证不会重复入库。</p>`
+        },
+        memory: "防重复入库：业务幂等键 + 唯一索引兜底；不要只靠先查后插或 Redis 锁。",
+        drill: ["面试官问：两个请求同时创建同一个订单怎么办？", "两个请求会生成相同业务幂等键。数据库唯一索引保证只有一个插入成功，另一个捕获唯一键冲突后查询已有订单并返回同一个订单号。这样即使应用层锁失效，也不会重复入库。"]
+      },
+      {
+        id: "state-machine",
+        title: "状态机、异步下发与乱序回写",
+        tag: "状态一致性",
+        intro: "订单状态不是随便 update，要防重复推进、非法回退和乱序覆盖。",
+        tabs: {
+          "状态模型": `<pre>PENDING       待处理
+PROCESSING    下发中
+SUCCESS       成功
+FAILED        失败
+CANCELING     取消中
+CANCELED      已取消
+
+合法流转：
+PENDING -> PROCESSING -> SUCCESS
+PENDING -> PROCESSING -> FAILED
+FAILED  -> PROCESSING  // 重试
+PROCESSING -> CANCELING -> CANCELED</pre>`,
+          "CAS 更新": `<pre>int updated = orderMapper.updateStatus(
+    orderId,
+    fromStatus,
+    toStatus,
+    currentVersion
+);
+if (updated == 0) {
+    // 状态已被其他线程推进，重新查询后按当前状态决策
+}</pre><p>状态更新要带前置状态或版本号，避免并发回写互相覆盖。</p>`,
+          "异步与补偿": `<ul><li>创建订单后写出下发任务，避免长事务直接调用下游。</li><li>下发任务支持重试，重试要携带同一个 requestId。</li><li>下游超时不立即判失败，先标记处理中，再通过轮询或补偿确认最终状态。</li><li>补偿任务定期扫描长时间 PROCESSING 的订单，避免状态卡死。</li></ul>`
+        },
+        memory: "订单状态更新要带前置状态或版本号；异步下发要可重试、可补偿、可追踪。",
+        drill: ["面试官问：下游先返回失败，后面又成功回调怎么办？", "不能简单后到覆盖先到。要定义状态优先级和合法流转，用版本号或前置状态 CAS 更新。对于 PROCESSING 到 SUCCESS/FAILED 这类终态，要结合下游最终查询或补偿任务确认，避免乱序回写导致状态倒退。"]
+      },
+      {
+        id: "cache",
+        title: "缓存一致性怎么讲",
+        tag: "缓存一致性",
+        intro: "订单缓存一般服务查询侧，写侧要避免旧状态回填和删除失败。",
+        tabs: {
+          "读写流程": `<pre>读订单详情：
+1. 先读缓存；
+2. 未命中读数据库；
+3. 回填缓存，设置较短 TTL；
+4. 热点订单可加互斥锁防击穿。
+
+写订单状态：
+1. 先更新数据库；
+2. 事务提交后删除缓存；
+3. 删除失败进入重试；
+4. TTL 作为最终兜底。</pre>`,
+          "风险点": `<ul><li><b>旧值回填：</b>写库后删缓存前，有读请求读到旧库或旧缓存。</li><li><b>删除失败：</b>缓存长期保留旧状态。</li><li><b>并发读写：</b>读请求在写请求后回填旧值。</li><li><b>高频刷新：</b>订单列表如果全走 DB，会放大慢查询。</li></ul>`,
+          "回答模板": `<p>订单状态以数据库为准，缓存主要用于查询减压。我采用更新数据库后删除缓存的策略，事务提交后再删，避免事务未提交时缓存被提前清掉。删除失败通过重试和 TTL 兜底；对状态类缓存可以带版本号或更新时间，回填时避免旧版本覆盖新版本。对于订单列表这种复杂查询，更重要的是索引和分页，缓存只缓存稳定条件或热点详情。</p>`
+        },
+        memory: "订单以 DB 为准；写后删缓存；失败重试 + TTL；旧版本不能覆盖新版本。",
+        drill: ["面试官问：为什么不先删缓存再更新数据库？", "先删缓存再更新数据库，中间如果有读请求未命中缓存，就可能读到旧数据库并回填旧缓存。更常见做法是先更新数据库，提交后删除缓存，再用删除失败重试和 TTL 兜底。"]
+      },
+      {
+        id: "sql",
+        title: "慢 SQL 与千万级订单查询优化",
+        tag: "性能优化",
+        intro: "这块是简历亮点：把性能优化讲成定位链路，而不是只说加索引。",
+        tabs: {
+          "定位链路": `<pre>1. 从接口耗时和日志确认慢在哪个查询；
+2. 拿到 SQL 和参数，复现慢查询；
+3. EXPLAIN 看访问类型、rows、key、Extra；
+4. 判断索引是否匹配 where / order by / join；
+5. 看是否存在回表、临时表、文件排序、分页深翻；
+6. 重建组合索引或改写 SQL；
+7. 对比执行计划和接口耗时；
+8. 压测或回归验证。</pre>`,
+          "优化手段": `<ul><li>为租户、状态、时间、订单号等高频条件设计组合索引。</li><li>让过滤条件和排序方向尽量匹配同一个索引。</li><li>列表页只查必要字段，详情页再查明细，减少回表和大字段扫描。</li><li>深分页用游标翻页或延迟关联，避免 offset 扫描过多行。</li><li>大表按时间或租户维度归档冷数据，降低热表体量。</li></ul>`,
+          "面试表达": `<p>我处理过订单查询慢的问题，不是直接拍脑袋加索引，而是从接口日志定位到具体 SQL，再通过执行计划看扫描行数、索引命中、回表和排序情况。最后根据查询条件重构组合索引，并调整列表字段和查询方式，把千万量级订单查询从几十秒优化到秒级以内。这个过程我会重点关注索引选择性、where/order by 匹配、分页方式和回归验证。</p>`
+        },
+        memory: "SQL 优化要讲定位链路：日志 -> SQL -> EXPLAIN -> 索引/改写 -> 对比验证。",
+        drill: ["面试官问：你那个 49s 到 0.9s 怎么优化的？", "我会先说定位链路：通过接口日志确认慢 SQL，再用执行计划看扫描行数和索引命中，发现查询条件和索引不匹配、回表和排序成本高。然后按租户、状态、时间等高频条件重构组合索引，列表查询只取必要字段，最后对比执行计划和接口耗时，把查询从几十秒降到秒内。"]
+      },
+      {
+        id: "qa",
+        title: "高频追问答题卡",
+        tag: "面试问答",
+        intro: "这些问题面试里非常容易连续追，提前背结构比临场硬想稳定得多。",
+        tabs: {
+          "重复入库": `<p><b>问：</b>重复点击或超时重试会不会插两条订单？</p><p><b>答：</b>不会只靠前端防抖，也不会只靠先查后插。创建订单时生成业务幂等键，数据库建立唯一索引。并发下只有一个请求插入成功，另一个捕获唯一键冲突后查已有订单返回。</p>`,
+          "缓存一致性": `<p><b>问：</b>订单状态更新后缓存怎么保证一致？</p><p><b>答：</b>数据库是准源，缓存用于查询减压。写侧先更新数据库，事务提交后删除缓存；删除失败重试，TTL 兜底。状态缓存可带版本号或更新时间，避免旧状态回填覆盖新状态。</p>`,
+          "下游失败": `<p><b>问：</b>下游服务失败或超时怎么办？</p><p><b>答：</b>订单创建和下游调用解耦，订单先进入处理中，异步任务调用下游。失败按错误类型决定重试或终态失败；超时不直接判死，进入补偿扫描或状态查询，保证最终状态可追踪。</p>`
+        },
+        memory: "追问不要散：幂等靠唯一索引，缓存以 DB 为准，异步下发靠状态机和补偿。",
+        drill: ["面试官连续追问订单，你怎么稳住？", "我会把问题收束到三条主线：创建侧防重复，状态侧防乱序，查询侧防慢和脏。每条都有具体机制：幂等键唯一索引、状态机 CAS、写后删缓存和慢 SQL 优化。"]
+      },
+      {
+        id: "story",
+        title: "最终可背的项目描述",
+        tag: "简历口径",
+        intro: "这段适合你在面试里作为订单项目开场，讲完后等面试官追问。",
+        tabs: {
+          "90 秒版本": `<p>我在云服务管理编排平台里重点参与过订单链路和服务下发相关研发。这个订单模块不是简单的增删改查，它承接上游资源申请，经过网关鉴权、租户和配额校验后，生成订单主记录和资源明细，再异步调用下游服务完成资源下发，最后通过状态回写或轮询更新订单状态。这个链路里我重点处理过三类问题：第一是创建侧的幂等和重复入库，用业务幂等键加数据库唯一索引兜底；第二是状态侧的一致性，用状态机、版本号或前置状态 CAS 防止并发乱序覆盖；第三是查询侧的性能问题，通过日志、执行计划和索引重构，把大数据量订单查询从几十秒优化到秒级以内。整体来说，我对订单模块的理解是：它是一个状态驱动的业务编排链路，核心不是 CRUD，而是并发、一致性、异步下发和可观测闭环。</p>`,
+          "30 秒版本": `<p>我负责过云服务管理编排平台中的订单链路。订单从上游请求进入后，会经过鉴权、租户校验、订单落库、异步下发、状态回写和查询展示。面试里如果展开，我主要讲三个点：幂等防重复入库、状态机保证异步下发一致性、慢 SQL 和索引优化保证订单查询性能。</p>`,
+          "不要这么说": `<ul><li>不要说：我做订单增删改查。</li><li>不要说：高并发就是加 Redis。</li><li>不要说：缓存一致性就是延迟双删。</li><li>不要说：重复入库用 synchronized。</li><li>要说：业务幂等键、唯一索引、状态机 CAS、异步任务、补偿扫描、日志和执行计划。</li></ul>`
+        },
+        memory: "订单项目开场：不是 CRUD，是状态驱动的业务编排链路。",
+        drill: ["一句话怎么让订单项目听起来高级？", "我负责的订单模块本质是状态驱动的业务编排链路，连接上游请求、租户校验、订单落库、异步下发、状态回写和查询展示，重点解决并发幂等、一致性和大数据量查询性能。"]
+      }
+    ];
+
+    const quizzes = [
+      ["公开 GitHub Pages 页面里不应该出现什么？", ["真实客户名、电话、邮箱、接口、IP", "抽象链路", "幂等设计"], 0, "公开页要隐藏个人和业务敏感信息。"],
+      ["订单重复入库最可靠的兜底是什么？", ["业务幂等键 + 数据库唯一索引", "前端按钮置灰", "先查再插但不加约束"], 0, "前端和应用层都可能失效，唯一索引才是最终兜底。"],
+      ["订单状态并发更新应优先使用什么思路？", ["状态机 + 前置状态/版本 CAS", "随便 update", "只靠 sleep"], 0, "状态更新要防乱序覆盖和非法回退。"],
+      ["缓存一致性里订单状态以谁为准？", ["数据库", "缓存", "前端页面"], 0, "缓存用于查询减压，数据库是准源。"],
+      ["写订单状态后常见缓存策略是什么？", ["先更新数据库，事务提交后删除缓存", "只更新缓存", "先删缓存再等很久更新库"], 0, "先更新 DB，提交后删缓存，再用重试和 TTL 兜底。"],
+      ["慢 SQL 优化不应该只说什么？", ["加索引", "看执行计划", "对比优化前后耗时"], 0, "加索引只是动作，面试要讲定位链路和验证闭环。"],
+      ["订单项目最高级的表达是什么？", ["状态驱动的业务编排链路", "我写了 CRUD", "我会点页面"], 0, "订单模块要讲链路、状态、一致性和排障。"]
+    ];
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function renderNav() {
+      const nav = byId("nav");
+      nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
+        `<button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+      nav.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          byId(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function renderTopics() {
+      const grid = byId("topicGrid");
+      grid.innerHTML = "";
+      topics.forEach((topic) => {
+        const tabs = Object.keys(topic.tabs);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.id = topic.id;
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${topic.title}</h3>
+              <p>${topic.intro}</p>
+            </div>
+            <span class="badge">${topic.tag}</span>
+          </div>
+          <div class="tabs">
+            ${tabs.map((tab, index) => `<button class="chip ${index === 0 ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}
+          </div>
+          <div class="card-body">
+            <div>
+              ${tabs.map((tab, index) => `<div class="panel ${index === 0 ? "active" : ""}" data-panel="${tab}">${topic.tabs[tab]}</div>`).join("")}
+            </div>
+            <aside class="side">
+              <div class="box">
+                <h4>记忆钩子</h4>
+                <p>${topic.memory}</p>
+              </div>
+              <div class="box">
+                <h4>面试追问</h4>
+                <div class="drill">${topic.drill[0]}</div>
+                <div class="answer">${topic.drill[1]}</div>
+                <button class="answer-toggle">显示答案</button>
+              </div>
+            </aside>
+          </div>
+        `;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((item) => item.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach((item) => item.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelector(".answer-toggle").addEventListener("click", (event) => {
+          const answer = card.querySelector(".answer");
+          answer.classList.toggle("show");
+          event.currentTarget.textContent = answer.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderQuiz() {
+      const list = byId("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, options, answer, hint], index) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${q}</h3>${options.map((option, i) => `<button class="option" data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll(".option").forEach((option) => {
+          option.addEventListener("click", () => {
+            card.querySelectorAll(".option").forEach((node) => node.disabled = true);
+            const picked = Number(option.dataset.i);
+            option.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll(".option")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    byId("checkAnswer").addEventListener("click", () => {
+      const text = byId("answerText").value.trim();
+      if (!text) {
+        byId("answerOutput").textContent = "先写一段你的口述答案。";
+        return;
+      }
+      const checks = [
+        ["脱敏", "有没有避免客户名、内部代号、电话邮箱、真实接口和日志？"],
+        ["链路", "有没有讲清入口、校验、落库、下发、回写、查询？"],
+        ["并发", "有没有说明高并发具体发生在哪些入口？"],
+        ["幂等", "有没有说业务幂等键和数据库唯一索引？"],
+        ["一致性", "有没有说状态机 CAS、缓存写后删、补偿任务？"],
+        ["性能", "有没有讲日志、EXPLAIN、索引、优化前后对比？"],
+        ["结果", "有没有把几十秒到秒内这类结果讲出来？"]
+      ];
+      byId("answerOutput").textContent = checks.map(([name, desc]) => `- ${name}: ${desc}`).join("\n") + "\n\n你的答案长度：" + text.length + " 字。下一步：补一版‘项目背景→订单链路→并发问题→技术方案→结果验证’的回答。";
+    });
+
+    byId("resetQuiz").addEventListener("click", renderQuiz);
+
+    renderNav();
+    renderTopics();
+    renderQuiz();
+  </script>
+</body>
+</html>
