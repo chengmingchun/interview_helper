@@ -26,6 +26,10 @@ index.html
   - 贪心算法专题
   - 覆盖贪心证明套路、区间贪心、射气球、跳跃游戏、买卖股票 II、分发饼干、加油站、划分字母区间、柠檬水找零和常见反例。
 
+- `pages/monotonic-stack-queue.html`
+  - 单调栈 / 单调队列专题
+  - 覆盖单调栈与单调队列的区别、下一个更大元素、每日温度、柱状图最大矩形、滑动窗口最大值、前缀和 + 单调队列，以及 Java/Rust 简洁实现。
+
 - `pages/java-fullgc-jvm.html`
   - Java Full GC / JVM 面试知识页
   - 覆盖 JVM 内存区域、GC Roots、分代假说、Full GC 触发原因、GC 日志解读、线上排查命令、根因模式和 60 秒面试表达模板。
