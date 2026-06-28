@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>动态规划面试专题</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.92);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --green: #3e7b4f;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html { font-size: clamp(14px, 0.28vw + 13px, 16px); scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+    main, section, article, div, aside { min-width: 0; }
+    button, textarea, select { font: inherit; }
+    .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+    .layout > aside { position: sticky; top: 0; height: 100vh; padding: 22px; border-right: 1px solid var(--line); background: rgba(244, 239, 230, 0.84); overflow: auto; }
+    .brand { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+    .back { display: inline-flex; margin-top: 12px; color: var(--accent-2); text-decoration: none; font-weight: 800; font-size: 13px; }
+    nav { display: grid; gap: 8px; }
+    nav button, .chip, .ghost, .answer-toggle { border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.68); cursor: pointer; }
+    nav button { padding: 10px 12px; text-align: left; color: var(--muted); }
+    nav button.active, .chip.active { color: var(--accent-2); border-color: rgba(216, 101, 42, 0.45); background: var(--accent-soft); }
+    main { width: min(1180px, 100%); padding: 34px 36px 56px; }
+    .hero, .card, .quiz-card { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
+    .hero { padding: 30px; margin-bottom: 28px; }
+    .eyebrow, .source { display: inline-flex; border-radius: 999px; font-weight: 800; }
+    .eyebrow { margin-bottom: 18px; padding: 5px 10px; color: var(--accent-2); background: var(--accent-soft); font-size: 13px; }
+    .source { margin-top: 10px; padding: 4px 9px; color: var(--green); background: rgba(62, 123, 79, 0.12); font-size: 12px; }
+    h1 { max-width: 960px; margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5.8vw, 62px); line-height: 1; letter-spacing: 0; }
+    .hero p, .section-head p, .card-head p { margin: 0; color: var(--muted); }
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+    .section-head h2 { margin: 0 0 6px; font-family: Georgia, "Times New Roman", serif; font-size: 34px; line-height: 1; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .card { overflow: hidden; }
+    .card-head { display: flex; justify-content: space-between; gap: 16px; padding: 24px 26px 18px; border-bottom: 1px solid rgba(32, 26, 20, 0.08); }
+    .card-head h3 { margin: 0 0 6px; font-size: 25px; line-height: 1.2; }
+    .badge { display: inline-flex; height: 28px; align-items: center; padding: 2px 10px; border-radius: 999px; color: var(--accent-2); background: var(--accent-soft); white-space: nowrap; font-size: 12px; font-weight: 800; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 26px; border-bottom: 1px solid rgba(32, 26, 20, 0.08); }
+    .chip { padding: 8px 11px; color: var(--muted); }
+    .card-body { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; padding: 22px 26px 26px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel p { margin: 0 0 13px; }
+    .panel li { margin: 8px 0; }
+    pre { margin: 12px 0 0; padding: 14px; border-radius: 8px; color: var(--code); background: var(--dark); overflow: auto; max-width: 100%; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; line-height: 1.55; }
+    code { padding: 2px 5px; border-radius: 6px; color: var(--accent-2); background: var(--accent-soft); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .side { display: grid; gap: 12px; align-self: start; }
+    .box, .read-card div, .trace-line { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.7); }
+    .box h4 { margin: 0 0 8px; font-size: 16px; }
+    .box p { margin: 0; color: var(--muted); }
+    .read-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+    .read-card b, .trace-line b { display: block; margin-bottom: 4px; }
+    .drill { padding: 12px; border-radius: 8px; color: var(--code); background: var(--dark); }
+    .answer { display: none; margin-top: 10px; padding: 12px; border-left: 3px solid var(--accent); border-radius: 8px; background: var(--accent-soft); }
+    .answer.show { display: block; }
+    .answer-toggle, .ghost { padding: 9px 11px; margin-top: 10px; }
+    .practice, .playground { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    textarea { width: 100%; min-height: 160px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.72); color: var(--ink); resize: vertical; }
+    select { width: 100%; margin-bottom: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: rgba(255, 250, 240, 0.88); }
+    .output { min-height: 160px; padding: 14px; border-radius: 8px; color: var(--code); background: var(--dark); white-space: pre-wrap; }
+    .trace { display: grid; gap: 10px; max-height: 520px; overflow: auto; }
+    .quiz-card { padding: 18px; margin-bottom: 12px; box-shadow: none; }
+    .quiz-card h3 { margin: 0 0 10px; font-size: 18px; }
+    .option { display: block; width: 100%; margin: 8px 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.72); text-align: left; cursor: pointer; }
+    .option.correct { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+    .option.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .card-body { grid-template-columns: minmax(0, 1fr) 300px; }
+      main { padding: 28px 24px 48px; }
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .layout > aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .card-body, .practice, .playground, .read-card { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      .card-head { display: block; }
+      main { padding: 14px; }
+      .hero { padding: 20px; }
+      .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Dynamic Programming Drill</b>
+        <span>状态定义 · 转移方程 · 背包 · 子序列</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">算法专题 / Dynamic Programming · Java · 状态推导</span>
+        <h1>DP 不是背公式，而是把问题翻译成“状态之间的依赖”。</h1>
+        <p>动态规划最怕上来就写转移方程。本页强制按五步走：状态定义、选择、转移、初始化、遍历顺序。你要练到看到题目能说出 dp 数组每一格到底代表什么。</p>
+      </section>
+
+      <section class="section" id="knowledge">
+        <div class="section-head">
+          <h2>知识与经典题</h2>
+          <p>每张卡都有题源、读题信号、状态定义、转移方程、边界和面试追问。</p>
+        </div>
+        <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="playground">
+        <div class="section-head">
+          <h2>交互推演台</h2>
+          <p>把 dp 表一格格算出来。DP 要快速领悟，就要亲眼看见“前面的状态怎么推到当前状态”。</p>
+        </div>
+        <div class="playground">
+          <div class="box">
+            <h4>选择题型</h4>
+            <select id="demoType">
+              <option value="climb">爬楼梯</option>
+              <option value="rob">打家劫舍</option>
+              <option value="coin">零钱兑换</option>
+              <option value="knapsack">0/1 背包</option>
+              <option value="lis">最长递增子序列</option>
+              <option value="lcs">最长公共子序列</option>
+            </select>
+            <textarea id="demoInput">5</textarea>
+            <button class="ghost" id="runDemo">运行推演</button>
+          </div>
+          <div class="trace" id="demoOutput">
+            <div class="trace-line"><b>怎么用</b>爬楼梯输入 n；打家劫舍/LIS 输入数组；零钱输入 coins | amount；背包输入 weights | values | capacity；LCS 输入 text1 | text2。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="practice">
+        <div class="section-head">
+          <h2>口述训练台</h2>
+          <p>写你的 DP 思路，检查是否说清状态定义、转移、初始化、遍历顺序和复杂度。</p>
+        </div>
+        <div class="practice">
+          <div class="box">
+            <h4>你的回答</h4>
+            <textarea id="answerText" placeholder="比如：我定义 dp[i] 表示前 i 个房子能偷到的最大金额。对第 i 个房子有偷或不偷两种选择，所以 dp[i]=max(dp[i-1], dp[i-2]+nums[i-1])。初始化 dp[0]=0, dp[1]=nums[0]..."></textarea>
+            <button class="ghost" id="checkAnswer">生成检查清单</button>
+          </div>
+          <div class="output" id="answerOutput">等待你的回答。</div>
+        </div>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>自测纠错</h2>
+          <p>错了就回到对应卡片，优先修“状态定义不清”和“遍历顺序错”。</p>
+        </div>
+        <div id="quizList"></div>
+        <button class="ghost" id="resetQuiz">重做自测</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: "model",
+        title: "DP 五步法",
+        tag: "总纲",
+        intro: "DP 题先定义状态，再写选择和转移。",
+        source: "方法论：Dynamic Programming 总纲",
+        problem: "面试官用 DP 考你能否把大问题拆成互相依赖的小问题。",
+        signal: "关键词：最大/最小方案数、连续选择、子序列、路径数、背包容量、可重复/不可重复选择。",
+        pitfall: "状态定义含糊，后面转移一定乱。不要说 dp[i] 是答案，要说清 dp[i] 表示哪一段、什么约束下的答案。",
+        tabs: {
+          "五步": `<ol><li><b>状态定义：</b>dp[i] 或 dp[i][j] 到底代表什么。</li><li><b>选择：</b>当前元素选或不选、偷或不偷、匹配或不匹配。</li><li><b>转移：</b>当前状态从哪些旧状态来。</li><li><b>初始化：</b>空集、第一行、第一列、边界值。</li><li><b>遍历顺序：</b>保证用到的状态已经算好。</li></ol>`,
+          "常见形态": `<ul><li><b>线性 DP：</b>爬楼梯、打家劫舍、最大子数组和。</li><li><b>背包 DP：</b>0/1 背包、完全背包、零钱兑换。</li><li><b>区间/二维 DP：</b>LCS、编辑距离、路径数。</li><li><b>优化 DP：</b>LIS 二分优化、滚动数组空间优化。</li></ul>`,
+          "面试表达": `<pre>我先定义 dp[i] 表示……
+当前有……几种选择。
+所以转移方程是……
+初始化是……
+遍历顺序是……，因为当前状态依赖……
+时间复杂度 O(...)，空间可以优化到 O(...)</pre>`
+        },
+        memory: "DP 先说状态定义，别先背方程。",
+        drill: ["DP 面试里最重要的一句话是什么？", "我定义 dp[i] 表示什么。状态定义清楚，转移方程才有来源。"]
+      },
+      {
+        id: "climb",
+        title: "爬楼梯 / 斐波那契",
+        tag: "线性 DP",
+        intro: "最基础的 DP：当前状态来自前一阶和前两阶。",
+        source: "LeetCode 70. Climbing Stairs",
+        problem: "每次可以爬 1 或 2 阶，问到第 n 阶有多少种方法。",
+        signal: "关键词：方案数、每次 1 或 2、到达第 n 阶。当前只依赖前两个状态。",
+        pitfall: "dp[i] 表示到达第 i 阶的方法数，不是从第 i 阶出发的方法数。",
+        tabs: {
+          "思路": `<p><code>dp[i]</code> 表示到达第 i 阶的方法数。最后一步要么从 i-1 爬 1 阶，要么从 i-2 爬 2 阶，所以 <code>dp[i] = dp[i-1] + dp[i-2]</code>。</p>`,
+          "Java": `<pre>int climbStairs(int n) {
+    if (n <= 2) return n;
+    int a = 1, b = 2;
+    for (int i = 3; i <= n; i++) {
+        int c = a + b;
+        a = b;
+        b = c;
+    }
+    return b;
+}</pre>`,
+          "迁移": `<ul><li><b>最小花费爬楼梯：</b>状态从方案数变成最小代价。</li><li><b>不同路径：</b>二维版本，来自上方和左方。</li><li><b>完全背包计数：</b>步长不止 1/2 时，转为组合计数。</li></ul>`
+        },
+        memory: "最后一步从哪里来：i-1 或 i-2。",
+        drill: ["为什么可以用两个变量优化空间？", "因为 dp[i] 只依赖 dp[i-1] 和 dp[i-2]，更早的状态不会再用到。"]
+      },
+      {
+        id: "rob",
+        title: "打家劫舍",
+        tag: "选或不选",
+        intro: "DP 的经典选择模型：当前房子偷还是不偷。",
+        source: "LeetCode 198 / 213. House Robber I & II",
+        problem: "相邻房子不能同时偷，求能偷到的最大金额；环形版本首尾也相邻。",
+        signal: "关键词：不能相邻、最大收益、当前选或不选。",
+        pitfall: "环形版本不能直接套线性 DP，要拆成不偷第一间和不偷最后一间两种情况。",
+        tabs: {
+          "思路": `<p><code>dp[i]</code> 表示前 i 个房子能偷到的最大金额。第 i 个房子不偷：<code>dp[i-1]</code>；偷：<code>dp[i-2] + nums[i-1]</code>。</p>`,
+          "Java": `<pre>int rob(int[] nums) {
+    int prev2 = 0, prev1 = 0;
+    for (int x : nums) {
+        int cur = Math.max(prev1, prev2 + x);
+        prev2 = prev1;
+        prev1 = cur;
+    }
+    return prev1;
+}</pre>`,
+          "环形": `<p>环形房子首尾相邻，所以答案是：</p><pre>max(rob(nums[0..n-2]), rob(nums[1..n-1]))</pre><p>也就是强制排除最后一间，或强制排除第一间。</p>`
+        },
+        memory: "偷当前 = 前前 + 当前；不偷当前 = 前一个答案。",
+        drill: ["打家劫舍为什么是 DP 而不是贪心？", "当前偷收益高不代表全局最优，因为会影响相邻房子的选择。需要比较偷与不偷两种状态。"]
+      },
+      {
+        id: "coin",
+        title: "零钱兑换",
+        tag: "完全背包",
+        intro: "硬币可以重复使用，状态表示凑出金额的最少硬币数。",
+        source: "LeetCode 322. Coin Change",
+        problem: "给硬币面额和总金额，求凑出总金额所需的最少硬币数，不可达返回 -1。",
+        signal: "关键词：最少硬币数、每种硬币无限个、金额容量。",
+        pitfall: "初始化要用不可达大值，不能默认 0；否则会把不可达状态当成可达。",
+        tabs: {
+          "思路": `<p><code>dp[x]</code> 表示凑出金额 x 的最少硬币数。枚举每个金额，再枚举硬币：如果 x >= coin，则 <code>dp[x] = min(dp[x], dp[x-coin] + 1)</code>。</p>`,
+          "Java": `<pre>int coinChange(int[] coins, int amount) {
+    int INF = amount + 1;
+    int[] dp = new int[amount + 1];
+    Arrays.fill(dp, INF);
+    dp[0] = 0;
+    for (int x = 1; x <= amount; x++) {
+        for (int c : coins) {
+            if (x >= c) dp[x] = Math.min(dp[x], dp[x - c] + 1);
+        }
+    }
+    return dp[amount] == INF ? -1 : dp[amount];
+}</pre>`,
+          "变体": `<ul><li><b>组合数：</b>外层硬币，内层金额正序。</li><li><b>排列数：</b>外层金额，内层硬币。</li><li><b>0/1 背包：</b>每个物品只能用一次，容量倒序遍历。</li></ul>`
+        },
+        memory: "完全背包可重复，金额正序看旧状态。",
+        drill: ["为什么 dp[0] 要初始化为 0？", "凑出金额 0 需要 0 枚硬币，它是所有转移的起点。没有这个起点，其它金额无法正确推出。"]
+      },
+      {
+        id: "knapsack",
+        title: "0/1 背包",
+        tag: "背包 DP",
+        intro: "每个物品只能选一次，所以容量必须倒序。",
+        source: "经典模型：0/1 Knapsack / LeetCode 416. Partition Equal Subset Sum",
+        problem: "给物品重量和价值，在容量限制内求最大价值；或判断能否装出目标容量。",
+        signal: "关键词：每个只能选一次、容量限制、最大价值、能否凑出。",
+        pitfall: "一维优化时容量如果正序，会让同一个物品被重复使用，变成完全背包。",
+        tabs: {
+          "思路": `<p><code>dp[j]</code> 表示容量 j 下能获得的最大价值。对每个物品，容量从大到小遍历：<code>dp[j] = max(dp[j], dp[j-w] + v)</code>。</p>`,
+          "Java": `<pre>int knapsack(int[] w, int[] v, int cap) {
+    int[] dp = new int[cap + 1];
+    for (int i = 0; i < w.length; i++) {
+        for (int j = cap; j >= w[i]; j--) {
+            dp[j] = Math.max(dp[j], dp[j - w[i]] + v[i]);
+        }
+    }
+    return dp[cap];
+}</pre>`,
+          "分割等和": `<p>LeetCode 416 可以转成：是否能从数组中选一些数，凑出总和的一半。状态变成布尔值：</p><pre>dp[j] = dp[j] || dp[j - num]</pre>`
+        },
+        memory: "0/1 背包倒序，完全背包正序。",
+        drill: ["0/1 背包一维优化为什么要倒序？", "倒序能保证 dp[j-w] 还是上一轮物品的状态，当前物品不会被重复使用。"]
+      },
+      {
+        id: "lis",
+        title: "最长递增子序列",
+        tag: "子序列 DP",
+        intro: "LIS 有 O(n²) DP 和 O(n log n) 贪心二分两种写法。",
+        source: "LeetCode 300. Longest Increasing Subsequence",
+        problem: "给数组，求最长严格递增子序列长度，子序列不要求连续。",
+        signal: "关键词：子序列、不连续、严格递增、最长长度。",
+        pitfall: "子序列不是子数组，不要求连续；严格递增用 <，非递减才用 <=。",
+        tabs: {
+          "DP 思路": `<p><code>dp[i]</code> 表示以 nums[i] 结尾的最长递增子序列长度。枚举 j < i，如果 nums[j] < nums[i]，则可以接上：<code>dp[i] = max(dp[i], dp[j]+1)</code>。</p>`,
+          "Java": `<pre>int lengthOfLIS(int[] nums) {
+    int ans = 0;
+    int[] dp = new int[nums.length];
+    Arrays.fill(dp, 1);
+    for (int i = 0; i < nums.length; i++) {
+        for (int j = 0; j < i; j++) {
+            if (nums[j] < nums[i]) dp[i] = Math.max(dp[i], dp[j] + 1);
+        }
+        ans = Math.max(ans, dp[i]);
+    }
+    return ans;
+}</pre>`,
+          "二分优化": `<p>维护 tails[k] 表示长度为 k+1 的递增子序列的最小结尾。结尾越小，未来越有机会接更长。每个数用 lower_bound 替换第一个 >= 它的位置。</p>`
+        },
+        memory: "dp[i] 必须以 i 结尾；答案是所有 dp[i] 的最大值。",
+        drill: ["LIS 的 dp[i] 为什么要定义成以 i 结尾？", "因为只有固定结尾，才能判断 nums[j] 是否能接到 nums[i] 前面，转移才清楚。"]
+      },
+      {
+        id: "lcs",
+        title: "最长公共子序列",
+        tag: "二维 DP",
+        intro: "两个字符串的 DP，核心是看最后一个字符是否相等。",
+        source: "LeetCode 1143. Longest Common Subsequence",
+        problem: "给两个字符串，求它们最长公共子序列长度。",
+        signal: "关键词：两个字符串、公共子序列、最长、不要求连续。",
+        pitfall: "dp 下标最好用前 i 个和前 j 个，避免 i-1/j-1 边界混乱。",
+        tabs: {
+          "思路": `<p><code>dp[i][j]</code> 表示 text1 前 i 个字符和 text2 前 j 个字符的 LCS 长度。如果最后字符相等，来自 <code>dp[i-1][j-1]+1</code>；否则来自上方或左方最大值。</p>`,
+          "Java": `<pre>int longestCommonSubsequence(String a, String b) {
+    int m = a.length(), n = b.length();
+    int[][] dp = new int[m + 1][n + 1];
+    for (int i = 1; i <= m; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (a.charAt(i - 1) == b.charAt(j - 1)) {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+            } else {
+                dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
+    }
+    return dp[m][n];
+}</pre>`,
+          "迁移": `<ul><li><b>编辑距离：</b>插入、删除、替换三种选择。</li><li><b>最长回文子序列：</b>一个字符串的区间 DP。</li><li><b>最长公共子串：</b>要求连续，不相等时状态清零。</li></ul>`
+        },
+        memory: "二维字符串 DP：相等看左上，不等看上/左。",
+        drill: ["为什么 dp 数组开 m+1 和 n+1？", "用 dp[i][j] 表示前 i 个和前 j 个字符，可以自然处理空串边界，避免大量 if。"]
+      },
+      {
+        id: "path",
+        title: "路径类 DP",
+        tag: "二维路径",
+        intro: "网格题通常来自上方和左方，障碍和最小路径和只是转移操作不同。",
+        source: "LeetCode 62 / 63 / 64. Unique Paths / Minimum Path Sum",
+        problem: "在网格中从左上走到右下，只能向右或向下，求路径数或最小路径和。",
+        signal: "关键词：网格、只能向右/向下、路径数、最小路径和。",
+        pitfall: "第一行第一列初始化最容易错；有障碍时遇到障碍后后续可能全不可达。",
+        tabs: {
+          "路径数": `<pre>dp[i][j] = dp[i-1][j] + dp[i][j-1]</pre><p>因为到达当前位置只能来自上方或左方。</p>`,
+          "最小路径和": `<pre>dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])</pre><p>如果原地修改 grid，可以把空间优化为 O(1)。</p>`,
+          "障碍": `<p>障碍格路径数为 0；第一行/第一列一旦遇到障碍，后续如果只能从前面来，也会变成 0。</p>`
+        },
+        memory: "网格 DP 先想当前位置从哪来：上方和左方。",
+        drill: ["路径类 DP 的遍历顺序为什么通常从左上到右下？", "因为 dp[i][j] 依赖上方和左方，必须先算出这些状态，当前格才能转移。"]
+      }
+    ];
+
+    const quizzes = [
+      ["DP 第一步应该先说什么？", ["状态定义", "直接写 return", "随机排序"], 0, "状态定义决定转移方程。"],
+      ["打家劫舍当前房子偷时依赖哪个状态？", ["dp[i-2] + nums[i]", "dp[i-1] + nums[i]", "dp[i]"], 0, "偷当前就不能偷相邻前一个。"],
+      ["0/1 背包一维优化容量为什么倒序？", ["避免同一物品重复使用", "为了排序", "为了变成贪心"], 0, "倒序使用上一轮物品的状态。"],
+      ["完全背包和 0/1 背包最关键区别是？", ["物品能否重复使用", "数组是否有序", "是否必须递归"], 0, "完全背包可以重复选。"],
+      ["LIS 的 dp[i] 通常表示什么？", ["以 nums[i] 结尾的 LIS 长度", "前 i 个数的总和", "排序后下标"], 0, "固定结尾才能判断谁能接到它前面。"],
+      ["LCS 字符相等时看哪个方向？", ["左上 + 1", "上方 + 1", "左方 + 1"], 0, "两个最后字符匹配，就来自 dp[i-1][j-1]。"],
+      ["路径 DP 中 dp[i][j] 通常来自哪里？", ["上方和左方", "右方和下方", "任意随机格"], 0, "只能向右或向下时，当前位置来自上方或左方。"]
+    ];
+
+    function byId(id) { return document.getElementById(id); }
+
+    function renderNav() {
+      const nav = byId("nav");
+      nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
+        `<button data-jump="playground">交互推演</button><button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+      nav.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          byId(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function renderTopics() {
+      const grid = byId("topicGrid");
+      grid.innerHTML = "";
+      topics.forEach((topic) => {
+        const reading = {
+          "题源与读题": `
+            <p><b>题源：</b>${topic.source}</p>
+            <div class="read-card">
+              <div><b>题目到底问什么</b>${topic.problem}</div>
+              <div><b>读题信号</b>${topic.signal}</div>
+              <div><b>手撕第一句话</b>我先定义 dp 状态，再根据当前选择写转移方程。</div>
+              <div><b>最容易掉的坑</b>${topic.pitfall}</div>
+            </div>
+          `
+        };
+        const panels = Object.assign(reading, topic.tabs);
+        const tabs = Object.keys(panels);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.id = topic.id;
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${topic.title}</h3>
+              <p>${topic.intro}</p>
+              <span class="source">${topic.source}</span>
+            </div>
+            <span class="badge">${topic.tag}</span>
+          </div>
+          <div class="tabs">
+            ${tabs.map((tab, index) => `<button class="chip ${index === 0 ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}
+          </div>
+          <div class="card-body">
+            <div>
+              ${tabs.map((tab, index) => `<div class="panel ${index === 0 ? "active" : ""}" data-panel="${tab}">${panels[tab]}</div>`).join("")}
+            </div>
+            <aside class="side">
+              <div class="box"><h4>记忆钩子</h4><p>${topic.memory}</p></div>
+              <div class="box">
+                <h4>面试追问</h4>
+                <div class="drill">${topic.drill[0]}</div>
+                <div class="answer">${topic.drill[1]}</div>
+                <button class="answer-toggle">显示答案</button>
+              </div>
+            </aside>
+          </div>
+        `;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((item) => item.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach((item) => item.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelector(".answer-toggle").addEventListener("click", (event) => {
+          const answer = card.querySelector(".answer");
+          answer.classList.toggle("show");
+          event.currentTarget.textContent = answer.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderQuiz() {
+      const list = byId("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, options, answer, hint], index) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${q}</h3>${options.map((option, i) => `<button class="option" data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll(".option").forEach((option) => {
+          option.addEventListener("click", () => {
+            card.querySelectorAll(".option").forEach((node) => node.disabled = true);
+            const picked = Number(option.dataset.i);
+            option.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll(".option")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    function parseNums(text) {
+      return text.split(/[,，\s]+/).map((x) => x.trim()).filter(Boolean).map(Number).filter((x) => Number.isFinite(x));
+    }
+
+    function splitInput(text) {
+      return text.split("|").map((part) => part.trim());
+    }
+
+    function renderTrace(lines) {
+      byId("demoOutput").innerHTML = lines.map((line, index) => `<div class="trace-line"><b>Step ${index + 1}</b>${line}</div>`).join("");
+    }
+
+    function demoClimb(text) {
+      const n = Number(text.trim()) || 5;
+      const dp = Array(n + 1).fill(0);
+      dp[0] = 1;
+      if (n >= 1) dp[1] = 1;
+      const lines = [`dp[i] 表示到达第 i 阶的方法数。初始化 dp[0]=1, dp[1]=1。`];
+      for (let i = 2; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2];
+        lines.push(`i=${i}: 最后一步来自 ${i - 1} 或 ${i - 2}，dp[${i}]=dp[${i - 1}]+dp[${i - 2}]=${dp[i - 1]}+${dp[i - 2]}=${dp[i]}。`);
+      }
+      lines.push(`答案：dp[${n}]=${dp[n]}。`);
+      return lines;
+    }
+
+    function demoRob(text) {
+      const nums = parseNums(text);
+      let prev2 = 0, prev1 = 0;
+      const lines = [`nums=[${nums.join(", ")}]。prev1=前 i-1 个房子的最优，prev2=前 i-2 个房子的最优。`];
+      nums.forEach((x, i) => {
+        const cur = Math.max(prev1, prev2 + x);
+        lines.push(`房子 ${i} 金额=${x}：不偷=${prev1}，偷=${prev2}+${x}=${prev2 + x}，cur=${cur}。`);
+        prev2 = prev1;
+        prev1 = cur;
+      });
+      lines.push(`答案：${prev1}。`);
+      return lines;
+    }
+
+    function demoCoin(text) {
+      const [coinText, amountText] = splitInput(text);
+      const coins = parseNums(coinText);
+      const amount = Number(amountText || 11);
+      const INF = amount + 1;
+      const dp = Array(amount + 1).fill(INF);
+      dp[0] = 0;
+      const lines = [`coins=[${coins.join(", ")}]，amount=${amount}。dp[x] 表示凑出 x 的最少硬币数，dp[0]=0。`];
+      for (let x = 1; x <= amount; x++) {
+        const before = dp[x];
+        coins.forEach((c) => {
+          if (x >= c && dp[x - c] !== INF) dp[x] = Math.min(dp[x], dp[x - c] + 1);
+        });
+        lines.push(`金额 ${x}: ${before === INF ? "不可达" : before} -> ${dp[x] === INF ? "不可达" : dp[x]}。当前 dp=[${dp.map((v) => v === INF ? "∞" : v).join(", ")}]。`);
+      }
+      lines.push(dp[amount] === INF ? `无法凑出 ${amount}，返回 -1。` : `答案：${dp[amount]} 枚硬币。`);
+      return lines;
+    }
+
+    function demoKnapsack(text) {
+      const [wText, vText, capText] = splitInput(text);
+      const w = parseNums(wText);
+      const v = parseNums(vText || "15,20,30");
+      const cap = Number(capText || 4);
+      const dp = Array(cap + 1).fill(0);
+      const lines = [`weights=[${w}], values=[${v}], cap=${cap}。dp[j] 表示容量 j 的最大价值。`];
+      for (let i = 0; i < w.length; i++) {
+        lines.push(`处理物品 ${i}: weight=${w[i]}, value=${v[i]}。容量倒序，避免重复使用当前物品。`);
+        for (let j = cap; j >= w[i]; j--) {
+          const old = dp[j];
+          dp[j] = Math.max(dp[j], dp[j - w[i]] + v[i]);
+          if (dp[j] !== old) lines.push(`  cap=${j}: max(不选=${old}, 选=${dp[j - w[i]]}+${v[i]}) => ${dp[j]}。`);
+        }
+        lines.push(`当前 dp=[${dp.join(", ")}]。`);
+      }
+      lines.push(`答案：${dp[cap]}。`);
+      return lines;
+    }
+
+    function demoLis(text) {
+      const nums = parseNums(text);
+      const dp = Array(nums.length).fill(1);
+      let ans = nums.length ? 1 : 0;
+      const lines = [`nums=[${nums.join(", ")}]。dp[i] 表示以 nums[i] 结尾的 LIS 长度。`];
+      for (let i = 0; i < nums.length; i++) {
+        for (let j = 0; j < i; j++) {
+          if (nums[j] < nums[i]) dp[i] = Math.max(dp[i], dp[j] + 1);
+        }
+        ans = Math.max(ans, dp[i]);
+        lines.push(`i=${i}, nums[i]=${nums[i]}，dp[${i}]=${dp[i]}。当前 dp=[${dp.join(", ")}]，ans=${ans}。`);
+      }
+      lines.push(`答案：${ans}。`);
+      return lines;
+    }
+
+    function demoLcs(text) {
+      const [a = "abcde", b = "ace"] = splitInput(text);
+      const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+      const lines = [`text1=${a}，text2=${b}。dp[i][j] 表示前 i 个和前 j 个字符的 LCS 长度。`];
+      for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+          if (a[i - 1] === b[j - 1]) {
+            dp[i][j] = dp[i - 1][j - 1] + 1;
+            lines.push(`i=${i}, j=${j}: ${a[i - 1]} == ${b[j - 1]}，dp=${dp[i][j]}。`);
+          } else {
+            dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+          }
+        }
+        lines.push(`第 ${i} 行算完：[${dp[i].join(", ")}]。`);
+      }
+      lines.push(`答案：dp[${a.length}][${b.length}]=${dp[a.length][b.length]}。`);
+      return lines;
+    }
+
+    byId("runDemo").addEventListener("click", () => {
+      const demos = { climb: demoClimb, rob: demoRob, coin: demoCoin, knapsack: demoKnapsack, lis: demoLis, lcs: demoLcs };
+      renderTrace(demos[byId("demoType").value](byId("demoInput").value.trim()));
+    });
+
+    byId("demoType").addEventListener("change", (event) => {
+      const samples = {
+        climb: "5",
+        rob: "2,7,9,3,1",
+        coin: "1,2,5 | 11",
+        knapsack: "1,3,4 | 15,20,30 | 4",
+        lis: "10,9,2,5,3,7,101,18",
+        lcs: "abcde | ace"
+      };
+      byId("demoInput").value = samples[event.target.value];
+    });
+
+    byId("checkAnswer").addEventListener("click", () => {
+      const text = byId("answerText").value.trim();
+      if (!text) {
+        byId("answerOutput").textContent = "先写一段你的口述答案。";
+        return;
+      }
+      const checks = [
+        ["状态定义", "有没有明确 dp[i] 或 dp[i][j] 表示什么？"],
+        ["选择来源", "当前状态有哪些选择：选/不选、匹配/不匹配、来自哪里？"],
+        ["转移方程", "有没有写出从旧状态到新状态的公式？"],
+        ["初始化", "dp[0]、第一行、第一列、不可达值是否说明？"],
+        ["遍历顺序", "有没有保证依赖的状态已经算好？背包正序还是倒序？"],
+        ["复杂度", "有没有给出时间和空间，是否能滚动优化？"]
+      ];
+      byId("answerOutput").textContent = checks.map(([name, desc]) => `- ${name}: ${desc}`).join("\n") + "\n\n你的答案长度：" + text.length + " 字。下一步：补一版‘状态定义→选择→转移→初始化→遍历顺序→复杂度’的回答。";
+    });
+
+    byId("resetQuiz").addEventListener("click", renderQuiz);
+    renderNav();
+    renderTopics();
+    renderQuiz();
+  </script>
+</body>
+</html>
