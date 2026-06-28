@@ -3,86 +3,745 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Java 并发与线程池专题</title>
+  <title>Java 多线程、线程池与锁机制专题</title>
   <style>
-    :root{--paper:#f4efe6;--ink:#201a14;--muted:#776b5d;--line:rgba(32,26,20,.14);--panel:rgba(255,252,245,.92);--accent:#d8652a;--soft:rgba(216,101,42,.12);--accent2:#9f4d28;--dark:#171511;--code:#e8d9bd;--green:#3e7b4f;--shadow:0 18px 58px rgba(60,42,24,.12)}
-    *{box-sizing:border-box}html{font-size:clamp(14px,.28vw + 13px,16px);scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 18% 8%,rgba(216,101,42,.12),transparent 30%),linear-gradient(120deg,rgba(255,255,255,.42) 0 1px,transparent 1px 48px),linear-gradient(0deg,rgba(255,255,255,.3) 0 1px,transparent 1px 48px),var(--paper);line-height:1.68;overflow-x:hidden}
-    main,section,article,div,aside{min-width:0}button,select,textarea,input{font:inherit}.layout{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}.layout>aside{position:sticky;top:0;height:100vh;padding:22px;border-right:1px solid var(--line);background:rgba(244,239,230,.84);overflow:auto}.brand{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}.brand b{display:block;font-size:18px}.brand span{color:var(--muted);font-size:13px}.back{display:inline-flex;margin-top:12px;color:var(--accent2);text-decoration:none;font-weight:800;font-size:13px}nav{display:grid;gap:8px}nav button,.chip,.ghost,.answer-toggle{border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.68);cursor:pointer}nav button{padding:10px 12px;text-align:left;color:var(--muted)}nav button.active,.chip.active{color:var(--accent2);border-color:rgba(216,101,42,.45);background:var(--soft)}
-    main{width:min(1180px,100%);padding:34px 36px 56px}.hero,.card,.quiz-card{border:1px solid var(--line);border-radius:8px;background:var(--panel);box-shadow:var(--shadow)}.hero{padding:30px;margin-bottom:28px}.eyebrow,.source{display:inline-flex;border-radius:999px;font-weight:800}.eyebrow{margin-bottom:18px;padding:5px 10px;color:var(--accent2);background:var(--soft);font-size:13px}.source{margin-top:10px;padding:4px 9px;color:var(--green);background:rgba(62,123,79,.12);font-size:12px}h1{max-width:980px;margin:0 0 14px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(32px,5.8vw,62px);line-height:1;letter-spacing:0}.hero p,.section-head p,.card-head p{margin:0;color:var(--muted)}.section{margin:34px 0}.section-head{margin-bottom:14px}.section-head h2{margin:0 0 6px;font-family:Georgia,"Times New Roman",serif;font-size:34px;line-height:1}.grid{display:grid;gap:18px}.card{overflow:hidden}.card-head{display:flex;justify-content:space-between;gap:16px;padding:24px 26px 18px;border-bottom:1px solid rgba(32,26,20,.08)}.card-head h3{margin:0 0 6px;font-size:25px;line-height:1.2}.badge{display:inline-flex;height:28px;align-items:center;padding:2px 10px;border-radius:999px;color:var(--accent2);background:var(--soft);white-space:nowrap;font-size:12px;font-weight:800}.tabs{display:flex;flex-wrap:wrap;gap:8px;padding:14px 26px;border-bottom:1px solid rgba(32,26,20,.08)}.chip{padding:8px 11px;color:var(--muted)}.card-body{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;padding:22px 26px 26px}.panel{display:none}.panel.active{display:block}.panel p{margin:0 0 13px}.panel li{margin:8px 0}pre{margin:12px 0 0;padding:14px;border-radius:8px;color:var(--code);background:var(--dark);overflow:auto;max-width:100%;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.55}code{padding:2px 5px;border-radius:6px;color:var(--accent2);background:var(--soft);font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
-    .side{display:grid;gap:12px;align-self:start}.box,.read-card div,.trace-line{padding:14px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.7)}.box h4{margin:0 0 8px;font-size:16px}.box p{margin:0;color:var(--muted)}.read-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.read-card b,.trace-line b{display:block;margin-bottom:4px}.drill{padding:12px;border-radius:8px;color:var(--code);background:var(--dark)}.answer{display:none;margin-top:10px;padding:12px;border-left:3px solid var(--accent);border-radius:8px;background:var(--soft)}.answer.show{display:block}.answer-toggle,.ghost{padding:9px 11px;margin-top:10px}.playground{display:grid;grid-template-columns:1fr 1fr;gap:16px}select,textarea,input{width:100%;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.78);color:var(--ink)}select,input{padding:10px 12px;margin-bottom:10px}textarea{min-height:150px;padding:12px;resize:vertical}.trace{display:grid;gap:10px;max-height:540px;overflow:auto}.quiz-card{padding:18px;margin-bottom:12px;box-shadow:none}.option{display:block;width:100%;margin:8px 0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.72);text-align:left;cursor:pointer}.option.correct{border-color:var(--green);background:rgba(62,123,79,.12)}.option.wrong{border-color:#b43d34;background:rgba(180,61,52,.12)}.hint{display:none;color:var(--muted)}.hint.show{display:block}
-    @media(max-width:980px){.layout{grid-template-columns:1fr}.layout>aside{position:static;height:auto}nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:20px}.card-body,.playground,.read-card{grid-template-columns:1fr}}@media(max-width:560px){nav{grid-template-columns:1fr}.card-head{display:block}main{padding:14px}.hero{padding:20px}.card-head,.tabs,.card-body{padding-left:16px;padding-right:16px}h1{font-size:clamp(30px,10vw,42px)}}
+    :root {
+      --paper: #f4efe6;
+      --panel: rgba(255, 252, 245, 0.9);
+      --panel-solid: #fffaf0;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --soft-line: rgba(32, 26, 20, 0.08);
+      --accent: #d8652a;
+      --accent-2: #9f4d28;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --green: #3e7b4f;
+      --green-soft: rgba(62, 123, 79, 0.12);
+      --blue: #386a91;
+      --blue-soft: rgba(56, 106, 145, 0.12);
+      --red: #b43d34;
+      --red-soft: rgba(180, 61, 52, 0.12);
+      --dark: #171511;
+      --dark-2: #242018;
+      --code: #e8d9bd;
+      --shadow: 0 22px 70px rgba(60, 42, 24, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: clamp(14px, 0.28vw + 13px, 16px); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 10%, rgba(216, 101, 42, 0.11), transparent 28%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div, aside { min-width: 0; }
+    button, select, input { font: inherit; }
+    a { color: var(--blue); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 268px minmax(0, 1fr);
+      gap: 24px;
+      width: min(1420px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 56px;
+    }
+
+    aside {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(244, 239, 230, 0.82);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand b { display: block; margin-bottom: 4px; font-size: 16px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+    .back { display: inline-flex; margin-top: 10px; color: var(--accent-2); text-decoration: none; font-weight: 800; font-size: 13px; }
+    nav { display: grid; gap: 7px; }
+    nav a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    nav a:hover { color: var(--accent-2); background: var(--accent-soft); }
+
+    .hero {
+      min-height: 430px;
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(23, 21, 17, 0.95), rgba(159, 77, 40, 0.88)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='520' viewBox='0 0 960 520'%3E%3Cg fill='none' stroke='%23fff' stroke-opacity='.16'%3E%3Cpath d='M110 95h170v70H110zM360 75h190v70H360zM670 92h170v70H670zM160 270h210v70H160zM505 280h250v70H505z'/%3E%3Cpath d='M280 130h80M550 110h120M210 165v105M370 305h135M755 315c80 0 90-160 85-185'/%3E%3Ccircle cx='110' cy='130' r='5' fill='%23fff'/%3E%3Ccircle cx='280' cy='130' r='5' fill='%23fff'/%3E%3Ccircle cx='360' cy='110' r='5' fill='%23fff'/%3E%3Ccircle cx='550' cy='110' r='5' fill='%23fff'/%3E%3Ccircle cx='670' cy='127' r='5' fill='%23fff'/%3E%3Ccircle cx='840' cy='127' r='5' fill='%23fff'/%3E%3Ccircle cx='160' cy='305' r='5' fill='%23fff'/%3E%3Ccircle cx='370' cy='305' r='5' fill='%23fff'/%3E%3Ccircle cx='505' cy='315' r='5' fill='%23fff'/%3E%3Ccircle cx='755' cy='315' r='5' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      box-shadow: var(--shadow);
+    }
+
+    .crumb, .badge, .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+    .crumb { margin-bottom: 22px; padding: 5px 10px; color: var(--code); background: rgba(255,255,255,0.1); font-size: 13px; }
+    h1 { max-width: 940px; margin: 0 0 18px; font-size: clamp(32px, 5.8vw, 64px); line-height: 0.98; letter-spacing: 0; }
+    .hero p { max-width: 900px; margin: 0; color: rgba(232, 217, 189, 0.88); font-size: 18px; }
+    .hero-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 28px; }
+    .metric { padding: 14px; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; background: rgba(255,255,255,0.1); }
+    .metric b { display: block; font-size: 22px; }
+    .metric span { color: rgba(232, 217, 189, 0.82); font-size: 13px; }
+
+    section {
+      margin-top: 18px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    h2 { margin: 0 0 12px; font-size: 30px; line-height: 1.15; letter-spacing: 0; }
+    h3 { margin: 18px 0 8px; font-size: 20px; }
+    p { margin: 0 0 12px; }
+    ul, ol { margin: 0 0 14px; padding-left: 22px; }
+    li + li { margin-top: 5px; }
+    code { padding: 2px 5px; border-radius: 6px; color: var(--accent-2); background: var(--accent-soft); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    pre { margin: 12px 0 0; padding: 14px; border-radius: 8px; color: var(--code); background: var(--dark); overflow: auto; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; line-height: 1.55; }
+
+    .lead { color: var(--muted); font-size: 17px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .box, .topic, .quiz-card, .trace-line {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-solid);
+    }
+    .box h3:first-child, .topic h3:first-child { margin-top: 0; }
+    .badge { padding: 4px 9px; color: var(--accent-2); background: var(--accent-soft); font-size: 12px; }
+    .tag { margin: 3px 5px 3px 0; padding: 4px 8px; color: var(--accent-2); background: var(--accent-soft); font-size: 12px; }
+    .muted { color: var(--muted); }
+    .callout { border-left: 4px solid var(--accent); padding: 14px 16px; border-radius: 8px; background: var(--accent-soft); }
+    .dark { color: var(--code); background: var(--dark); }
+
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .step {
+      position: relative;
+      min-height: 118px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.75);
+      transition: transform .25s ease, background .25s ease, border-color .25s ease;
+    }
+    .step b { display: block; margin-bottom: 6px; }
+    .step.active { transform: translateY(-5px); border-color: rgba(216, 101, 42, 0.55); background: var(--accent-soft); box-shadow: 0 14px 30px rgba(216, 101, 42, 0.14); }
+    .step.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 9px; height: 3px; border-radius: 999px; background: var(--accent); animation: pulse 1.1s infinite; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    button, select, input {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.78);
+      color: var(--ink);
+    }
+    button { cursor: pointer; }
+    .controls button, .lab button, .quiz-card button { padding: 9px 12px; }
+    .controls button.active, .quiz-card button.correct { border-color: var(--green); background: var(--green-soft); }
+    .quiz-card button.wrong { border-color: var(--red); background: var(--red-soft); }
+    select, input { width: 100%; padding: 10px 12px; margin: 7px 0 10px; }
+    .lab { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 16px; }
+    .trace { display: grid; gap: 10px; max-height: 520px; overflow: auto; }
+    .trace-line b { display: block; margin-bottom: 4px; }
+    .output {
+      min-height: 260px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .tabs button { padding: 8px 11px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .quiz-card { margin-bottom: 12px; }
+    .quiz-card h3 { margin: 0 0 10px; font-size: 17px; }
+    .quiz-card button { display: block; width: 100%; margin: 8px 0; text-align: left; }
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+    .answer { display: none; margin-top: 10px; padding: 12px; border-left: 3px solid var(--accent); border-radius: 8px; background: var(--accent-soft); }
+    .answer.show { display: block; }
+
+    @keyframes pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+
+    @media (max-width: 1100px) {
+      .grid-3, .hero-grid, .roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-2, .lab { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; width: min(100% - 24px, 1420px); }
+      aside { position: static; max-height: none; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      section, .hero { padding: 20px; }
+    }
+    @media (max-width: 560px) {
+      nav, .grid-3, .hero-grid, .roadmap { grid-template-columns: 1fr; }
+      .layout { width: min(100% - 18px, 1420px); padding-top: 14px; }
+      section, .hero { padding: 16px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
   </style>
 </head>
 <body>
   <div class="layout">
-    <aside><div class="brand"><b>Java Concurrency Drill</b><span>线程池 · 并发 · 锁机制 · JMM</span><a class="back" href="../index.html">← 返回专题入口</a></div><nav id="nav"></nav></aside>
+    <aside>
+      <div class="brand">
+        <b>Java Concurrency</b>
+        <span>线程池 · JMM · 锁 · JUC · 排障</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav>
+        <a href="#top">学习入口</a>
+        <a href="#map">学习路线</a>
+        <a href="#thread">多线程基础</a>
+        <a href="#threadpool">线程池参数</a>
+        <a href="#reject">拒绝策略</a>
+        <a href="#jmm">JMM 与 volatile</a>
+        <a href="#locks">锁机制</a>
+        <a href="#juc">JUC 工具</a>
+        <a href="#labs">交互推演</a>
+        <a href="#interview">严格追问</a>
+        <a href="#quiz">自测</a>
+      </nav>
+    </aside>
+
     <main>
-      <section class="hero" id="top"><span class="eyebrow">Java 专题 / ThreadPool · Lock · JUC</span><h1>Java 并发面试别只背八股，要能解释“为什么这么配、坏了怎么排”。</h1><p>线程池参数、拒绝策略、锁机制、volatile、AQS、ThreadLocal、CompletableFuture 都是高频。真正能拿分的是：知道参数背后的资源模型，知道锁背后的内存语义，知道线上线程池打满时怎么处理。</p></section>
-      <section class="section" id="knowledge"><div class="section-head"><h2>知识与经典追问</h2><p>每张卡都按“题源、读题信号、原理、生产坑、面试话术”组织。</p></div><div class="grid" id="topicGrid"></div></section>
-      <section class="section" id="playground"><div class="section-head"><h2>线程池参数推演台</h2><p>输入任务数、核心线程、最大线程和队列容量，观察线程池如何创建线程、入队和触发拒绝。</p></div><div class="playground"><div class="box"><h4>线程池场景</h4><select id="policy"><option value="AbortPolicy">AbortPolicy 抛异常</option><option value="CallerRunsPolicy">CallerRunsPolicy 调用者执行</option><option value="DiscardPolicy">DiscardPolicy 静默丢弃</option><option value="DiscardOldestPolicy">DiscardOldestPolicy 丢最老任务</option></select><input id="poolInput" value="tasks=12, core=2, max=5, queue=3" /><button class="ghost" id="runPool">运行推演</button></div><div class="trace" id="poolOutput"><div class="trace-line"><b>怎么用</b>调整 tasks/core/max/queue，观察任务先建核心线程，再入队，再扩最大线程，最后拒绝。</div></div></div></section>
-      <section class="section" id="quiz"><div class="section-head"><h2>自测纠错</h2><p>重点检查线程池执行流程、拒绝策略、volatile、synchronized/ReentrantLock 和 AQS。</p></div><div id="quizList"></div><button class="ghost" id="resetQuiz">重做自测</button></section>
-    </main>
-  </div>
-  <script>
-    const topics=[
-      {id:"threadpool-flow",title:"线程池七参数与执行流程",tag:"ThreadPool",source:"ThreadPoolExecutor",problem:"面试官问线程池参数，通常想看你是否理解任务从提交到执行的完整路径。",signal:"关键词：corePoolSize、maximumPoolSize、workQueue、keepAliveTime、RejectedExecutionHandler。",pitfall:"不要说任务一来就创建到 max 线程。线程池是先核心线程，再队列，再非核心线程，最后拒绝。",tabs:{"七参数":`<ul><li><b>corePoolSize：</b>核心线程数。</li><li><b>maximumPoolSize：</b>最大线程数。</li><li><b>keepAliveTime：</b>非核心线程空闲存活时间。</li><li><b>unit：</b>时间单位。</li><li><b>workQueue：</b>阻塞队列。</li><li><b>threadFactory：</b>线程命名、优先级、异常处理。</li><li><b>handler：</b>拒绝策略。</li></ul>`,"执行流程":`<ol><li>运行线程数小于 core，创建核心线程执行。</li><li>核心线程满，任务进入队列。</li><li>队列满，且线程数小于 max，创建非核心线程。</li><li>线程数达到 max 且队列满，执行拒绝策略。</li></ol>`,"代码":`<pre>new ThreadPoolExecutor(
-  core, max,
-  60L, TimeUnit.SECONDS,
-  new ArrayBlockingQueue<>(queueSize),
-  namedThreadFactory,
-  new ThreadPoolExecutor.CallerRunsPolicy()
-);</pre>`},memory:"线程池执行顺序：核心线程 → 队列 → 最大线程 → 拒绝。",drill:["为什么不推荐 Executors.newFixedThreadPool？","它默认使用无界 LinkedBlockingQueue，任务堆积时可能撑爆内存；生产更推荐显式设置队列容量和拒绝策略。"]},
-      {id:"reject-policy",title:"拒绝策略怎么选",tag:"拒绝策略",source:"RejectedExecutionHandler",problem:"线程池满了以后，系统是抛异常、降速、丢任务，还是丢旧任务？不同业务选择不同。",signal:"关键词：线程池打满、队列满、拒绝策略、降级、背压。",pitfall:"拒绝策略不是随便配。核心任务不能静默丢，非核心可降级，流量入口要能背压。",tabs:{"四种内置":`<ul><li><b>AbortPolicy：</b>抛 RejectedExecutionException，默认策略。</li><li><b>CallerRunsPolicy：</b>调用线程自己执行，形成背压。</li><li><b>DiscardPolicy：</b>静默丢弃，不推荐用于核心任务。</li><li><b>DiscardOldestPolicy：</b>丢队列最老任务，再尝试提交。</li></ul>`,"选型":`<ul><li>核心交易：不丢，Abort + 告警 + 降级入口。</li><li>削峰异步：CallerRuns 让上游变慢。</li><li>日志/埋点：可丢弃，但要有采样和监控。</li><li>过期任务：可丢旧任务，但要确认业务允许。</li></ul>`,"自定义":`<pre>class RecordAndReject implements RejectedExecutionHandler {
-  public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-    // 记录任务、告警、写补偿队列，然后抛异常或降级
-    throw new RejectedExecutionException("pool full");
-  }
-}</pre>`},memory:"核心任务不能静默丢；CallerRuns 是背压，不是万能。",drill:["CallerRunsPolicy 的风险是什么？","它会让提交任务的线程执行任务。如果提交线程是 Web 请求线程，可能拖慢请求甚至把入口线程也耗尽。"]},
-      {id:"pool-sizing",title:"线程池参数怎么估算",tag:"参数设计",source:"CPU 密集 / IO 密集模型",problem:"线程池大小不是拍脑袋，要根据任务类型、耗时、下游承载和机器资源估算。",signal:"关键词：CPU 密集、IO 密集、QPS、RT、队列容量、下游限流。",pitfall:"IO 密集不是线程越多越好，线程多会增加上下文切换，也可能打爆 DB/Redis/下游。",tabs:{"经验":`<ul><li><b>CPU 密集：</b>线程数接近 CPU 核数或核数+1。</li><li><b>IO 密集：</b>可按 CPU核数 * (1 + 等待时间/计算时间) 估算。</li><li><b>队列容量：</b>结合峰值流量、可接受延迟、内存和任务大小。</li><li><b>隔离：</b>不同业务用不同线程池，避免互相拖垮。</li></ul>`,"生产指标":`<ul><li>activeCount、poolSize、queueSize、completedTaskCount。</li><li>拒绝次数、任务耗时、队列等待时间。</li><li>下游 RT、错误率、连接池水位。</li></ul>`,"话术":`<p>我会先区分 CPU 密集还是 IO 密集，再看 QPS、平均耗时、峰值和下游容量。参数上线后一定要靠监控调优，而不是一次写死。</p>`},memory:"线程池参数是资源预算，不是背固定公式。",drill:["线程池要不要按业务隔离？","要。慢任务和核心任务共用线程池会互相影响，某个下游慢可能拖垮全部异步任务。"]},
-      {id:"jmm",title:"Java 内存模型与 volatile",tag:"JMM",source:"Java Memory Model",problem:"线程安全不仅是原子性，还包括可见性、有序性和 happens-before。",signal:"关键词：volatile、可见性、指令重排、DCL、happens-before。",pitfall:"volatile 不能保证复合操作原子性，i++ 仍然不是线程安全。",tabs:{"三件事":`<ul><li><b>原子性：</b>操作不可分割，synchronized/Lock/Atomic 保证。</li><li><b>可见性：</b>一个线程修改，另一个线程能看到，volatile/synchronized 保证。</li><li><b>有序性：</b>禁止特定重排序，volatile 有内存屏障语义。</li></ul>`,"volatile":`<ul><li>适合状态标记、开关、DCL 单例。</li><li>写 volatile happens-before 后续读 volatile。</li><li>不适合 count++ 这种读改写复合操作。</li></ul>`,"DCL":`<pre>class Singleton {
+      <section class="hero" id="top">
+        <span class="crumb">Java 专题 / ThreadPool · Lock · JUC</span>
+        <h1>Java 并发不要背散点，要讲清楚“资源、内存语义、锁竞争和线上排障”。</h1>
+        <p>这篇把线程池参数和拒绝策略放在真实生产语境里，再串起 Java 多线程、JMM、volatile、synchronized、ReentrantLock、AQS、ThreadLocal、CompletableFuture 和排障话术。面试时你要像在接管一个线上系统，而不是复述名词。</p>
+        <div class="hero-grid">
+          <div class="metric"><b>7 参数</b><span>线程池资源模型</span></div>
+          <div class="metric"><b>4 策略</b><span>满载后的业务选择</span></div>
+          <div class="metric"><b>3 语义</b><span>原子性、可见性、有序性</span></div>
+          <div class="metric"><b>1 套排障</b><span>指标、线程栈、下游、降级</span></div>
+        </div>
+      </section>
+
+      <section id="map">
+        <h2>学习路线：先知道线程怎么活，再知道资源怎么控</h2>
+        <p class="lead">推荐顺序是：线程基础 → 线程池 → 拒绝策略 → JMM → 锁 → JUC → 排障。你按这个顺序讲，面试官会明显感觉你不是在背碎片。</p>
+        <div class="roadmap" id="roadmap">
+          <div class="step active"><b>1. 线程模型</b>创建、状态、调度、上下文切换。</div>
+          <div class="step"><b>2. 线程池</b>复用线程，控制并发资源。</div>
+          <div class="step"><b>3. 满载策略</b>队列满了以后怎么保护系统。</div>
+          <div class="step"><b>4. 内存语义</b>可见性、有序性、happens-before。</div>
+          <div class="step"><b>5. 锁机制</b>互斥、竞争、可重入、公平与条件队列。</div>
+          <div class="step"><b>6. 线上排障</b>看指标、线程栈、下游和降级。</div>
+        </div>
+        <div class="controls" id="mapControls"></div>
+        <p class="callout" id="mapExplain">当前重点：线程不是越多越好，线程是 CPU 调度的执行单元，切换和阻塞都有成本。</p>
+      </section>
+
+      <section id="thread">
+        <h2>Java 多线程基础：面试官想听的不是“会创建线程”</h2>
+        <div class="grid-3">
+          <article class="box">
+            <span class="badge">创建方式</span>
+            <h3>Thread / Runnable / Callable</h3>
+            <ul>
+              <li><code>Thread</code>：直接继承，简单但侵入性强。</li>
+              <li><code>Runnable</code>：任务和线程分离，最常见。</li>
+              <li><code>Callable</code>：可以返回结果、抛异常，通常配合 <code>Future</code>。</li>
+              <li>生产里更推荐交给线程池，而不是频繁 new Thread。</li>
+            </ul>
+          </article>
+          <article class="box">
+            <span class="badge">线程状态</span>
+            <h3>NEW 到 TERMINATED</h3>
+            <ul>
+              <li><code>NEW</code>：创建但未 start。</li>
+              <li><code>RUNNABLE</code>：可运行，等待 CPU 调度也算这里。</li>
+              <li><code>BLOCKED</code>：等待 monitor 锁。</li>
+              <li><code>WAITING/TIMED_WAITING</code>：等待唤醒或超时。</li>
+              <li><code>TERMINATED</code>：执行结束。</li>
+            </ul>
+          </article>
+          <article class="box">
+            <span class="badge">核心风险</span>
+            <h3>并发问题本质</h3>
+            <ul>
+              <li>共享变量读写：原子性、可见性、有序性。</li>
+              <li>共享资源竞争：锁粒度、死锁、饥饿。</li>
+              <li>任务调度失控：线程过多、队列堆积、下游被打爆。</li>
+              <li>上下文污染：ThreadLocal 未清理、异步上下文丢失。</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="threadpool">
+        <h2>线程池参数：七参数其实是一套资源预算</h2>
+        <p class="lead">标准回答不要只背参数名，要讲任务从提交到执行的路径。</p>
+        <div class="grid-2">
+          <article class="topic">
+            <h3>七个参数怎么记</h3>
+            <ul>
+              <li><b>corePoolSize：</b>核心线程数，常驻处理稳定流量。</li>
+              <li><b>maximumPoolSize：</b>最大线程数，应对队列满后的突增流量。</li>
+              <li><b>keepAliveTime + unit：</b>非核心线程空闲多久回收。</li>
+              <li><b>workQueue：</b>任务缓冲区，决定削峰方式和内存风险。</li>
+              <li><b>threadFactory：</b>线程命名、优先级、异常处理，排障必备。</li>
+              <li><b>handler：</b>拒绝策略，系统满载后的业务选择。</li>
+            </ul>
+          </article>
+          <article class="topic">
+            <h3>执行流程必须背成肌肉记忆</h3>
+            <ol>
+              <li>运行线程数小于 core，创建核心线程执行。</li>
+              <li>核心线程满了，任务进入队列。</li>
+              <li>队列满了，且线程数小于 max，创建非核心线程。</li>
+              <li>线程达到 max 且队列满，触发拒绝策略。</li>
+            </ol>
+            <p class="callout">注意：不是任务一来就扩到最大线程。先 core，再 queue，再 max，最后 reject。</p>
+          </article>
+        </div>
+        <pre>new ThreadPoolExecutor(
+    corePoolSize,
+    maximumPoolSize,
+    60L, TimeUnit.SECONDS,
+    new ArrayBlockingQueue&lt;&gt;(queueCapacity),
+    namedThreadFactory,
+    new ThreadPoolExecutor.CallerRunsPolicy()
+);</pre>
+      </section>
+
+      <section id="reject">
+        <h2>拒绝策略：系统满了以后，业务到底愿意付出什么代价</h2>
+        <div class="grid-2">
+          <article class="box">
+            <h3>四种内置策略</h3>
+            <ul>
+              <li><b>AbortPolicy：</b>抛 <code>RejectedExecutionException</code>，默认策略。核心任务推荐显式失败、告警、补偿。</li>
+              <li><b>CallerRunsPolicy：</b>调用者线程执行任务，让上游变慢，形成背压。</li>
+              <li><b>DiscardPolicy：</b>静默丢弃。只能用于可丢任务，如部分埋点、采样日志。</li>
+              <li><b>DiscardOldestPolicy：</b>丢掉队列最老任务，再重试提交。适合过期就无价值的任务。</li>
+            </ul>
+          </article>
+          <article class="box">
+            <h3>怎么回答“你会怎么选”</h3>
+            <ul>
+              <li>核心交易、订单、支付：不能静默丢，Abort + 告警 + 补偿。</li>
+              <li>异步削峰：可用 CallerRuns 给入口背压，但要避免拖死 Web 线程。</li>
+              <li>日志、埋点：可采样丢弃，但必须有丢弃指标。</li>
+              <li>实时刷新类任务：可丢旧任务，保留最新任务。</li>
+            </ul>
+            <p class="callout">一句话：拒绝策略不是线程池配置项，而是业务可靠性决策。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="jmm">
+        <h2>JMM 与 volatile：并发 bug 很多不是锁问题，是内存语义问题</h2>
+        <div class="grid-3">
+          <article class="box">
+            <h3>原子性</h3>
+            <p>一个操作不可被拆分。<code>i++</code> 包含读、改、写，不是原子操作。可以用 <code>synchronized</code>、<code>Lock</code> 或 <code>AtomicInteger</code>。</p>
+          </article>
+          <article class="box">
+            <h3>可见性</h3>
+            <p>线程 A 改了共享变量，线程 B 能及时看到。<code>volatile</code>、锁释放/获取都能建立可见性。</p>
+          </article>
+          <article class="box">
+            <h3>有序性</h3>
+            <p>编译器和 CPU 可能重排序。<code>volatile</code> 通过内存屏障约束关键重排序，DCL 单例必须用它。</p>
+          </article>
+        </div>
+        <pre>class Singleton {
   private static volatile Singleton instance;
+
   static Singleton getInstance() {
     if (instance == null) {
       synchronized (Singleton.class) {
-        if (instance == null) instance = new Singleton();
+        if (instance == null) {
+          instance = new Singleton();
+        }
       }
     }
     return instance;
   }
-}</pre>`},memory:"volatile 管可见性和有序性，不管复合原子性。",drill:["DCL 单例为什么 instance 要 volatile？","防止对象创建过程重排序，避免其它线程看到一个引用非空但尚未初始化完成的对象。"]},
-      {id:"lock",title:"synchronized 与 ReentrantLock",tag:"锁机制",source:"Java monitor / AQS",problem:"面试常问两种锁区别、锁升级、可重入、公平锁和条件队列。",signal:"关键词：对象监视器、可重入、锁升级、公平锁、Condition、tryLock。",pitfall:"不要说 synchronized 一定慢。现代 JVM 对 synchronized 做了大量优化。",tabs:{"synchronized":`<ul><li>基于对象监视器 monitor，进入和退出自动加解锁。</li><li>可重入，异常时自动释放。</li><li>锁升级：无锁、偏向锁、轻量级锁、重量级锁。</li><li>适合简单同步块。</li></ul>`,"ReentrantLock":`<ul><li>基于 AQS，可重入。</li><li>支持公平锁/非公平锁。</li><li>支持 tryLock、lockInterruptibly、多 Condition。</li><li>必须 finally 中 unlock。</li></ul>`,"选择":`<p>简单同步优先 synchronized；需要可中断、超时、公平、多条件队列时用 ReentrantLock。</p>`},memory:"简单用 synchronized，复杂控制用 ReentrantLock。",drill:["ReentrantLock 比 synchronized 多什么能力？","可中断获取锁、tryLock 超时、公平锁、多 Condition 条件队列，但需要手动释放锁。"]},
-      {id:"aqs",title:"AQS 与常见并发工具",tag:"JUC",source:"AbstractQueuedSynchronizer",problem:"很多 JUC 工具底层都依赖 AQS，理解同步队列和 state 能串起一大片知识。",signal:"关键词：AQS、state、CAS、CLH 队列、CountDownLatch、Semaphore。",pitfall:"不要把所有并发工具都叫锁。CountDownLatch 是闭锁，Semaphore 是信号量，CyclicBarrier 是栅栏。",tabs:{"AQS":`<ul><li>用 volatile state 表示同步状态。</li><li>用 CAS 修改 state。</li><li>获取失败的线程进入 FIFO 等待队列。</li><li>释放时唤醒后继节点。</li></ul>`,"工具":`<ul><li><b>CountDownLatch：</b>一个或多个线程等待计数归零。</li><li><b>Semaphore：</b>限制同时访问资源的线程数。</li><li><b>CyclicBarrier：</b>一组线程互相等待到达屏障。</li><li><b>ReentrantReadWriteLock：</b>读多写少场景。</li></ul>`,"场景":`<p>限流可用 Semaphore，批量任务等待可用 CountDownLatch，读多写少可用读写锁，但要注意写锁饥饿和锁粒度。</p>`},memory:"AQS = state + CAS + 等待队列。",drill:["CountDownLatch 和 CyclicBarrier 区别？","CountDownLatch 计数归零后不能复用，常用于等待任务完成；CyclicBarrier 可循环复用，常用于一组线程互相等待。"]},
-      {id:"threadlocal",title:"ThreadLocal 与线程安全上下文",tag:"ThreadLocal",source:"ThreadLocalMap",problem:"ThreadLocal 常用于用户上下文、traceId、日期格式化，但在线程池里容易泄漏。",signal:"关键词：线程本地变量、ThreadLocalMap、内存泄漏、remove。",pitfall:"线程池线程会复用，如果不 remove，旧请求上下文可能串到新请求，还可能内存泄漏。",tabs:{"原理":`<ul><li>每个 Thread 内部有 ThreadLocalMap。</li><li>key 是 ThreadLocal 弱引用，value 是业务对象强引用。</li><li>线程不结束时，value 可能长期留在线程里。</li></ul>`,"使用":`<pre>try {
-  CONTEXT.set(user);
+}</pre>
+      </section>
+
+      <section id="locks">
+        <h2>锁机制：别只会说 synchronized 和 ReentrantLock 的区别</h2>
+        <div class="tabs" id="lockTabs"></div>
+        <div class="panel active" data-lock-panel="synchronized">
+          <div class="grid-2">
+            <article class="box">
+              <h3>synchronized</h3>
+              <ul>
+                <li>基于对象监视器 monitor，进入临界区加锁，退出自动释放。</li>
+                <li>可重入，异常时自动释放锁。</li>
+                <li>锁对象可以是实例对象、Class 对象或任意对象。</li>
+                <li>JVM 有偏向锁、轻量级锁、重量级锁等优化，不要简单说它慢。</li>
+              </ul>
+            </article>
+            <article class="box">
+              <h3>常见追问</h3>
+              <p><b>问：</b>锁升级是什么？</p>
+              <p><b>答：</b>竞争从低到高时，锁会经历无锁、偏向锁、轻量级锁、重量级锁，目标是在低竞争下减少系统调用和阻塞成本。</p>
+            </article>
+          </div>
+        </div>
+        <div class="panel" data-lock-panel="reentrant">
+          <div class="grid-2">
+            <article class="box">
+              <h3>ReentrantLock</h3>
+              <ul>
+                <li>基于 AQS，可重入，支持公平锁和非公平锁。</li>
+                <li>支持 <code>tryLock</code>、超时获取、可中断获取锁。</li>
+                <li>支持多个 <code>Condition</code> 条件队列。</li>
+                <li>必须在 <code>finally</code> 里 <code>unlock</code>。</li>
+              </ul>
+            </article>
+            <article class="box">
+              <h3>怎么选</h3>
+              <p>简单同步优先 <code>synchronized</code>；需要超时、可中断、公平锁、多条件队列时用 <code>ReentrantLock</code>。</p>
+            </article>
+          </div>
+        </div>
+        <div class="panel" data-lock-panel="deadlock">
+          <div class="grid-2">
+            <article class="box">
+              <h3>死锁四条件</h3>
+              <ul>
+                <li>互斥：资源一次只能被一个线程持有。</li>
+                <li>占有且等待：拿着一个资源等待另一个资源。</li>
+                <li>不可抢占：资源不能被强制夺走。</li>
+                <li>循环等待：线程之间形成等待环。</li>
+              </ul>
+            </article>
+            <article class="box">
+              <h3>修复思路</h3>
+              <ul>
+                <li>固定加锁顺序。</li>
+                <li>缩小锁粒度和锁持有时间。</li>
+                <li>使用 <code>tryLock</code> 超时退出。</li>
+                <li>通过 <code>jstack</code> 查 BLOCKED 和 deadlock 信息。</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="juc">
+        <h2>JUC 工具：把工具和业务场景绑定，才好记</h2>
+        <div class="grid-3">
+          <article class="box">
+            <span class="badge">AQS</span>
+            <h3>state + CAS + 队列</h3>
+            <p>AQS 用 <code>volatile state</code> 表示同步状态，用 CAS 修改状态，获取失败的线程进入 FIFO 等待队列。</p>
+          </article>
+          <article class="box">
+            <span class="badge">协调工具</span>
+            <h3>Latch / Barrier / Semaphore</h3>
+            <ul>
+              <li><code>CountDownLatch</code>：等待多个任务完成，不能复用。</li>
+              <li><code>CyclicBarrier</code>：一组线程相互等待，可复用。</li>
+              <li><code>Semaphore</code>：限制并发访问量，常用于资源隔离。</li>
+            </ul>
+          </article>
+          <article class="box">
+            <span class="badge">上下文</span>
+            <h3>ThreadLocal</h3>
+            <p>适合 traceId、用户上下文、租户信息。在线程池里必须 <code>finally remove</code>，否则会上下文污染或内存泄漏。</p>
+          </article>
+        </div>
+        <pre>try {
+  USER_CONTEXT.set(user);
   doBusiness();
 } finally {
-  CONTEXT.remove();
-}</pre>`,"场景":`<ul><li>traceId、用户上下文、租户信息。</li><li>不要存大对象。</li><li>异步线程传递上下文要显式传递或使用 TTL 类工具。</li></ul>`},memory:"ThreadLocal 在线程池里必须 finally remove。",drill:["ThreadLocal 为什么会内存泄漏？","线程池线程长期存活，ThreadLocalMap 的 value 是强引用；如果不 remove，value 可能一直挂在线程上。"]},
-      {id:"future",title:"Future / CompletableFuture 异步编排",tag:"异步编排",source:"Future / CompletableFuture",problem:"多接口并行调用、异步下发、聚合查询常用 CompletableFuture，但要注意线程池和异常。",signal:"关键词：并行调用、异步编排、allOf、超时、异常处理。",pitfall:"不要直接用默认 ForkJoinPool 承载阻塞 IO；要指定业务线程池并设置超时。",tabs:{"Future":`<ul><li>Future.get 阻塞等待。</li><li>取消和异常处理能力有限。</li><li>适合简单异步任务。</li></ul>`,"CompletableFuture":`<pre>CompletableFuture<A> a = supplyAsync(this::callA, pool);
-CompletableFuture<B> b = supplyAsync(this::callB, pool);
-CompletableFuture.allOf(a, b)
-  .orTimeout(800, TimeUnit.MILLISECONDS)
-  .exceptionally(ex -> null);</pre>`,"生产点":`<ul><li>指定线程池。</li><li>设置超时和降级。</li><li>异常要收敛，避免 join 时才爆。</li><li>注意上下文传递和线程池隔离。</li></ul>`},memory:"异步编排要指定线程池、超时、异常和降级。",drill:["CompletableFuture 默认线程池有什么风险？","默认使用 ForkJoinPool.commonPool，阻塞 IO 任务可能占满公共线程池，影响其它异步任务。"]},
-      {id:"troubleshoot",title:"线上并发问题怎么排查",tag:"排障",source:"jstack / metrics / thread dump",problem:"线程池打满、死锁、CPU 飙高、接口卡死，是并发专题最实战的部分。",signal:"关键词：线程池满、队列堆积、死锁、BLOCKED、WAITING、CPU 100%。",pitfall:"不要只说重启。要先保现场，看指标、线程栈、慢日志和下游状态。",tabs:{"线程池满":`<ul><li>看 activeCount、queueSize、rejectCount、taskCost。</li><li>确认任务是否阻塞在 DB/Redis/HTTP。</li><li>先限流降级，再扩容或拆池。</li><li>拒绝任务要有补偿或告警。</li></ul>`,"死锁":`<ul><li>jstack 查看 Found one Java-level deadlock。</li><li>看 BLOCKED 线程持有哪些锁、等待哪些锁。</li><li>修复：固定加锁顺序、缩小锁粒度、tryLock 超时。</li></ul>`,"CPU 高":`<pre>top -Hp pid
-printf "%x\n" tid
-jstack pid | grep nid</pre><p>定位高 CPU 线程栈，看是否死循环、频繁 GC、序列化或锁竞争。</p>`},memory:"并发排障先看指标和线程栈，再动参数。",drill:["接口突然卡住，怀疑线程池打满怎么查？","看线程池 active、队列长度、拒绝数和任务耗时，再用 jstack 看线程卡在下游调用、锁等待还是 CPU 计算。"]}
+  USER_CONTEXT.remove();
+}</pre>
+      </section>
+
+      <section id="labs">
+        <h2>交互推演：把线程池和锁选型跑一遍</h2>
+        <div class="grid-2">
+          <article class="box">
+            <h3>线程池参数推演台</h3>
+            <p class="muted">观察任务先走 core，再进 queue，再扩 max，最后 reject。</p>
+            <select id="policy">
+              <option value="AbortPolicy">AbortPolicy 抛异常</option>
+              <option value="CallerRunsPolicy">CallerRunsPolicy 调用者执行</option>
+              <option value="DiscardPolicy">DiscardPolicy 静默丢弃</option>
+              <option value="DiscardOldestPolicy">DiscardOldestPolicy 丢最老任务</option>
+            </select>
+            <input id="poolInput" value="tasks=12, core=2, max=5, queue=3" />
+            <div class="controls"><button id="runPool">运行线程池推演</button></div>
+          </article>
+          <article class="trace" id="poolOutput">
+            <div class="trace-line"><b>等待推演</b>示例：tasks=12, core=2, max=5, queue=3。</div>
+          </article>
+        </div>
+
+        <div class="lab" style="margin-top:16px">
+          <article class="box">
+            <h3>锁选型诊断台</h3>
+            <select id="lockScene">
+              <option value="simple">简单临界区，异常也要自动释放</option>
+              <option value="timeout">获取锁不能一直等，需要超时失败</option>
+              <option value="readmore">读多写少，读之间希望并发</option>
+              <option value="limit">限制同时访问某资源的线程数</option>
+              <option value="context">保存用户上下文或 traceId</option>
+            </select>
+            <div class="controls"><button id="chooseLock">给出建议</button></div>
+          </article>
+          <div class="output" id="lockOutput">选择一个场景，我会给你面试口径。</div>
+        </div>
+      </section>
+
+      <section id="interview">
+        <h2>严格面试官追问：按“结论、机制、坑、生产处理”回答</h2>
+        <div class="lab">
+          <article class="box">
+            <h3>选择追问</h3>
+            <select id="pressureType">
+              <option value="poolFull">线程池突然打满怎么办？</option>
+              <option value="params">线程池参数你怎么定？</option>
+              <option value="volatile">volatile 和 synchronized 区别？</option>
+              <option value="lock">synchronized 和 ReentrantLock 怎么选？</option>
+              <option value="deadlock">线上死锁怎么排查？</option>
+              <option value="threadlocal">ThreadLocal 为什么会泄漏？</option>
+            </select>
+            <div class="controls"><button id="runPressure">生成回答骨架</button></div>
+          </article>
+          <div class="output" id="pressureOutput">等待选择追问。</div>
+        </div>
+      </section>
+
+      <section id="quiz">
+        <h2>自测：能答对才算真正会讲</h2>
+        <div id="quizList"></div>
+        <div class="controls"><button id="resetQuiz">重做自测</button></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const mapLabels = ["线程模型", "线程池", "满载策略", "内存语义", "锁机制", "线上排障"];
+    const mapDetails = [
+      "当前重点：线程不是越多越好，线程是 CPU 调度的执行单元，切换和阻塞都有成本。",
+      "当前重点：线程池的价值是复用线程、隔离资源、削峰填谷和统一监控。",
+      "当前重点：队列满和线程满不是异常情况，而是系统达到承载边界后的策略选择。",
+      "当前重点：JMM 解决线程之间如何看到共享变量，以及哪些操作不能被重排序破坏。",
+      "当前重点：锁解决互斥，但锁粒度、等待时间、死锁和饥饿会直接影响吞吐。",
+      "当前重点：线上问题先保现场，看指标、线程栈和下游状态，再扩容或调参。"
     ];
-    const quizzes=[
-      ["线程池执行顺序正确的是？",["核心线程→队列→最大线程→拒绝","队列→核心线程→拒绝","最大线程→队列→核心线程"],0,"这是 ThreadPoolExecutor 的核心执行流程。"],
-      ["默认 AbortPolicy 做什么？",["抛 RejectedExecutionException","调用者执行","静默丢弃"],0,"AbortPolicy 是默认拒绝策略。"],
-      ["volatile 能保证 i++ 原子性吗？",["不能","能","只在单核能"],0,"i++ 是读改写复合操作。"],
-      ["ThreadLocal 在线程池中使用后应该做什么？",["finally remove","sleep","notifyAll"],0,"线程复用会导致上下文污染和泄漏。"],
-      ["ReentrantLock 必须在哪里释放？",["finally","catch 前","不需要释放"],0,"手动锁必须确保 unlock。"]
+
+    const mapControls = document.getElementById("mapControls");
+    mapLabels.forEach((label, index) => {
+      const button = document.createElement("button");
+      button.textContent = `${index + 1}. ${label}`;
+      button.className = index === 0 ? "active" : "";
+      button.addEventListener("click", () => setMap(index));
+      mapControls.appendChild(button);
+    });
+
+    function setMap(index) {
+      document.querySelectorAll(".step").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.querySelectorAll("#mapControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.getElementById("mapExplain").textContent = mapDetails[index];
+    }
+
+    const lockTabData = [
+      ["synchronized", "synchronized"],
+      ["reentrant", "ReentrantLock"],
+      ["deadlock", "死锁与排查"]
     ];
-    function byId(id){return document.getElementById(id)}
-    function renderNav(){const nav=byId("nav");nav.innerHTML=`<button data-jump="top" class="active">Start</button>`+topics.map(t=>`<button data-jump="${t.id}">${t.title}</button>`).join("")+`<button data-jump="playground">参数推演</button><button data-jump="quiz">自测</button>`;nav.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");byId(b.dataset.jump).scrollIntoView({behavior:"smooth",block:"start"})}))}
-    function renderTopics(){const grid=byId("topicGrid");grid.innerHTML="";topics.forEach(t=>{const panels=Object.assign({"题源与读题":`<p><b>题源：</b>${t.source}</p><div class="read-card"><div><b>场景问题</b>${t.problem}</div><div><b>读题信号</b>${t.signal}</div><div><b>面试第一句</b>我先说明并发问题是资源、可见性、原子性还是调度问题。</div><div><b>最容易掉的坑</b>${t.pitfall}</div></div>`},t.tabs);const tabs=Object.keys(panels);const card=document.createElement("article");card.className="card";card.id=t.id;card.innerHTML=`<div class="card-head"><div><h3>${t.title}</h3><p>${t.problem}</p><span class="source">${t.source}</span></div><span class="badge">${t.tag}</span></div><div class="tabs">${tabs.map((tab,i)=>`<button class="chip ${i===0?"active":""}" data-tab="${tab}">${tab}</button>`).join("")}</div><div class="card-body"><div>${tabs.map((tab,i)=>`<div class="panel ${i===0?"active":""}" data-panel="${tab}">${panels[tab]}</div>`).join("")}</div><aside class="side"><div class="box"><h4>记忆钩子</h4><p>${t.memory}</p></div><div class="box"><h4>面试追问</h4><div class="drill">${t.drill[0]}</div><div class="answer">${t.drill[1]}</div><button class="answer-toggle">显示答案</button></div></aside></div>`;card.querySelectorAll(".chip").forEach(chip=>chip.addEventListener("click",()=>{card.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));card.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));chip.classList.add("active");card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active")}));card.querySelector(".answer-toggle").addEventListener("click",e=>{const a=card.querySelector(".answer");a.classList.toggle("show");e.currentTarget.textContent=a.classList.contains("show")?"隐藏答案":"显示答案"});grid.appendChild(card)})}
-    function parseConfig(text){const cfg={tasks:12,core:2,max:5,queue:3};text.split(",").forEach(p=>{const [k,v]=p.split("=").map(x=>x.trim());if(k in cfg)cfg[k]=Number(v)});return cfg}
-    function escapeHtml(text){return String(text).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
-    function trace(lines){byId("poolOutput").innerHTML=lines.map((x,i)=>`<div class="trace-line"><b>Step ${i+1}</b>${escapeHtml(x)}</div>`).join("")}
-    function runPool(){const {tasks,core,max,queue}=parseConfig(byId("poolInput").value);const policy=byId("policy").value;let threads=0,q=0;const lines=[`配置：tasks=${tasks}, core=${core}, max=${max}, queue=${queue}, policy=${policy}。`];for(let i=1;i<=tasks;i++){if(threads<core){threads++;lines.push(`任务 ${i}: 当前线程 ${threads-1}<core，创建核心线程执行。threads=${threads}, queue=${q}`)}else if(q<queue){q++;lines.push(`任务 ${i}: 核心线程已满，队列未满，任务入队。threads=${threads}, queue=${q}`)}else if(threads<max){threads++;lines.push(`任务 ${i}: 队列已满，但 threads<max，创建非核心线程执行。threads=${threads}, queue=${q}`)}else{let msg=`任务 ${i}: 线程到达 max 且队列满，触发 ${policy}。`;if(policy==="CallerRunsPolicy")msg+=" 提交线程自己执行，形成背压。";if(policy==="AbortPolicy")msg+=" 抛异常，业务要捕获并降级/告警。";if(policy==="DiscardPolicy")msg+=" 静默丢弃，核心任务禁止这样做。";if(policy==="DiscardOldestPolicy")msg+=" 丢弃队列最老任务后重试提交。";lines.push(msg)}}lines.push("结论：参数设计要结合任务耗时、峰值流量、队列等待时间和下游承载，不是越大越好。");trace(lines)}
-    function renderQuiz(){const list=byId("quizList");list.innerHTML="";quizzes.forEach(([q,opts,ans,h],idx)=>{const card=document.createElement("article");card.className="quiz-card";card.innerHTML=`<h3>${idx+1}. ${q}</h3>${opts.map((o,i)=>`<button class="option" data-i="${i}">${o}</button>`).join("")}<p class="hint">${h}</p>`;card.querySelectorAll(".option").forEach(o=>o.addEventListener("click",()=>{card.querySelectorAll(".option").forEach(n=>n.disabled=true);const p=Number(o.dataset.i);o.classList.add(p===ans?"correct":"wrong");card.querySelectorAll(".option")[ans].classList.add("correct");card.querySelector(".hint").classList.add("show")}));list.appendChild(card)})}
-    byId("runPool").addEventListener("click",runPool);byId("resetQuiz").addEventListener("click",renderQuiz);renderNav();renderTopics();renderQuiz();
+    const lockTabs = document.getElementById("lockTabs");
+    lockTabData.forEach(([id, label], index) => {
+      const button = document.createElement("button");
+      button.textContent = label;
+      button.className = index === 0 ? "active" : "";
+      button.addEventListener("click", () => {
+        document.querySelectorAll("#lockTabs button").forEach((node) => node.classList.remove("active"));
+        document.querySelectorAll("[data-lock-panel]").forEach((node) => node.classList.remove("active"));
+        button.classList.add("active");
+        document.querySelector(`[data-lock-panel="${id}"]`).classList.add("active");
+      });
+      lockTabs.appendChild(button);
+    });
+
+    function parseConfig(text) {
+      const cfg = { tasks: 12, core: 2, max: 5, queue: 3 };
+      text.split(",").forEach((part) => {
+        const [key, value] = part.split("=").map((item) => item.trim());
+        if (key in cfg && Number.isFinite(Number(value))) cfg[key] = Number(value);
+      });
+      return cfg;
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[m]));
+    }
+
+    function trace(lines) {
+      document.getElementById("poolOutput").innerHTML = lines.map((line, index) => `<div class="trace-line"><b>Step ${index + 1}</b>${escapeHtml(line)}</div>`).join("");
+    }
+
+    function runPool() {
+      const cfg = parseConfig(document.getElementById("poolInput").value);
+      const policy = document.getElementById("policy").value;
+      let threads = 0;
+      let queue = 0;
+      const lines = [`配置：tasks=${cfg.tasks}, core=${cfg.core}, max=${cfg.max}, queue=${cfg.queue}, policy=${policy}`];
+
+      for (let i = 1; i <= cfg.tasks; i += 1) {
+        if (threads < cfg.core) {
+          threads += 1;
+          lines.push(`任务 ${i}: 线程数小于 core，创建核心线程执行。threads=${threads}, queue=${queue}`);
+        } else if (queue < cfg.queue) {
+          queue += 1;
+          lines.push(`任务 ${i}: 核心线程已满，队列未满，任务入队等待。threads=${threads}, queue=${queue}`);
+        } else if (threads < cfg.max) {
+          threads += 1;
+          lines.push(`任务 ${i}: 队列已满，但线程数小于 max，创建非核心线程执行。threads=${threads}, queue=${queue}`);
+        } else {
+          let message = `任务 ${i}: 线程数达到 max 且队列已满，触发 ${policy}。`;
+          if (policy === "AbortPolicy") message += " 抛异常，业务要捕获、告警、降级或补偿。";
+          if (policy === "CallerRunsPolicy") message += " 调用者线程执行，形成背压，但可能拖慢入口线程。";
+          if (policy === "DiscardPolicy") message += " 静默丢弃，只适合可丢任务，核心任务禁止。";
+          if (policy === "DiscardOldestPolicy") message += " 丢弃队列最老任务，适合过期无价值任务。";
+          lines.push(message);
+        }
+      }
+      lines.push("面试总结：线程池参数要结合任务耗时、峰值 QPS、队列等待时间、下游承载和机器资源调优。");
+      trace(lines);
+    }
+
+    const lockAnswers = {
+      simple: "建议：synchronized。理由：简单临界区用语言级锁更清晰，异常时自动释放，现代 JVM 已有大量优化。面试补一句：不要无脑说 synchronized 慢。",
+      timeout: "建议：ReentrantLock.tryLock(timeout)。理由：可以避免线程无限等待，适合防死锁、限时抢资源、失败降级场景。必须 finally unlock。",
+      readmore: "建议：ReentrantReadWriteLock 或 StampedLock。理由：读多写少时读锁之间可并发，但要注意写锁饥饿、锁升级和代码复杂度。",
+      limit: "建议：Semaphore。理由：它不是互斥锁，而是限制同时访问资源的许可证数量，常用于连接数、接口并发数保护。",
+      context: "建议：ThreadLocal。理由：适合线程内上下文，但在线程池中必须 finally remove；异步场景要显式传递上下文。"
+    };
+
+    document.getElementById("chooseLock").addEventListener("click", () => {
+      const key = document.getElementById("lockScene").value;
+      document.getElementById("lockOutput").textContent = lockAnswers[key];
+    });
+
+    const pressureAnswers = {
+      poolFull: [
+        "结论：先保护系统，不要盲目扩线程。",
+        "看指标：activeCount、poolSize、queueSize、rejectCount、任务耗时、下游 RT。",
+        "看线程栈：jstack 判断线程卡在 DB、Redis、HTTP、锁等待还是 CPU 计算。",
+        "处理：入口限流/降级，核心任务补偿，拆分线程池，必要时扩容，并回头调整队列、超时和下游保护。"
+      ],
+      params: [
+        "结论：线程池参数是资源预算，不是固定公式。",
+        "先区分 CPU 密集还是 IO 密集；CPU 密集接近核数，IO 密集看等待时间/计算时间。",
+        "再看 QPS、平均耗时、峰值、队列可接受等待时间和下游承载。",
+        "上线后必须监控 active、queue、reject、taskCost，持续调优。"
+      ],
+      volatile: [
+        "结论：volatile 解决可见性和有序性，不解决复合操作原子性；synchronized 同时提供互斥和可见性。",
+        "例子：volatile boolean stop 适合做停止标记，但 volatile int count 做 count++ 仍然不安全。",
+        "底层：volatile 依赖内存屏障，synchronized 依赖 monitor enter/exit。",
+        "场景：状态标记用 volatile，临界区保护用 synchronized/Lock。"
+      ],
+      lock: [
+        "结论：简单同步用 synchronized，复杂控制用 ReentrantLock。",
+        "synchronized 自动释放，语义简单，JVM 优化充分。",
+        "ReentrantLock 支持公平锁、tryLock、可中断、多 Condition，但必须 finally unlock。",
+        "生产里要看锁粒度、持有时间、竞争程度和可观测性。"
+      ],
+      deadlock: [
+        "结论：先保现场拿线程栈。",
+        "用 jstack 看是否有 Found one Java-level deadlock，再看 BLOCKED 线程持有什么锁、等什么锁。",
+        "修复：固定加锁顺序、缩小锁粒度、减少锁嵌套，必要时用 tryLock 超时退出。",
+        "预防：锁顺序规范、压测、监控 BLOCKED 线程数和接口耗时。"
+      ],
+      threadlocal: [
+        "结论：ThreadLocal 泄漏常发生在线程池里。",
+        "原因：线程池线程长期存活，ThreadLocalMap 的 value 是强引用，不 remove 就可能挂在线程上。",
+        "风险：内存泄漏、旧请求上下文串到新请求。",
+        "做法：try/finally remove；异步场景显式传递上下文或使用受控的上下文传递工具。"
+      ]
+    };
+
+    document.getElementById("runPressure").addEventListener("click", () => {
+      const lines = pressureAnswers[document.getElementById("pressureType").value];
+      document.getElementById("pressureOutput").textContent = lines.map((line, index) => `Step ${index + 1}: ${line}`).join("\n");
+    });
+
+    const quizzes = [
+      ["线程池提交任务的正确流程是？", ["核心线程 → 队列 → 最大线程 → 拒绝", "队列 → 核心线程 → 最大线程", "最大线程 → 队列 → 核心线程"], 0, "ThreadPoolExecutor 的核心路径就是 core、queue、max、reject。"],
+      ["CallerRunsPolicy 的核心效果是什么？", ["形成背压，让调用者变慢", "静默丢弃任务", "一定提升吞吐"], 0, "它让提交任务的线程自己执行任务，但要小心拖慢入口线程。"],
+      ["volatile 能保证 count++ 原子性吗？", ["不能", "能", "只在单核 CPU 能"], 0, "count++ 是读、改、写复合操作，volatile 不保证复合原子性。"],
+      ["ReentrantLock 比 synchronized 多的典型能力是？", ["tryLock 超时、可中断、公平锁、多 Condition", "自动释放锁", "不需要 finally"], 0, "ReentrantLock 功能更强，但需要手动释放。"],
+      ["ThreadLocal 在线程池中使用后必须做什么？", ["finally remove", "wait", "notifyAll"], 0, "线程池会复用线程，不 remove 容易泄漏和上下文污染。"],
+      ["线上怀疑死锁，第一步应该看什么？", ["线程栈 jstack", "直接重启", "只改大线程池"], 0, "先保现场，jstack 能看到 deadlock 和 BLOCKED 关系。"]
+    ];
+
+    function renderQuiz() {
+      const list = document.getElementById("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([question, options, answer, hint], index) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${question}</h3>${options.map((option, i) => `<button data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("click", () => {
+            card.querySelectorAll("button").forEach((node) => node.disabled = true);
+            const picked = Number(button.dataset.i);
+            button.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll("button")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    document.getElementById("runPool").addEventListener("click", runPool);
+    document.getElementById("resetQuiz").addEventListener("click", renderQuiz);
+    renderQuiz();
   </script>
 </body>
 </html>
