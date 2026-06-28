@@ -20,6 +20,7 @@
     }
 
     * { box-sizing: border-box; }
+    button, select { font: inherit; }
     html { font-size: clamp(14px, 0.28vw + 13px, 16px); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     body {
       margin: 0;
@@ -83,19 +84,58 @@
     .script { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--muted); }
     .question { color: var(--ink); font-weight: 800; }
     .answer { color: var(--muted); }
+    .flow { display: grid; grid-template-columns: repeat(7, minmax(110px, 1fr)); gap: 10px; margin-top: 14px; }
+    .flow-step { position: relative; min-height: 110px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.72); transition: transform .25s ease, background .25s ease, border-color .25s ease; }
+    .flow-step b { display: block; margin-bottom: 6px; }
+    .flow-step.active { transform: translateY(-5px); border-color: rgba(216, 101, 42, 0.6); background: var(--accent-soft); box-shadow: 0 12px 30px rgba(216, 101, 42, 0.14); }
+    .flow-step.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 9px; height: 3px; border-radius: 999px; background: var(--accent); animation: pulse 1.1s infinite; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .controls button,
+    .scenario button,
+    .quiz button,
+    .scenario select {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+    }
+    .controls button, .scenario button, .quiz button { cursor: pointer; }
+    .controls button.active,
+    .quiz button.correct { border-color: rgba(62, 123, 79, 0.55); background: rgba(62, 123, 79, 0.12); }
+    .quiz button.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+    .scenario { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 16px; }
+    .scenario select { width: 100%; margin-top: 8px; }
+    .output {
+      min-height: 260px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+    .quiz-card { padding: 16px; margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.7); }
+    .quiz-card h3 { margin: 0 0 10px; font-size: 17px; }
+    .quiz button { display: block; width: 100%; margin: 8px 0; text-align: left; }
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+    @keyframes pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
 
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       aside { position: static; height: auto; }
       nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       main { padding: 20px; }
-      .cols { grid-template-columns: 1fr; }
+      .cols, .scenario { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .full { grid-column: auto; }
     }
     @media (max-width: 560px) {
       nav { grid-template-columns: 1fr; }
       main { padding: 14px; }
       .hero, .card { padding: 20px; }
+      .flow { grid-template-columns: 1fr; }
       h1 { font-size: clamp(30px, 10vw, 42px); }
     }
   </style>
@@ -110,6 +150,7 @@
       </div>
       <nav>
         <a href="#overview">项目主线</a>
+        <a href="#flow">链路推演</a>
         <a href="#method">回答方法</a>
         <a href="#case-idempotency">案例 1：幂等</a>
         <a href="#case-state">案例 2：状态机</a>
@@ -117,6 +158,8 @@
         <a href="#case-sql">案例 4：SQL 优化</a>
         <a href="#case-concurrency">案例 5：高并发</a>
         <a href="#defense">基础追问防守</a>
+        <a href="#diagnose">故障诊断</a>
+        <a href="#quiz">自测</a>
         <a href="#script">最终话术</a>
       </nav>
     </aside>
@@ -164,6 +207,28 @@
 -> 生成幂等键 -> 订单主记录落库 -> 订单明细落库
 -> 写异步下发任务 -> 调用下游服务 -> 状态回写/轮询
 -> 查询侧展示最终状态</pre>
+        </article>
+      </section>
+
+      <section class="section" id="flow">
+        <div class="section-head">
+          <h2>订单主链路动画推演</h2>
+          <p>把订单从请求到最终状态拆成 7 个节点，面试时按这个链路展开，不会散。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Animated Flow</span>
+          <h3>一笔订单到底怎么流动</h3>
+          <div class="flow" id="orderFlow">
+            <div class="flow-step active"><b>1. 请求进入</b>网关鉴权、租户识别、traceId 生成。</div>
+            <div class="flow-step"><b>2. 参数校验</b>资源类型、配额、价格、权限校验。</div>
+            <div class="flow-step"><b>3. 幂等落库</b>幂等键、唯一索引、订单主表和明细表。</div>
+            <div class="flow-step"><b>4. 写下发任务</b>Outbox/任务表，和订单落库同事务。</div>
+            <div class="flow-step"><b>5. 异步下发</b>MQ/任务调度调用下游，失败重试。</div>
+            <div class="flow-step"><b>6. 状态回写</b>状态机、CAS、终态保护、乱序防护。</div>
+            <div class="flow-step"><b>7. 查询展示</b>缓存、分页、索引、轮询状态。</div>
+          </div>
+          <div class="controls" id="flowControls"></div>
+          <div class="note" id="flowExplain">当前重点：请求刚进入系统，先打 traceId，后面所有日志、MQ 消息、下游调用都要能串起来。</div>
         </article>
       </section>
 
@@ -488,6 +553,43 @@ order by o.create_time desc, o.id desc;</pre>
         </div>
       </section>
 
+      <section class="section" id="diagnose">
+        <div class="section-head">
+          <h2>故障诊断台：从现象反推方案</h2>
+          <p>面试官常把项目深挖伪装成线上故障题。这里练“现象 → 风险 → 根因 → 方案 → 话术”。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Scenario Diagnosis</span>
+          <h3>选择一个故障场景</h3>
+          <div class="scenario">
+            <div class="box">
+              <h4>场景</h4>
+              <select id="scenarioType">
+                <option value="duplicate">重复点击创建了两笔订单</option>
+                <option value="dispatchTimeout">下游超时，订单一直处理中</option>
+                <option value="cacheStale">订单已成功，页面仍显示处理中</option>
+                <option value="slowSql">订单列表从 1 秒变成 30 秒</option>
+                <option value="callbackRace">成功回调和失败重试乱序到达</option>
+              </select>
+              <div class="controls"><button id="runScenario">生成诊断链路</button></div>
+            </div>
+            <div class="output" id="scenarioOutput">等待选择场景。</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>项目深挖自测</h2>
+          <p>用选择题检查你有没有真正抓住订单链路里的关键防线。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Quiz</span>
+          <div class="quiz" id="quizList"></div>
+          <div class="controls"><button id="resetQuiz">重做自测</button></div>
+        </article>
+      </section>
+
       <section class="section" id="script">
         <div class="section-head">
           <h2>最终可背的话术</h2>
@@ -506,5 +608,101 @@ order by o.create_time desc, o.id desc;</pre>
       </section>
     </main>
   </div>
+  <script>
+    const flowDetails = [
+      "当前重点：请求刚进入系统，先打 traceId，后面所有日志、MQ 消息、下游调用都要能串起来。",
+      "当前重点：校验租户、权限、配额和参数摘要。幂等键不能只用用户 ID，要包含能定义同一业务请求的关键维度。",
+      "当前重点：订单主表、明细表和幂等键在本地事务内落库，唯一索引是防重复的最后防线。",
+      "当前重点：下发任务和订单落库同事务，避免订单成功但没有下发消息。这里就是 outbox 思想。",
+      "当前重点：异步下发要有 requestId、重试次数、失败原因和下次执行时间，不能让线程阻塞在数据库事务里。",
+      "当前重点：状态更新不能裸 update，要用状态机、前置状态和版本号 CAS，防止乱序覆盖。",
+      "当前重点：查询侧用缓存和索引减压，但数据库仍是准源。缓存删除失败要重试，慢 SQL 要看执行计划。"
+    ];
+    const flowLabels = ["请求进入", "参数校验", "幂等落库", "写下发任务", "异步下发", "状态回写", "查询展示"];
+    const flowControls = document.getElementById("flowControls");
+    flowLabels.forEach((label, index) => {
+      const button = document.createElement("button");
+      button.textContent = `${index + 1}. ${label}`;
+      button.className = index === 0 ? "active" : "";
+      button.addEventListener("click", () => setFlow(index));
+      flowControls.appendChild(button);
+    });
+    function setFlow(index) {
+      document.querySelectorAll(".flow-step").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.getElementById("flowExplain").textContent = flowDetails[index];
+    }
+
+    const scenarios = {
+      duplicate: [
+        "现象：用户重复点击或上游超时重试后，出现两笔业务含义相同的订单。",
+        "风险：重复下发、重复扣配额、状态链路分裂，后续补偿很难收敛。",
+        "根因：只做了前端防抖或先查后插，没有数据库唯一约束兜底。",
+        "方案：业务幂等键 + 唯一索引；捕获唯一键冲突后返回已有订单；下发任务也携带同一 requestId。",
+        "面试话术：幂等不是不执行，而是同一业务请求多次执行得到同一业务结果。"
+      ],
+      dispatchTimeout: [
+        "现象：订单创建成功，但下游资源创建超时，订单长时间停留在处理中。",
+        "风险：用户不知道最终结果，客服和运营无法判断是否需要补偿。",
+        "根因：下游调用和订单事务耦合，或者缺少任务状态、重试和补偿扫描。",
+        "方案：订单落库和写任务同事务；异步下发；失败分类重试；长时间处理中由补偿任务查询下游最终状态。",
+        "面试话术：订单状态要能表达处理中、重试中、成功、失败等阶段，不能只有成功失败。"
+      ],
+      cacheStale: [
+        "现象：数据库订单已成功，但页面轮询仍读到处理中。",
+        "风险：用户看到旧状态，重复操作或投诉。",
+        "根因：缓存未删除成功，或旧读请求把旧 DB 值回填缓存。",
+        "方案：更新 DB 后删除缓存；删除失败进重试；缓存 TTL 兜底；状态值带版本或更新时间防旧值覆盖。",
+        "面试话术：订单状态以 DB 为准，缓存只是查询加速，追求最终一致和可补偿。"
+      ],
+      slowSql: [
+        "现象：订单列表接口从 1 秒变成 30 秒。",
+        "风险：查询线程和连接池被占满，影响创建和回写链路。",
+        "根因：索引失效、排序 filesort、深分页回表、扫描行数暴涨。",
+        "方案：日志定位 SQL；EXPLAIN 看 type/key/rows/Extra；重建组合索引；覆盖索引或延迟关联；限制深分页。",
+        "面试话术：SQL 优化不是只加索引，要解释为什么原索引没被用、扫描成本在哪里。"
+      ],
+      callbackRace: [
+        "现象：下游成功回调先到，失败重试后到，订单最终被覆盖成失败。",
+        "风险：终态倒退，用户权益和订单展示不一致。",
+        "根因：状态更新没有约束合法流转，也没有版本号或终态保护。",
+        "方案：状态机定义合法迁移；更新时带 fromStatus 和 version；终态不可被非终态覆盖；异常消息进入补偿。",
+        "面试话术：异步链路一定要考虑乱序，不能谁后到谁覆盖。"
+      ]
+    };
+    document.getElementById("runScenario").addEventListener("click", () => {
+      const lines = scenarios[document.getElementById("scenarioType").value];
+      document.getElementById("scenarioOutput").textContent = lines.map((line, index) => `Step ${index + 1}：${line}`).join("\n");
+    });
+
+    const quizzes = [
+      ["订单创建幂等最可靠的兜底通常是什么？", ["数据库唯一索引", "前端按钮置灰", "Thread.sleep"], 0, "前端和锁都可能失效，唯一索引是存储层约束。"],
+      ["订单落库后异步下发，如何避免订单成功但没有消息？", ["订单和任务表同事务写入", "事务里直接调用下游", "只打印日志"], 0, "Outbox/任务表能让消息投递可恢复。"],
+      ["状态回写为什么要 CAS 或前置状态？", ["防止乱序覆盖和状态倒退", "为了让 SQL 更长", "为了替代索引"], 0, "异步回调、轮询、重试可能并发写同一笔订单。"],
+      ["订单缓存一致性一般以谁为准？", ["数据库", "缓存", "浏览器本地状态"], 0, "缓存用于加速查询，DB 才是准源。"],
+      ["慢 SQL 排查首先应该看什么？", ["日志定位 SQL + EXPLAIN", "直接重启服务", "删除所有索引"], 0, "先确认慢在哪里，才能解释优化为什么有效。"]
+    ];
+    function renderQuiz() {
+      const list = document.getElementById("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([question, options, answer, hint], index) => {
+        const card = document.createElement("div");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${question}</h3>${options.map((option, i) => `<button data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("click", () => {
+            card.querySelectorAll("button").forEach((node) => node.disabled = true);
+            const picked = Number(button.dataset.i);
+            button.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll("button")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+    document.getElementById("resetQuiz").addEventListener("click", renderQuiz);
+    renderQuiz();
+  </script>
 </body>
 </html>
