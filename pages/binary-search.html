@@ -281,6 +281,70 @@
     .practice,
     .playground { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 120px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      transition: transform .25s ease, border-color .25s ease, background .25s ease;
+    }
+
+    .flow-step b { display: block; margin-bottom: 6px; }
+
+    .flow-step.active {
+      transform: translateY(-5px);
+      border-color: rgba(216, 101, 42, 0.58);
+      background: var(--accent-soft);
+      box-shadow: 0 12px 30px rgba(216, 101, 42, 0.14);
+    }
+
+    .flow-step.active::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 9px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      animation: pulse 1.1s infinite;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .controls button {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .controls button.active {
+      border-color: var(--green);
+      background: rgba(62, 123, 79, 0.12);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .45; }
+      50% { opacity: 1; }
+    }
+
     textarea {
       width: 100%;
       min-height: 160px;
@@ -350,6 +414,7 @@
       nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       main { padding: 20px; }
       .card-body, .practice, .playground, .read-card { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 560px) {
@@ -358,6 +423,7 @@
       main { padding: 14px; }
       .hero { padding: 20px; }
       .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      .flow { grid-template-columns: 1fr; }
       h1 { font-size: clamp(30px, 10vw, 42px); }
     }
   </style>
@@ -378,6 +444,27 @@
         <span class="eyebrow">算法专题 / Binary Search · Java · 手撕边界</span>
         <h1>二分法不是背 while，而是定义“答案在哪一侧”。</h1>
         <p>二分最容易错的不是 mid，而是不知道自己在找什么边界。本页用统一模板拆开：精确查找、左边界、右边界、二分答案、旋转数组和峰值，让你能在面试里稳定手撕。</p>
+      </section>
+
+      <section class="section" id="flow">
+        <div class="section-head">
+          <h2>二分边界决策动画</h2>
+          <p>所有二分题都先走这条链：答案空间是什么，mid 代表什么，满足条件时丢哪一半。</p>
+        </div>
+        <article class="card" style="padding: 22px 26px 26px">
+          <span class="badge">Animated Boundary Flow</span>
+          <h3>从题目信号到返回值</h3>
+          <div class="flow" id="binaryFlow">
+            <div class="flow-step active"><b>1. 读题信号</b>有序、最小可行、最大满足、旋转、峰值。</div>
+            <div class="flow-step"><b>2. 定答案空间</b>下标区间、插入位置、速度/容量范围。</div>
+            <div class="flow-step"><b>3. 定 check</b>mid 是否满足条件，true/false 含义。</div>
+            <div class="flow-step"><b>4. 丢半边</b>说明为什么左边或右边不可能有答案。</div>
+            <div class="flow-step"><b>5. 选循环</b>[l,r] 用 <=，[l,r) 用 &lt;。</div>
+            <div class="flow-step"><b>6. 定返回值</b>返回 l、r、ans 或 -1，必须匹配区间语义。</div>
+          </div>
+          <div class="controls" id="flowControls"></div>
+          <p class="box" id="flowExplain" style="margin-top:14px">当前重点：先抓题目信号。看到“第一个/插入位置”多半是左边界；看到“最小速度/容量”多半是二分答案。</p>
+        </article>
       </section>
 
       <section class="section" id="knowledge">
@@ -408,6 +495,28 @@
           <div class="trace" id="demoOutput">
             <div class="trace-line"><b>怎么用</b>输入格式一般是 nums | target。吃香蕉格式：piles | hours，例如 3,6,7,11 | 8。</div>
           </div>
+        </div>
+      </section>
+
+      <section class="section" id="diagnosis">
+        <div class="section-head">
+          <h2>模板选择诊断台</h2>
+          <p>输入题目信号，先决定用哪种二分模板，再写代码。</p>
+        </div>
+        <div class="playground">
+          <div class="box">
+            <h4>题目信号</h4>
+            <select id="diagnosisType">
+              <option value="exact">有序数组里找 target 是否存在</option>
+              <option value="left">找第一个 >= target / 插入位置</option>
+              <option value="range">找 target 的起止范围</option>
+              <option value="answer">求最小可行速度/容量/天数</option>
+              <option value="rotated">旋转有序数组中查找</option>
+              <option value="peak">找任意峰值</option>
+            </select>
+            <button class="ghost" id="runDiagnosis">生成模板路线</button>
+          </div>
+          <div class="output" id="diagnosisOutput">选择题目信号，生成“区间定义 → 判断条件 → 收缩方向 → 返回值”。</div>
         </div>
       </section>
 
@@ -616,15 +725,34 @@ boolean canFinish(int[] piles, int h, int speed) {
       ["寻找峰值比较 nums[mid] 和 nums[mid+1]，如果上坡应去哪边？", ["右边", "左边", "停止"], 0, "上坡方向一定存在峰值。"]
     ];
 
+    const flowLabels = ["读题信号", "定答案空间", "定 check", "丢半边", "选循环", "定返回值"];
+    const flowDetails = [
+      "当前重点：先抓题目信号。看到“第一个/插入位置”多半是左边界；看到“最小速度/容量”多半是二分答案。",
+      "当前重点：答案空间不一定是数组下标。吃香蕉二分的是速度，运货二分的是容量。",
+      "当前重点：check(mid) 要能把答案空间分成两半。true 代表可行、太大、还是命中，要提前说清。",
+      "当前重点：每次收缩都要能解释被丢掉的一半为什么不可能有答案。",
+      "当前重点：闭区间 [l,r] 通常 while(l<=r)；左闭右开 [l,r) 通常 while(l<r)。",
+      "当前重点：返回值由区间语义决定。左边界返回 l，精确查找找不到返回 -1，答案二分返回最小可行 l。"
+    ];
+
+    const diagnosisRoutes = {
+      exact: ["模板：闭区间 [l,r] 精确查找。", "判断：nums[mid] == target 直接返回。", "收缩：小于 target 则 l=mid+1，大于则 r=mid-1。", "返回：循环结束未命中返回 -1。"],
+      left: ["模板：左闭右开 [l,r) 左边界。", "判断：nums[mid] >= target 表示 mid 是候选。", "收缩：满足则 r=mid，不满足则 l=mid+1。", "返回：l 是第一个 >= target 的位置，也就是插入位置。"],
+      range: ["模板：两次左边界。", "判断：left=lowerBound(target)，right=upperBound(target)-1。", "收缩：upperBound 用 nums[mid] > target 时 r=mid。", "返回：如果 left 越界或 nums[left]!=target，则 [-1,-1]。"],
+      answer: ["模板：二分答案范围 [min,max]。", "判断：check(mid) 表示速度/容量/天数是否可行。", "收缩：求最小可行值，可行 r=mid，不可行 l=mid+1。", "返回：l 是最小可行答案。"],
+      rotated: ["模板：闭区间 [l,r] 特殊有序查找。", "判断：先看 nums[l] <= nums[mid]，确定哪半边有序。", "收缩：target 在有序半边就保留，否则丢掉。", "返回：命中返回 mid，否则 -1；有重复元素最坏会退化。"],
+      peak: ["模板：趋势二分，比较 mid 和 mid+1。", "判断：nums[mid] < nums[mid+1] 表示右侧有峰。", "收缩：上坡 l=mid+1，下坡 r=mid。", "返回：l 是某个峰值下标。"]
+    };
+
     function byId(id) {
       return document.getElementById(id);
     }
 
     function renderNav() {
       const nav = byId("nav");
-      nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+      nav.innerHTML = `<button data-jump="top" class="active">Start</button><button data-jump="flow">边界动画</button>` +
         topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
-        `<button data-jump="playground">交互推演</button><button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+        `<button data-jump="playground">交互推演</button><button data-jump="diagnosis">模板诊断</button><button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
       nav.querySelectorAll("button").forEach((button) => {
         button.addEventListener("click", () => {
           document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
@@ -718,6 +846,22 @@ boolean canFinish(int[] piles, int h, int speed) {
           });
         });
         list.appendChild(card);
+      });
+    }
+
+    function renderFlowControls() {
+      const box = byId("flowControls");
+      box.innerHTML = "";
+      flowLabels.forEach((label, index) => {
+        const button = document.createElement("button");
+        button.textContent = `${index + 1}. ${label}`;
+        button.className = index === 0 ? "active" : "";
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".flow-step").forEach((node, i) => node.classList.toggle("active", i === index));
+          document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+          byId("flowExplain").textContent = flowDetails[index];
+        });
+        box.appendChild(button);
       });
     }
 
@@ -837,6 +981,11 @@ boolean canFinish(int[] piles, int h, int speed) {
       renderTrace(demos[byId("demoType").value](byId("demoInput").value.trim()));
     });
 
+    byId("runDiagnosis").addEventListener("click", () => {
+      const lines = diagnosisRoutes[byId("diagnosisType").value];
+      byId("diagnosisOutput").textContent = lines.map((line, index) => `Step ${index + 1}: ${line}`).join("\n");
+    });
+
     byId("demoType").addEventListener("change", (event) => {
       const samples = {
         exact: "1,2,4,4,4,7,9 | 7",
@@ -867,6 +1016,7 @@ boolean canFinish(int[] piles, int h, int speed) {
     byId("resetQuiz").addEventListener("click", renderQuiz);
 
     renderNav();
+    renderFlowControls();
     renderTopics();
     renderQuiz();
   </script>
