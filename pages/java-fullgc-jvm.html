@@ -42,7 +42,7 @@
     }
 
     main, section, article, div, aside { min-width: 0; }
-    button, textarea { font: inherit; }
+    button, textarea, select { font: inherit; }
 
     .layout {
       display: grid;
@@ -313,6 +313,83 @@
       color: var(--code);
       background: var(--dark);
       white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 122px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      transition: transform .25s ease, border-color .25s ease, background .25s ease;
+    }
+
+    .flow-step b {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .flow-step.active {
+      transform: translateY(-5px);
+      border-color: rgba(216, 101, 42, 0.58);
+      background: var(--accent-soft);
+      box-shadow: 0 12px 30px rgba(216, 101, 42, 0.14);
+    }
+
+    .flow-step.active::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 9px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      animation: pulse 1.1s infinite;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .controls button,
+    .lab button,
+    .lab select {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+    }
+
+    .controls button.active { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+
+    .lab {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .lab select {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .45; }
+      50% { opacity: 1; }
     }
 
     .quiz-card {
@@ -359,7 +436,8 @@
       aside { position: static; height: auto; }
       nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       main { padding: 20px; }
-      .card-body, .practice { grid-template-columns: 1fr; }
+      .card-body, .practice, .lab { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 560px) {
@@ -368,6 +446,7 @@
       main { padding: 14px; }
       .hero { padding: 20px; }
       .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      .flow { grid-template-columns: 1fr; }
       h1 { font-size: clamp(30px, 10vw, 42px); }
     }
   </style>
@@ -390,12 +469,55 @@
         <p>目标不是背名词，而是能在面试里从“现象 → 指标 → 日志 → dump → 根因 → 修复”完整说清楚，顺带覆盖 JVM 内存区域、GC Roots、分代、常用参数和命令。</p>
       </section>
 
+      <section class="section" id="flow">
+        <div class="section-head">
+          <h2>Full GC 排障动画推演</h2>
+          <p>把一次线上 Full GC 从“报警出现”推到“引用链修复”，形成可复述的工程链路。</p>
+        </div>
+        <article class="card" style="padding: 22px 26px 26px">
+          <span class="badge">Animated GC Flow</span>
+          <h3>一次频繁 Full GC 应该怎么推进</h3>
+          <div class="flow" id="gcFlow">
+            <div class="flow-step active"><b>1. 现象</b>RT 抖动、P99 升高、错误率或 CPU 异常。</div>
+            <div class="flow-step"><b>2. 日志</b>看 cause、pause、before/after。</div>
+            <div class="flow-step"><b>3. 趋势</b>看 Old、Eden、Metaspace 是否持续上涨。</div>
+            <div class="flow-step"><b>4. 取证</b>jcmd、jstat、线程栈、heap dump。</div>
+            <div class="flow-step"><b>5. 归因</b>缓存、大对象、队列、ThreadLocal、元空间。</div>
+            <div class="flow-step"><b>6. 闭环</b>修复后对比 GC 频率、停顿和 P99。</div>
+          </div>
+          <div class="controls" id="flowControls"></div>
+          <p class="box" id="flowExplain" style="margin-top:14px">当前重点：先确认业务影响，不要一看到 Full GC 就直接调大堆。</p>
+        </article>
+      </section>
+
       <section class="section" id="knowledge">
         <div class="section-head">
           <h2>知识卡片</h2>
           <p>每张卡保留“结论、细节、面试追问”结构，适合直接口述。</p>
         </div>
         <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="diagnosis">
+        <div class="section-head">
+          <h2>GC 现象诊断台</h2>
+          <p>选择一个线上信号，练习从日志和指标推断排查方向。</p>
+        </div>
+        <div class="lab">
+          <div class="box">
+            <h4>选择现象</h4>
+            <select id="gcScene">
+              <option value="oldNotDown">Full GC 后 Old 几乎不下降</option>
+              <option value="meta">日志显示 Metadata GC Threshold</option>
+              <option value="humongous">G1 日志出现 Humongous Allocation</option>
+              <option value="systemgc">日志显示 System.gc()</option>
+              <option value="queue">业务高峰后 Full GC 变频繁</option>
+              <option value="rss">堆不高但进程 RSS 很高</option>
+            </select>
+            <button class="ghost" id="runDiagnosis">生成诊断路径</button>
+          </div>
+          <div class="output" id="diagnosisOutput">等待选择现象。</div>
+        </div>
       </section>
 
       <section class="section" id="practice">
@@ -583,6 +705,55 @@ jmap -dump:live,format=b,file=heap.hprof &lt;pid&gt;</pre>`,
       ["G1 的 MaxGCPauseMillis 表示什么？", ["停顿目标，不是硬保证", "Full GC 固定不会超过该值", "老年代最大容量"], 0, "G1 会尽量朝目标优化，但不能保证每次停顿都低于该值。"]
     ];
 
+    const flowLabels = ["现象", "日志", "趋势", "取证", "归因", "闭环"];
+    const flowDetails = [
+      "当前重点：先确认业务影响，不要一看到 Full GC 就直接调大堆。",
+      "当前重点：GC 日志先看 cause、pause、回收前后占用，cause 决定排查方向。",
+      "当前重点：jstat 和监控要看趋势。Old 持续上升且 Full GC 后不降，才更像泄漏。",
+      "当前重点：取证要注意线上风险。dump 可能很大，也可能造成停顿和磁盘压力。",
+      "当前重点：根因优先看无界缓存、大对象、队列堆积、ThreadLocal、元空间和堆外。",
+      "当前重点：修复后必须用 GC 频率、停顿时间、P99、错误率做前后对比。"
+    ];
+
+    const diagnosisAnswers = {
+      oldNotDown: [
+        "判断：Full GC 后 Old 几乎不下降，说明大部分老年代对象仍可达。",
+        "优先方向：内存泄漏、无界缓存、静态集合、队列堆积、ThreadLocal 未 remove。",
+        "证据：heap dump 后用 MAT 看 Dominator Tree 和 Path To GC Roots。",
+        "修复：限制缓存容量/TTL，分页处理大集合，清理 ThreadLocal，修复长生命周期引用。"
+      ],
+      meta: [
+        "判断：Metadata GC Threshold 指向元空间压力。",
+        "优先方向：动态代理类过多、脚本引擎生成类、热部署、ClassLoader 泄漏。",
+        "证据：jcmd VM.classloader_stats、GC.class_histogram、类加载数量趋势。",
+        "修复：控制动态类生成，修复 ClassLoader 引用链，合理设置 MaxMetaspaceSize。"
+      ],
+      humongous: [
+        "判断：G1 Humongous Allocation 表示有大对象直接占用连续 region。",
+        "优先方向：大数组、大字符串、大 JSON、一次性全量查询或导出。",
+        "证据：heap dump 看大对象类型和业务入口，对齐日志时间点。",
+        "修复：分页/流式处理，拆分大对象，避免一次性构建巨大集合。"
+      ],
+      systemgc: [
+        "判断：日志显示 System.gc()，说明代码、中间件或工具显式触发。",
+        "优先方向：搜索代码和依赖，检查 RMI、NIO direct buffer、监控工具。",
+        "证据：GC 日志 cause、调用链、发布变更记录。",
+        "修复：移除显式调用，或评估 -XX:+DisableExplicitGC，但先确认副作用。"
+      ],
+      queue: [
+        "判断：高峰后 Full GC 变频繁，可能是请求堆积或异步队列积压导致对象存活变长。",
+        "优先方向：线程池队列、MQ 消费、下游慢调用、批量任务。",
+        "证据：队列长度、线程池 active、慢 SQL/HTTP、对象年龄和晋升速率。",
+        "修复：限流降级、拆线程池、扩消费者、给队列设边界和拒绝策略。"
+      ],
+      rss: [
+        "判断：堆不高但 RSS 高，问题可能在堆外或本地内存。",
+        "优先方向：DirectByteBuffer、Netty、JNI、本地库、线程栈、mmap。",
+        "证据：NMT、pmap、jcmd VM.native_memory、线程数量、直接内存监控。",
+        "修复：限制直接内存，检查 buffer 释放，减少线程数，排查本地库泄漏。"
+      ]
+    };
+
     function byId(id) {
       return document.getElementById(id);
     }
@@ -590,8 +761,9 @@ jmap -dump:live,format=b,file=heap.hprof &lt;pid&gt;</pre>`,
     function renderNav() {
       const nav = byId("nav");
       nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        `<button data-jump="flow">排障推演</button>` +
         topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
-        `<button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+        `<button data-jump="diagnosis">现象诊断</button><button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
       nav.querySelectorAll("button").forEach((button) => {
         button.addEventListener("click", () => {
           document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
@@ -675,6 +847,22 @@ jmap -dump:live,format=b,file=heap.hprof &lt;pid&gt;</pre>`,
       });
     }
 
+    function renderFlowControls() {
+      const box = byId("flowControls");
+      box.innerHTML = "";
+      flowLabels.forEach((label, index) => {
+        const button = document.createElement("button");
+        button.textContent = `${index + 1}. ${label}`;
+        button.className = index === 0 ? "active" : "";
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".flow-step").forEach((node, i) => node.classList.toggle("active", i === index));
+          document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+          byId("flowExplain").textContent = flowDetails[index];
+        });
+        box.appendChild(button);
+      });
+    }
+
     byId("checkAnswer").addEventListener("click", () => {
       const text = byId("answerText").value.trim();
       if (!text) {
@@ -693,8 +881,13 @@ jmap -dump:live,format=b,file=heap.hprof &lt;pid&gt;</pre>`,
     });
 
     byId("resetQuiz").addEventListener("click", renderQuiz);
+    byId("runDiagnosis").addEventListener("click", () => {
+      const lines = diagnosisAnswers[byId("gcScene").value];
+      byId("diagnosisOutput").textContent = lines.map((line, index) => `Step ${index + 1}: ${line}`).join("\n");
+    });
 
     renderNav();
+    renderFlowControls();
     renderTopics();
     renderQuiz();
   </script>
