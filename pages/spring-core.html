@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spring 核心面试专题</title>
+  <style>
+    :root{--paper:#f4efe6;--ink:#201a14;--muted:#776b5d;--line:rgba(32,26,20,.14);--panel:rgba(255,252,245,.92);--soft:rgba(216,101,42,.12);--accent:#d8652a;--accent2:#9f4d28;--dark:#171511;--code:#e8d9bd;--green:#3e7b4f;--blue:#386a91;--shadow:0 18px 58px rgba(60,42,24,.12)}
+    *{box-sizing:border-box}html{font-size:clamp(14px,.28vw + 13px,16px);scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 18% 8%,rgba(216,101,42,.12),transparent 30%),linear-gradient(120deg,rgba(255,255,255,.42) 0 1px,transparent 1px 48px),linear-gradient(0deg,rgba(255,255,255,.3) 0 1px,transparent 1px 48px),var(--paper);line-height:1.68;overflow-x:hidden}
+    a{color:inherit}main,section,article,div,aside{min-width:0}.layout{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}.layout>aside{position:sticky;top:0;height:100vh;padding:22px;border-right:1px solid var(--line);background:rgba(244,239,230,.84);overflow:auto}.brand{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}.brand b{display:block;font-size:18px}.brand span{color:var(--muted);font-size:13px}.back{display:inline-flex;margin-top:12px;color:var(--accent2);text-decoration:none;font-weight:800;font-size:13px}nav{display:grid;gap:8px}nav a{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.68);color:var(--muted);text-decoration:none}nav a:hover{color:var(--accent2);border-color:rgba(216,101,42,.45);background:var(--soft)}
+    main{width:min(1160px,100%);padding:34px 36px 56px}.hero,.box,.note,.panel{border:1px solid var(--line);border-radius:8px;background:var(--panel);box-shadow:var(--shadow)}.hero{padding:32px;margin-bottom:28px}.eyebrow{display:inline-flex;margin-bottom:18px;padding:5px 10px;border-radius:999px;color:var(--accent2);background:var(--soft);font-size:13px;font-weight:800}h1{max-width:980px;margin:0 0 14px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,5.6vw,64px);line-height:1;letter-spacing:0}.lead,.hero p{margin:0;color:var(--muted)}section{margin:34px 0}h2{margin:0 0 10px;font-family:Georgia,"Times New Roman",serif;font-size:34px;line-height:1.05}h3{margin:18px 0 8px}.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.box,.note{padding:18px}.box p{margin:0;color:var(--muted)}.tag{display:inline-flex;margin:8px 6px 0 0;padding:4px 9px;border-radius:999px;background:var(--soft);color:var(--accent2);font-size:12px;font-weight:800}.tag.ok{color:var(--green);background:rgba(62,123,79,.12)}.tag.info{color:var(--blue);background:rgba(56,106,145,.12)}table{width:100%;border-collapse:collapse;margin:12px 0;border:1px solid var(--line);background:rgba(255,250,240,.66);border-radius:8px;overflow:hidden}th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:rgba(216,101,42,.1);color:var(--accent2)}pre{margin:12px 0 0;padding:14px;border-radius:8px;color:var(--code);background:var(--dark);overflow:auto;max-width:100%;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.55}code{padding:2px 5px;border-radius:6px;color:var(--accent2);background:var(--soft);font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.toplink{display:inline-flex;margin-top:12px;color:var(--accent2);font-weight:800;text-decoration:none}
+    .flow{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:10px;margin-top:14px}.flow-step{position:relative;min-height:94px;padding:12px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.76);transition:.25s transform,.25s background,.25s border-color}.flow-step b{display:block;margin-bottom:6px}.flow-step.active{transform:translateY(-5px);border-color:rgba(216,101,42,.65);background:var(--soft);box-shadow:0 12px 30px rgba(216,101,42,.14)}.flow-step.active::after{content:"";position:absolute;inset:auto 14px 10px 14px;height:3px;border-radius:999px;background:var(--accent);animation:pulse 1s infinite}.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.controls button,.scenario button,.quiz button{padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.72);cursor:pointer}.controls button.active,.quiz button.correct{border-color:var(--green);background:rgba(62,123,79,.12)}.quiz button.wrong{border-color:#b43d34;background:rgba(180,61,52,.12)}.scenario{display:grid;grid-template-columns:360px minmax(0,1fr);gap:16px}.scenario select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.82);font:inherit}.output{min-height:250px;padding:14px;border-radius:8px;color:var(--code);background:var(--dark);white-space:pre-wrap;overflow:auto}.quiz-card{padding:16px;margin:12px 0;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.7)}.quiz-card h3{margin:0 0 10px;font-size:17px}.quiz button{display:block;width:100%;margin:8px 0;text-align:left}.hint{display:none;color:var(--muted)}.hint.show{display:block}@keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+    @media(max-width:1050px){.layout{grid-template-columns:1fr}.layout>aside{position:static;height:auto}nav{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-2,.grid-3,.scenario{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:22px}}@media(max-width:560px){nav,.flow{grid-template-columns:1fr}main{padding:14px}.hero{padding:20px}h1{font-size:clamp(30px,10vw,42px)}}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Spring Core Masterclass</b>
+        <span>IoC · AOP · 事务 · MVC · Boot</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav>
+        <a href="#top">Start</a>
+        <a href="#map">学习地图</a>
+        <a href="#ioc">IoC / Bean</a>
+        <a href="#aop">AOP / 代理</a>
+        <a href="#tx">事务</a>
+        <a href="#mvc">Spring MVC</a>
+        <a href="#boot">Spring Boot</a>
+        <a href="#scenario">场景诊断</a>
+        <a href="#quiz">自测</a>
+      </nav>
+    </aside>
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">Spring 专题 / Framework · Boot · Interview</span>
+        <h1>Spring 面试的主线：容器创建对象，AOP 增强对象，事务保护边界，Boot 自动装配工程。</h1>
+        <p>不要把 Spring 背成散点。把它看成一条请求链路：启动时扫描配置生成 BeanDefinition，容器创建 Bean 并处理依赖，AOP 用代理织入增强，请求进入 DispatcherServlet，业务方法通过事务代理完成提交或回滚。</p>
+      </section>
+
+      <section id="map">
+        <h2>1. 学习地图</h2>
+        <p class="lead">Spring 高频面试可以压成 6 条线：容器、生命周期、依赖注入、AOP、事务、Web/Boot。</p>
+        <div class="grid-3">
+          <div class="box"><h3>容器线</h3><p>BeanDefinition、BeanFactory、ApplicationContext、BeanPostProcessor。</p><span class="tag">IoC</span><span class="tag">Bean</span></div>
+          <div class="box"><h3>增强线</h3><p>JDK 动态代理、CGLIB、切面、事务、缓存、异步。</p><span class="tag ok">AOP</span><span class="tag ok">Proxy</span></div>
+          <div class="box"><h3>工程线</h3><p>MVC 请求链、Boot 自动配置、Starter、配置绑定、Actuator。</p><span class="tag info">MVC</span><span class="tag info">Boot</span></div>
+        </div>
+        <div class="note"><b>60 秒总述：</b>Spring 的核心是 IoC 和 AOP。IoC 负责对象创建、依赖装配和生命周期管理；AOP 通过代理在方法调用前后织入事务、日志、缓存等横切逻辑。Spring Boot 在 Spring 之上做自动配置和 starter 依赖管理，让工程更快启动。</div>
+      </section>
+
+      <section id="ioc">
+        <h2>2. IoC、Bean 生命周期与循环依赖</h2>
+        <p class="lead">IoC 面试最常追问：Bean 怎么来的？生命周期有哪些扩展点？循环依赖为什么能解决一部分？</p>
+        <div class="flow" id="beanFlow">
+          <div class="flow-step active"><b>1. 扫描配置</b>XML、注解、配置类被解析。</div>
+          <div class="flow-step"><b>2. BeanDefinition</b>记录类、作用域、依赖。</div>
+          <div class="flow-step"><b>3. 实例化</b>构造方法创建原始对象。</div>
+          <div class="flow-step"><b>4. 属性填充</b>@Autowired 注入依赖。</div>
+          <div class="flow-step"><b>5. 初始化</b>Aware、PostProcessor、init。</div>
+          <div class="flow-step"><b>6. 代理/使用/销毁</b>AOP 代理进入容器。</div>
+        </div>
+        <div class="controls" id="flowControls"></div>
+        <div class="grid-2">
+          <div class="box">
+            <h3>Bean 生命周期关键扩展点</h3>
+            <ol>
+              <li>实例化：构造方法执行。</li>
+              <li>依赖注入：填充属性、处理 @Autowired。</li>
+              <li>Aware：注入 BeanName、BeanFactory、ApplicationContext。</li>
+              <li>BeanPostProcessor before。</li>
+              <li>InitializingBean / init-method。</li>
+              <li>BeanPostProcessor after，AOP 代理常在这里生成。</li>
+              <li>DisposableBean / destroy-method。</li>
+            </ol>
+          </div>
+          <div class="box">
+            <h3>三级缓存解决什么循环依赖</h3>
+            <table>
+              <tr><th>缓存</th><th>含义</th></tr>
+              <tr><td>singletonObjects</td><td>一级缓存，完整单例 Bean。</td></tr>
+              <tr><td>earlySingletonObjects</td><td>二级缓存，提前暴露的早期 Bean。</td></tr>
+              <tr><td>singletonFactories</td><td>三级缓存，ObjectFactory，可提前创建代理。</td></tr>
+            </table>
+            <p>只能解决默认单例、属性注入的循环依赖；构造器循环依赖无法解决，因为对象还没创建出来。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="aop">
+        <h2>3. AOP 与代理机制</h2>
+        <div class="grid-2">
+          <div class="box">
+            <h3>AOP 解决什么</h3>
+            <p>把事务、日志、权限、缓存、监控这类横切逻辑从业务代码里抽离。核心概念：切面、切点、通知、连接点、织入。</p>
+            <pre><code>Controller -> Proxy(Service)
+  -> TransactionInterceptor
+  -> target.business()
+  -> commit / rollback</code></pre>
+          </div>
+          <div class="box">
+            <h3>JDK 代理 vs CGLIB</h3>
+            <table>
+              <tr><th>方式</th><th>特点</th><th>限制</th></tr>
+              <tr><td>JDK 动态代理</td><td>基于接口生成代理类</td><td>目标类需要接口</td></tr>
+              <tr><td>CGLIB</td><td>生成目标类子类</td><td>final 类/方法不能代理</td></tr>
+            </table>
+            <p>Spring Boot 默认倾向 CGLIB 代理类，但是否使用接口代理也与配置和场景有关。面试要强调：AOP 生效的本质是“调用代理对象”。</p>
+          </div>
+        </div>
+        <div class="note"><b>自调用失效：</b>同一个类内部 this.method() 调用不会经过代理对象，所以事务、缓存、异步等 AOP 增强不会生效。解决：拆到另一个 Bean、通过代理对象调用、或使用 AspectJ。</div>
+      </section>
+
+      <section id="tx">
+        <h2>4. 事务：传播行为、隔离级别与失效场景</h2>
+        <p class="lead">Spring 事务不是魔法，本质是 AOP 代理 + TransactionInterceptor + 数据库事务。</p>
+        <div class="grid-2">
+          <div class="box">
+            <h3>常见传播行为</h3>
+            <ul>
+              <li><b>REQUIRED：</b>有事务就加入，没有就新建，最常用。</li>
+              <li><b>REQUIRES_NEW：</b>挂起外部事务，开启新事务。</li>
+              <li><b>NESTED：</b>嵌套事务，依赖保存点。</li>
+              <li><b>SUPPORTS：</b>有事务就加入，没有就非事务执行。</li>
+              <li><b>MANDATORY：</b>必须存在事务，否则异常。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>事务失效高频点</h3>
+            <ul>
+              <li>方法不是 public。</li>
+              <li>同类内部自调用。</li>
+              <li>异常被 catch 后没有抛出。</li>
+              <li>默认只回滚 RuntimeException/Error，受检异常需配置 rollbackFor。</li>
+              <li>数据库引擎不支持事务，或方法没有被 Spring 管理。</li>
+            </ul>
+          </div>
+        </div>
+        <pre><code>@Transactional(rollbackFor = Exception.class)
+public void pay() {
+  updateOrder();
+  sendEventByOutbox();
+}</code></pre>
+      </section>
+
+      <section id="mvc">
+        <h2>5. Spring MVC 请求链路</h2>
+        <p class="lead">把 MVC 背成一条链：请求进 DispatcherServlet，找 Handler，执行拦截器和 Controller，返回 ModelAndView 或 JSON。</p>
+        <table>
+          <tr><th>阶段</th><th>组件</th><th>面试说法</th></tr>
+          <tr><td>入口</td><td>DispatcherServlet</td><td>前端控制器，统一接收请求。</td></tr>
+          <tr><td>找处理器</td><td>HandlerMapping</td><td>根据 URL、HTTP 方法、注解找到 Handler。</td></tr>
+          <tr><td>适配执行</td><td>HandlerAdapter</td><td>适配不同 Handler 方法签名并执行。</td></tr>
+          <tr><td>参数/返回</td><td>ArgumentResolver / ReturnValueHandler</td><td>解析 @RequestBody、@PathVariable，处理 JSON 返回。</td></tr>
+          <tr><td>拦截</td><td>HandlerInterceptor / Filter</td><td>Filter 更靠近 Servlet，Interceptor 更靠近 Spring MVC。</td></tr>
+        </table>
+      </section>
+
+      <section id="boot">
+        <h2>6. Spring Boot 自动配置</h2>
+        <div class="grid-2">
+          <div class="box">
+            <h3>自动配置怎么生效</h3>
+            <ol>
+              <li>@SpringBootApplication 组合了 @SpringBootConfiguration、@EnableAutoConfiguration、@ComponentScan。</li>
+              <li>@EnableAutoConfiguration 导入 AutoConfigurationImportSelector。</li>
+              <li>读取 AutoConfiguration.imports 或旧版 spring.factories。</li>
+              <li>按 @ConditionalOnClass、@ConditionalOnMissingBean、@ConditionalOnProperty 条件装配。</li>
+            </ol>
+          </div>
+          <div class="box">
+            <h3>Starter 是什么</h3>
+            <p>Starter 是依赖聚合 + 自动配置入口。它把某类功能需要的依赖、默认配置和条件装配打包，让业务项目引入即可使用。</p>
+            <span class="tag">starter</span><span class="tag">auto-configuration</span><span class="tag">conditional</span>
+          </div>
+        </div>
+        <div class="note"><b>排障技巧：</b>自动配置没生效时，看依赖是否存在、条件注解是否满足、是否已有用户自定义 Bean、配置属性是否正确，可打开 condition evaluation report。</div>
+      </section>
+
+      <section id="scenario">
+        <h2>7. 场景诊断台</h2>
+        <p class="lead">选择一个 Spring 高频故障，练习按“现象、原因、验证、修复、话术”回答。</p>
+        <div class="scenario">
+          <div class="box">
+            <h3>选择场景</h3>
+            <select id="scenarioType">
+              <option value="txLost">事务没有回滚</option>
+              <option value="cycle">循环依赖启动失败</option>
+              <option value="aopLost">AOP / @Async 不生效</option>
+              <option value="beanConflict">Bean 冲突或自动配置没生效</option>
+              <option value="mvcSlow">接口突然变慢</option>
+            </select>
+            <div class="controls"><button id="runScenario">生成诊断链路</button></div>
+          </div>
+          <div class="output" id="scenarioOutput">等待选择场景。</div>
+        </div>
+      </section>
+
+      <section id="quiz">
+        <h2>8. 自测纠错</h2>
+        <div class="quiz" id="quizList"></div>
+        <div class="controls"><button id="resetQuiz">重做自测</button></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const flowLabels = ["扫描配置", "BeanDefinition", "实例化", "属性填充", "初始化", "代理/销毁"];
+    const flowDetails = [
+      "Spring 解析 XML、注解、配置类和扫描路径，找到候选 Bean。",
+      "BeanDefinition 保存 Bean 的元数据，包括 class、scope、依赖、初始化方法。",
+      "容器通过构造器或工厂方法创建原始对象，此时属性还没完全注入。",
+      "处理 @Autowired、@Value 等依赖注入，循环依赖的关键也发生在这一段。",
+      "执行 Aware、BeanPostProcessor、InitializingBean、init-method 等扩展点。",
+      "BeanPostProcessor after 阶段可能创建 AOP 代理，最终放入单例池供业务使用。"
+    ];
+    const controls = document.getElementById("flowControls");
+    flowLabels.forEach((label, index) => {
+      const btn = document.createElement("button");
+      btn.textContent = `${index + 1}. ${label}`;
+      btn.className = index === 0 ? "active" : "";
+      btn.addEventListener("click", () => setFlow(index));
+      controls.appendChild(btn);
+    });
+    function setFlow(index) {
+      document.querySelectorAll(".flow-step").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.querySelectorAll(".flow-step")[index].innerHTML = `<b>${index + 1}. ${flowLabels[index]}</b>${flowDetails[index]}`;
+    }
+
+    const scenarios = {
+      txLost: ["现象：方法抛异常后数据库仍然提交。", "原因：常见是自调用、异常被 catch、非 public 方法、受检异常未配置 rollbackFor。", "验证：看调用方是否拿到代理对象，打开事务日志，确认 DataSourceTransactionManager 是否创建事务。", "修复：拆到另一个 Bean，通过代理调用；异常继续抛出；配置 rollbackFor = Exception.class。", "话术：Spring 事务本质是 AOP 代理，调用没有经过代理就不会开启事务。"],
+      cycle: ["现象：应用启动时报循环依赖或 BeanCurrentlyInCreationException。", "原因：构造器循环依赖无法通过三级缓存解决；原型 Bean 循环依赖也不支持。", "验证：看依赖链，区分构造器注入还是属性注入，确认 Bean scope。", "修复：重构依赖方向，引入懒加载、事件、接口拆分，避免强互相依赖。", "话术：三级缓存只能缓解单例属性注入循环依赖，不是所有循环依赖都能解决。"],
+      aopLost: ["现象：@Async、@Transactional、@Cacheable 或切面不生效。", "原因：自调用、方法 final/private、对象不是 Spring Bean、代理类型不匹配。", "验证：打印 bean.getClass() 看是否代理类，检查调用链是否从外部 Bean 进入。", "修复：通过代理对象调用，拆分 Bean，去掉 final/private，配置 proxyTargetClass。", "话术：AOP 生效的前提是调用代理对象，而不是直接 this 调用目标方法。"],
+      beanConflict: ["现象：启动失败、Bean 重名、自动配置没有生效。", "原因：用户自定义 Bean 覆盖默认 Bean；条件注解不满足；配置属性缺失。", "验证：看启动日志和 Condition Evaluation Report，检查 @ConditionalOnMissingBean。", "修复：明确 Bean 名称，调整条件配置，排除不需要的 AutoConfiguration。", "话术：Boot 自动配置是条件装配，用户 Bean 优先级通常高于默认配置。"],
+      mvcSlow: ["现象：接口从 1 秒变 30 秒。", "原因：可能卡在 Filter/Interceptor、参数反序列化、Controller、事务、下游 RPC、DB 或连接池。", "验证：traceId 分段打点，查看线程栈、慢 SQL、连接池、GC、下游 RT。", "修复：先定位慢段，再做限流、缓存、SQL 优化、连接池调参或异步化。", "话术：Spring MVC 慢请求要按请求链路分段，而不是只盯 Controller。"]
+    };
+    document.getElementById("runScenario").addEventListener("click", () => {
+      const lines = scenarios[document.getElementById("scenarioType").value];
+      document.getElementById("scenarioOutput").textContent = lines.map((line, i) => `Step ${i + 1}：${line}`).join("\n");
+    });
+
+    const quizzes = [
+      ["Spring IoC 最核心解决什么？", ["对象创建与依赖管理", "数据库分库分表", "JVM 垃圾回收"], 0, "IoC 把对象创建、依赖注入和生命周期交给容器。"],
+      ["AOP 生效的关键前提是什么？", ["调用代理对象", "方法一定是 static", "必须手写 SQL"], 0, "自调用不经过代理，所以事务等增强会失效。"],
+      ["构造器循环依赖能靠三级缓存解决吗？", ["不能", "一定能", "只要加 volatile"], 0, "构造器阶段对象还没创建出来，无法提前暴露。"],
+      ["@Transactional 默认回滚什么异常？", ["RuntimeException 和 Error", "所有 Exception", "所有 Throwable 包括正常返回"], 0, "受检异常需要配置 rollbackFor。"],
+      ["Spring Boot 自动配置依赖什么机制？", ["条件装配", "手动 new Bean", "JSP 编译"], 0, "@ConditionalOnClass、@ConditionalOnMissingBean 等决定配置是否生效。"]
+    ];
+    function renderQuiz() {
+      const list = document.getElementById("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, opts, ans, hint], idx) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${idx + 1}. ${q}</h3>${opts.map((o, i) => `<button data-i="${i}">${o}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => {
+          card.querySelectorAll("button").forEach(x => x.disabled = true);
+          const picked = Number(btn.dataset.i);
+          btn.classList.add(picked === ans ? "correct" : "wrong");
+          card.querySelectorAll("button")[ans].classList.add("correct");
+          card.querySelector(".hint").classList.add("show");
+        }));
+        list.appendChild(card);
+      });
+    }
+    document.getElementById("resetQuiz").addEventListener("click", renderQuiz);
+    renderQuiz();
+  </script>
+</body>
+</html>
