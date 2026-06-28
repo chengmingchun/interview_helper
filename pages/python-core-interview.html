@@ -42,7 +42,7 @@
       overflow-x: hidden;
     }
 
-    button, textarea { font: inherit; }
+    button, textarea, select { font: inherit; }
     main, section, article, div, aside { min-width: 0; }
 
     .layout {
@@ -289,6 +289,83 @@
       color: var(--code);
       background: var(--dark);
       white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 118px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      transition: transform .25s ease, border-color .25s ease, background .25s ease;
+    }
+
+    .flow-step b {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .flow-step.active {
+      transform: translateY(-5px);
+      border-color: rgba(216, 101, 42, 0.58);
+      background: var(--accent-soft);
+      box-shadow: 0 12px 30px rgba(216, 101, 42, 0.14);
+    }
+
+    .flow-step.active::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 9px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      animation: pulse 1.1s infinite;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .controls button,
+    .lab button,
+    .lab select {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+    }
+
+    .controls button.active { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+
+    .lab {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .lab select {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .45; }
+      50% { opacity: 1; }
     }
 
     .quiz-card {
@@ -324,7 +401,8 @@
       aside { position: static; height: auto; }
       nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       main { padding: 20px; }
-      .card-body, .practice { grid-template-columns: 1fr; }
+      .card-body, .practice, .lab { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 560px) {
@@ -333,6 +411,7 @@
       main { padding: 14px; }
       .hero { padding: 20px; }
       .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      .flow { grid-template-columns: 1fr; }
       h1 { font-size: clamp(30px, 10vw, 42px); }
     }
   </style>
@@ -354,12 +433,55 @@
         <p>目标不是背百科，而是能在面试里讲清：Python 对象模型、可变/不可变、装饰器、迭代器生成器、GIL、内存管理、并发、拷贝、异常、性能和 Web 常见问题。</p>
       </section>
 
+      <section class="section" id="flow">
+        <div class="section-head">
+          <h2>Python 执行链路推演</h2>
+          <p>把“变量、对象、字节码、GIL、GC”串成一条链，很多八股就不再是散点。</p>
+        </div>
+        <article class="card" style="padding: 22px 26px 26px">
+          <span class="badge">Animated Runtime Flow</span>
+          <h3>一段 Python 代码从写下到释放对象经历什么</h3>
+          <div class="flow" id="runtimeFlow">
+            <div class="flow-step active"><b>1. 源码</b>你写下变量、函数、装饰器、类。</div>
+            <div class="flow-step"><b>2. 编译</b>解析成 AST，再编译为字节码。</div>
+            <div class="flow-step"><b>3. 执行帧</b>函数调用创建 frame，局部变量是名字表。</div>
+            <div class="flow-step"><b>4. 对象绑定</b>名字绑定对象，赋值不是复制对象。</div>
+            <div class="flow-step"><b>5. GIL 调度</b>CPython 同时只有一个线程执行字节码。</div>
+            <div class="flow-step"><b>6. 内存回收</b>引用计数为主，GC 补循环引用。</div>
+          </div>
+          <div class="controls" id="flowControls"></div>
+          <p class="box" id="flowExplain" style="margin-top:14px">当前重点：源码阶段先区分语法糖和本质，例如 @decorator 等价于 func = decorator(func)。</p>
+        </article>
+      </section>
+
       <section class="section" id="knowledge">
         <div class="section-head">
           <h2>核心八股</h2>
           <p>每张卡都按“结论、代码、追问”组织，适合 30 到 60 秒口述。</p>
         </div>
         <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="pressure">
+        <div class="section-head">
+          <h2>严格面试官追问诊断台</h2>
+          <p>选择一个高频追问，练习用“结论 + 机制 + 反例 + 场景取舍”回答。</p>
+        </div>
+        <div class="lab">
+          <div class="box">
+            <h4>选择追问</h4>
+            <select id="pressureType">
+              <option value="gil">GIL 存在，Python 线程安全吗？</option>
+              <option value="copy">浅拷贝和深拷贝怎么讲清楚？</option>
+              <option value="decorator">装饰器底层到底是什么？</option>
+              <option value="generator">生成器为什么省内存？</option>
+              <option value="memory">del 为什么不一定释放对象？</option>
+              <option value="async">asyncio 和多线程怎么选？</option>
+            </select>
+            <button class="ghost" id="runPressure">生成回答骨架</button>
+          </div>
+          <div class="output" id="pressureOutput">等待选择追问。</div>
+        </div>
       </section>
 
       <section class="section" id="practice">
@@ -570,6 +692,55 @@ async def ping():
       ["大量字符串拼接更推荐什么？", ["''.join(parts)", "循环 s += part", "每次都 deepcopy"], 0, "join 能减少临时字符串。"]
     ];
 
+    const flowLabels = ["源码", "编译", "执行帧", "对象绑定", "GIL 调度", "内存回收"];
+    const flowDetails = [
+      "当前重点：源码阶段先区分语法糖和本质，例如 @decorator 等价于 func = decorator(func)。",
+      "当前重点：CPython 会把源码编译成字节码，面试里提到 dis 模块可以显得你真的理解执行过程。",
+      "当前重点：函数调用会创建 frame，局部变量不是对象本体，而是名字到对象的绑定表。",
+      "当前重点：赋值是绑定，浅拷贝复制外层容器，深拷贝递归复制对象图。",
+      "当前重点：GIL 限制同进程多线程执行 Python 字节码，但 I/O 等待时线程仍有意义。",
+      "当前重点：引用计数能立即回收大多数对象，循环引用要靠分代 GC 补充处理。"
+    ];
+
+    const pressureAnswers = {
+      gil: [
+        "结论：GIL 不等于线程安全。",
+        "机制：GIL 保护 CPython 解释器内部状态，让同一进程同一时刻通常只有一个线程执行字节码。",
+        "反例：count += 1 是读、改、写复合操作，线程切换后仍可能产生竞态。",
+        "取舍：I/O 密集用多线程或 asyncio；CPU 密集用多进程、C 扩展或独立计算服务。"
+      ],
+      copy: [
+        "结论：浅拷贝复制外层容器，深拷贝递归复制内部对象。",
+        "机制：copy.copy 只创建新壳，嵌套 list/dict 仍共享引用；deepcopy 会递归复制对象图。",
+        "反例：tuple 本身不可变，但 tuple 内部如果是 list，list 内容仍能变。",
+        "取舍：deepcopy 成本高，对大对象图、循环引用、文件连接类对象要谨慎。"
+      ],
+      decorator: [
+        "结论：装饰器本质是接收函数并返回新函数的高阶函数。",
+        "机制：@log 等价于 func = log(func)，wrapper 通过闭包持有原函数。",
+        "反例：不加 functools.wraps 会丢 __name__、__doc__ 等元信息，影响调试和框架识别。",
+        "场景：日志、鉴权、缓存、限流、重试、事务都适合用装饰器增强。"
+      ],
+      generator: [
+        "结论：生成器通过 yield 惰性产出数据，所以省内存。",
+        "机制：yield 会暂停函数执行状态，下次 next 从暂停处继续。",
+        "反例：生成器不适合需要频繁随机访问或多次遍历的结果集。",
+        "场景：大文件读取、分页拉取、流式处理、管道式数据处理。"
+      ],
+      memory: [
+        "结论：del 删除的是名字绑定，不是强制删除对象。",
+        "机制：对象由引用计数管理；只有引用计数归零才可能释放，循环引用靠 GC。",
+        "反例：del a 后如果 b 仍引用同一个 list，对象仍然存在。",
+        "排查：内存异常可用 tracemalloc、gc、objgraph，重点查全局容器和缓存。"
+      ],
+      async: [
+        "结论：asyncio、多线程、多进程分别适合不同任务。",
+        "机制：asyncio 是单线程事件循环，适合大量 I/O；多线程适合阻塞 I/O；多进程绕过 GIL 做 CPU 并行。",
+        "反例：async 函数里做 CPU 密集计算会阻塞事件循环。",
+        "取舍：看任务是 I/O 等待、CPU 计算，还是需要进程级隔离。"
+      ]
+    };
+
     function byId(id) {
       return document.getElementById(id);
     }
@@ -577,8 +748,9 @@ async def ping():
     function renderNav() {
       const nav = byId("nav");
       nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        `<button data-jump="flow">执行链路</button>` +
         topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
-        `<button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+        `<button data-jump="pressure">严格追问</button><button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
       nav.querySelectorAll("button").forEach((button) => {
         button.addEventListener("click", () => {
           document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
@@ -662,6 +834,22 @@ async def ping():
       });
     }
 
+    function renderFlowControls() {
+      const box = byId("flowControls");
+      box.innerHTML = "";
+      flowLabels.forEach((label, index) => {
+        const button = document.createElement("button");
+        button.textContent = `${index + 1}. ${label}`;
+        button.className = index === 0 ? "active" : "";
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".flow-step").forEach((node, i) => node.classList.toggle("active", i === index));
+          document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+          byId("flowExplain").textContent = flowDetails[index];
+        });
+        box.appendChild(button);
+      });
+    }
+
     byId("checkAnswer").addEventListener("click", () => {
       const text = byId("answerText").value.trim();
       if (!text) {
@@ -679,8 +867,13 @@ async def ping():
     });
 
     byId("resetQuiz").addEventListener("click", renderQuiz);
+    byId("runPressure").addEventListener("click", () => {
+      const lines = pressureAnswers[byId("pressureType").value];
+      byId("pressureOutput").textContent = lines.map((line, index) => `Step ${index + 1}: ${line}`).join("\n");
+    });
 
     renderNav();
+    renderFlowControls();
     renderTopics();
     renderQuiz();
   </script>
