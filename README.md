@@ -26,6 +26,10 @@ index.html
   - Java / Spring 中高级冲刺专题
   - 覆盖高阶自我介绍、常用设计模式、Spring 源码模式映射、线程安全单例多种手写、策略/工厂/观察者业务落地、Spring Bean 生命周期、后置处理器与自定义扩展、事务传播底层、REQUIRES_NEW 挂起事务、NESTED 保存点、Nacos 注册发现与心跳、用户在线时长与每日在线峰值系统设计、高并发限流熔断降级、多级兜底、高可用/高并发/可扩展性取舍，以及旋转数组找最小值 Java/Rust 手撕。
 
+- `pages/mysql-innodb-sql-optimization.html`
+  - MySQL / InnoDB / SQL 优化面试专题
+  - 覆盖项目数据库设计与 SQL 优化经验、InnoDB 聚簇索引、二级索引、回表流程、MVCC undo log 版本链、ReadView、RR 隔离级别如何解决幻读、间隙锁和临键锁触发场景、数据库死锁定位与规避、联合索引最左匹配原则、隐式转换/or/in/函数/左模糊等索引失效场景、覆盖索引、慢 SQL 排查、Explain 字段含义、千万级数据表优化、是否分库分表与字段取舍，以及最长无重复子串 Java/Rust 手撕。
+
 - `pages/greedy-algorithm.html`
   - 贪心算法专题
   - 覆盖贪心证明套路、区间贪心、射气球、跳跃游戏、买卖股票 II、分发饼干、加油站、划分字母区间、柠檬水找零和常见反例。
