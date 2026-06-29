@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MySQL / InnoDB / SQL 优化面试专题</title>
+  <style>
+    :root{--paper:#f4efe6;--ink:#201a14;--muted:#776b5d;--line:rgba(32,26,20,.14);--panel:rgba(255,252,245,.92);--soft:rgba(216,101,42,.12);--accent:#d8652a;--accent2:#9f4d28;--dark:#171511;--code:#e8d9bd;--green:#3e7b4f;--blue:#386a91;--red:#a84236;--shadow:0 18px 58px rgba(60,42,24,.12)}
+    *{box-sizing:border-box}html{font-size:clamp(14px,.28vw + 13px,16px);scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 18% 8%,rgba(216,101,42,.12),transparent 30%),linear-gradient(120deg,rgba(255,255,255,.42) 0 1px,transparent 1px 48px),linear-gradient(0deg,rgba(255,255,255,.3) 0 1px,transparent 1px 48px),var(--paper);line-height:1.68;overflow-x:hidden}
+    a{color:inherit}main,section,article,div,aside{min-width:0}.layout{display:grid;grid-template-columns:292px minmax(0,1fr);min-height:100vh}.layout>aside{position:sticky;top:0;height:100vh;padding:22px;border-right:1px solid var(--line);background:rgba(244,239,230,.86);overflow:auto}.brand{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}.brand b{display:block;font-size:18px}.brand span{color:var(--muted);font-size:13px}.back{display:inline-flex;margin-top:12px;color:var(--accent2);text-decoration:none;font-weight:800;font-size:13px}nav{display:grid;gap:8px}nav a{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.72);color:var(--muted);text-decoration:none;font-size:14px}nav a:hover{color:var(--accent2);border-color:rgba(216,101,42,.45);background:var(--soft)}
+    main{width:min(1220px,100%);padding:34px 36px 56px}.hero,.box,.note,.panel,.answer{border:1px solid var(--line);border-radius:8px;background:var(--panel);box-shadow:var(--shadow)}.hero{padding:34px;margin-bottom:28px}.eyebrow{display:inline-flex;margin-bottom:18px;padding:5px 10px;border-radius:999px;color:var(--accent2);background:var(--soft);font-size:13px;font-weight:800}h1{max-width:1060px;margin:0 0 14px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,5.5vw,66px);line-height:1;letter-spacing:0}.lead,.hero p{margin:0;color:var(--muted)}section{margin:36px 0}h2{margin:0 0 10px;font-family:Georgia,"Times New Roman",serif;font-size:34px;line-height:1.05}h3{margin:18px 0 8px}.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.box,.note,.answer{padding:18px}.box p{margin:0;color:var(--muted)}.tag{display:inline-flex;margin:8px 6px 0 0;padding:4px 9px;border-radius:999px;background:var(--soft);color:var(--accent2);font-size:12px;font-weight:800}.tag.ok{color:var(--green);background:rgba(62,123,79,.12)}.tag.info{color:var(--blue);background:rgba(56,106,145,.12)}.tag.warn{color:var(--red);background:rgba(168,66,54,.12)}
+    table{width:100%;border-collapse:collapse;margin:12px 0;border:1px solid var(--line);background:rgba(255,250,240,.66);border-radius:8px;overflow:hidden}th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:rgba(216,101,42,.1);color:var(--accent2)}pre{margin:12px 0 0;padding:14px;border-radius:8px;color:var(--code);background:var(--dark);overflow:auto;max-width:100%;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.55}code{padding:2px 5px;border-radius:6px;color:var(--accent2);background:var(--soft);font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.toplink{display:inline-flex;margin-top:12px;color:var(--accent2);font-weight:800;text-decoration:none}.answer{margin:12px 0;background:rgba(255,250,240,.7)}.answer b{color:var(--accent2)}.bad{border-left:4px solid var(--red)}.good{border-left:4px solid var(--green)}.script{white-space:pre-wrap}.flow{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:10px;margin-top:12px}.flow div{padding:12px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.76)}.question{margin:14px 0;padding:14px;border:1px dashed rgba(216,101,42,.45);border-radius:8px;background:rgba(216,101,42,.07)}.tocline{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.tocline a{text-decoration:none}
+    @media(max-width:1080px){.layout{grid-template-columns:1fr}.layout>aside{position:static;height:auto}nav{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-2,.grid-3{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:22px}}@media(max-width:560px){nav,.flow{grid-template-columns:1fr}main{padding:14px}.hero{padding:20px}h1{font-size:clamp(30px,10vw,42px)}}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>MySQL Deep Dive</b>
+        <span>InnoDB · MVCC · Index · Explain · SQL 优化</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav>
+        <a href="#top">Start</a>
+        <a href="#project-db">1. 项目数据库设计</a>
+        <a href="#innodb-index">2. 聚簇/二级索引</a>
+        <a href="#mvcc">3. MVCC</a>
+        <a href="#phantom">4. RR 幻读与锁</a>
+        <a href="#deadlock">5. 死锁</a>
+        <a href="#leftmost">6. 联合索引</a>
+        <a href="#covering">7. 覆盖索引</a>
+        <a href="#explain">8. 慢 SQL / Explain</a>
+        <a href="#million-table">9. 千万级表优化</a>
+        <a href="#algorithm">10. 最长无重复子串</a>
+        <a href="#scripts">口述模板</a>
+      </nav>
+    </aside>
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">MySQL 高频真题 / InnoDB · SQL Optimization</span>
+        <h1>数据库面试不要只背概念，要把“索引结构、事务隔离、锁、执行计划、慢 SQL 优化”串成排障链路。</h1>
+        <p>这页覆盖截图里的完整真题：项目数据库设计与 SQL 优化经验、InnoDB 聚簇索引和二级索引、回表流程、MVCC、RR 幻读、间隙锁/临键锁、死锁定位、联合索引最左匹配、覆盖索引、Explain、千万级表优化，以及最长无重复子串手撕。</p>
+        <div class="tocline"><a class="tag" href="#innodb-index">InnoDB 索引</a><a class="tag" href="#mvcc">MVCC</a><a class="tag" href="#phantom">间隙锁</a><a class="tag" href="#explain">Explain</a><a class="tag" href="#million-table">千万级优化</a><a class="tag" href="#algorithm">算法</a></div>
+      </section>
+
+      <section id="project-db">
+        <h2>1. 介绍项目中的数据库设计与 SQL 优化经验</h2>
+        <p class="lead">这个问题不是让你背 MySQL，而是让你证明：你能从业务模型、数据规模、查询路径和索引设计角度思考。</p>
+        <div class="answer script"><b>可直接背：</b>
+我之前项目里比较典型的是订单/云资源编排相关表设计。数据库设计上，我会先从业务实体和状态流转出发，拆出订单主表、订单明细表、资源实例表、租户/用户维度表、操作日志表。订单主表保存订单状态、租户、用户、创建时间、业务唯一号等主流程字段；明细表保存资源规格、实例 ID、下发参数；日志表记录状态变更和失败原因，避免主表被大量非核心字段污染。
+
+索引设计上，我不会只给每个字段单独建索引，而是围绕核心查询场景建联合索引。比如按照租户 + 状态 + 创建时间查询订单列表，可以设计 tenant_id, status, create_time；按照业务单号查幂等结果，可以用 request_no 唯一索引；按照订单 ID 查明细，可以让 order_id 成为明细表索引。这样索引是服务查询路径的，而不是服务字段存在感的。
+
+SQL 优化上，我通常先看慢 SQL 和接口耗时，再看 Explain 里的 type、key、rows、filtered、Extra，判断有没有全表扫描、索引失效、回表过多、排序临时表、分页过深等问题。我实际遇到过复杂 SQL 超时问题，通过调整索引、改写查询、减少回表和优化分页方式，把几十秒级查询优化到秒级以内。</div>
+        <h3>数据库设计要讲这 5 层</h3>
+        <table>
+          <tr><th>层次</th><th>你要说什么</th><th>示例</th></tr>
+          <tr><td>业务建模</td><td>先识别实体、关系、状态和生命周期。</td><td>订单、资源实例、租户、状态流水、操作日志。</td></tr>
+          <tr><td>表结构</td><td>主表保持核心字段，扩展字段放明细/扩展表。</td><td>order、order_item、order_event。</td></tr>
+          <tr><td>索引设计</td><td>按查询路径设计联合索引，而不是无脑单列索引。</td><td>tenant_id + status + create_time。</td></tr>
+          <tr><td>一致性设计</td><td>唯一键、事务、幂等、防重、状态机。</td><td>request_no 唯一索引防重复提交。</td></tr>
+          <tr><td>演进设计</td><td>冷热分离、归档、分区、分库分表预留。</td><td>历史订单归档到 history 表。</td></tr>
+        </table>
+      </section>
+
+      <section id="innodb-index">
+        <h2>2. InnoDB 聚簇索引、二级索引底层结构，回表查询完整流程</h2>
+        <p class="lead">这题必须说清：InnoDB 表数据本身就存放在聚簇索引的叶子节点上，二级索引叶子节点存的是主键值。</p>
+        <div class="grid-2">
+          <div class="box"><h3>聚簇索引</h3><p>按照主键组织的 B+ 树。叶子节点保存完整行数据。一张 InnoDB 表只能有一个聚簇索引，因为数据只能按一种方式物理组织。</p><span class="tag">Primary Key</span></div>
+          <div class="box"><h3>二级索引</h3><p>非主键索引也是 B+ 树。叶子节点保存索引列值 + 主键值，不保存完整行。通过二级索引查到主键后，再去聚簇索引查完整行，这就是回表。</p><span class="tag info">Secondary Index</span></div>
+        </div>
+        <h3>回表完整流程</h3>
+        <pre><code>select id, name, age, address from user where name = 'Tom';
+
+1. 走 idx_name 二级索引 B+ 树
+2. 在 idx_name 叶子节点找到 name = Tom 的记录
+3. 叶子节点中拿到主键 id
+4. 根据 id 回到聚簇索引 B+ 树
+5. 在聚簇索引叶子节点拿到完整行数据
+6. 返回 id, name, age, address</code></pre>
+        <h3>为什么 InnoDB 推荐自增主键</h3>
+        <ul>
+          <li>聚簇索引按主键有序组织，自增主键插入通常追加到末尾，页分裂少。</li>
+          <li>随机 UUID 会导致插入位置随机，容易页分裂、页抖动、缓存命中变差。</li>
+          <li>二级索引叶子节点保存主键值，主键过大会让所有二级索引变大。</li>
+        </ul>
+        <div class="answer"><b>60 秒回答：</b>InnoDB 的主键索引是聚簇索引，叶子节点保存完整行数据；二级索引的叶子节点保存索引列和主键值。如果查询条件命中二级索引，但 select 字段不在该二级索引里，就需要先通过二级索引找到主键，再根据主键回到聚簇索引查整行，这就是回表。覆盖索引能避免回表。</div>
+      </section>
+
+      <section id="mvcc">
+        <h2>3. MVCC 实现原理：undo log 版本链 + ReadView 如何实现隔离？</h2>
+        <p class="lead">MVCC 解决的是读写并发问题：读不阻塞写，写不阻塞普通快照读。</p>
+        <h3>核心组件</h3>
+        <table>
+          <tr><th>组件</th><th>作用</th></tr>
+          <tr><td>trx_id</td><td>每行记录隐藏字段，表示最后修改该行的事务 ID。</td></tr>
+          <tr><td>roll_pointer</td><td>隐藏字段，指向 undo log 中的历史版本。</td></tr>
+          <tr><td>undo log</td><td>保存旧版本数据，用于回滚和构造历史版本。</td></tr>
+          <tr><td>ReadView</td><td>当前快照读能看到哪些事务版本的判断规则。</td></tr>
+        </table>
+        <h3>版本链</h3>
+        <pre><code>当前记录: value = C, trx_id = 30, roll_pointer -> undo_2
+undo_2: value = B, trx_id = 20, roll_pointer -> undo_1
+undo_1: value = A, trx_id = 10, roll_pointer -> null</code></pre>
+        <p>查询时不是简单读最新行，而是结合 ReadView 判断当前版本能不能看；看不到就沿着 undo log 版本链往前找，直到找到可见版本。</p>
+        <h3>ReadView 关键字段</h3>
+        <table>
+          <tr><th>字段</th><th>含义</th></tr>
+          <tr><td>m_ids</td><td>生成 ReadView 时活跃事务 ID 列表。</td></tr>
+          <tr><td>min_trx_id</td><td>活跃事务中的最小事务 ID。</td></tr>
+          <tr><td>max_trx_id</td><td>下一个将要分配的事务 ID。</td></tr>
+          <tr><td>creator_trx_id</td><td>创建这个 ReadView 的事务 ID。</td></tr>
+        </table>
+        <h3>可见性判断简化版</h3>
+        <pre><code>if row.trx_id == creator_trx_id:
+    visible  # 自己改的自己能看见
+else if row.trx_id < min_trx_id:
+    visible  # 在快照前已经提交
+else if row.trx_id >= max_trx_id:
+    invisible # 快照后才出现
+else if row.trx_id in m_ids:
+    invisible # 快照生成时还没提交
+else:
+    visible</code></pre>
+        <h3>RC 和 RR 的区别</h3>
+        <table>
+          <tr><th>隔离级别</th><th>ReadView 生成时机</th><th>现象</th></tr>
+          <tr><td>Read Committed</td><td>每次快照读都生成新的 ReadView。</td><td>同一事务内两次读可能读到不同已提交数据。</td></tr>
+          <tr><td>Repeatable Read</td><td>事务第一次快照读生成 ReadView，后续复用。</td><td>同一事务内多次快照读结果一致。</td></tr>
+        </table>
+        <div class="answer"><b>60 秒回答：</b>MVCC 依赖行记录隐藏字段、undo log 版本链和 ReadView。每次更新会生成旧版本到 undo log，当前行通过 roll_pointer 指向历史版本。快照读时，InnoDB 根据 ReadView 判断当前版本是否可见；如果不可见，就沿 undo log 版本链找上一个版本。RC 下每次查询生成新的 ReadView，RR 下事务第一次快照读生成 ReadView 并复用，所以 RR 能实现可重复读。</div>
+      </section>
+
+      <section id="phantom">
+        <h2>4. MySQL RR 隔离级别如何解决幻读？间隙锁、临键锁触发场景</h2>
+        <p class="lead">先区分：普通快照读靠 MVCC 避免幻读；当前读靠 next-key lock 避免幻读。</p>
+        <div class="grid-2">
+          <div class="box"><h3>快照读</h3><p>普通 select，不加锁。RR 下复用同一个 ReadView，所以同一事务内多次读结果一致。</p><span class="tag">MVCC</span></div>
+          <div class="box"><h3>当前读</h3><p>select ... for update、update、delete、insert 需要读最新数据，会加锁。RR 下依赖记录锁、间隙锁、临键锁阻止其他事务插入幻影记录。</p><span class="tag warn">Lock</span></div>
+        </div>
+        <h3>三种锁</h3>
+        <table>
+          <tr><th>锁</th><th>锁什么</th><th>作用</th></tr>
+          <tr><td>Record Lock</td><td>锁索引记录本身。</td><td>防止已有记录被修改。</td></tr>
+          <tr><td>Gap Lock</td><td>锁两个索引记录之间的间隙。</td><td>防止间隙内插入新记录。</td></tr>
+          <tr><td>Next-Key Lock</td><td>Record Lock + Gap Lock。</td><td>锁左开右闭区间，防止当前读幻读。</td></tr>
+        </table>
+        <h3>触发例子</h3>
+        <pre><code>-- 表中 age 索引已有值：10, 20, 30
+-- 事务 A
+select * from user where age between 10 and 20 for update;
+
+-- 可能锁住：
+-- 记录 10、20
+-- 以及相关间隙，阻止其他事务插入 age=15 的新记录</code></pre>
+        <h3>为什么必须走索引</h3>
+        <p>InnoDB 的行锁是加在索引上的。如果条件没有走索引，可能退化成大量记录加锁甚至类似锁表效果，影响并发。</p>
+        <div class="answer"><b>60 秒回答：</b>RR 下解决幻读要分情况。普通 select 是快照读，依靠 MVCC 和事务级 ReadView，让同一事务内多次查询看到一致快照。select for update、update、delete 属于当前读，要读最新数据，所以不能只靠 MVCC，需要通过 next-key lock，也就是记录锁加间隙锁，锁住命中的索引记录和记录之间的范围，阻止其他事务插入满足条件的新行，从而避免幻读。</div>
+      </section>
+
+      <section id="deadlock">
+        <h2>5. 死锁产生条件，如何定位和避免数据库死锁？</h2>
+        <h3>死锁四个条件</h3>
+        <table>
+          <tr><th>条件</th><th>说明</th></tr>
+          <tr><td>互斥</td><td>资源一次只能被一个事务持有。</td></tr>
+          <tr><td>占有且等待</td><td>事务持有一部分锁，同时等待其他锁。</td></tr>
+          <tr><td>不可抢占</td><td>锁不能被强行剥夺，只能事务释放。</td></tr>
+          <tr><td>循环等待</td><td>T1 等 T2，T2 又等 T1。</td></tr>
+        </table>
+        <h3>经典死锁</h3>
+        <pre><code>事务 A:
+update account set balance = balance - 100 where id = 1;
+update account set balance = balance + 100 where id = 2;
+
+事务 B:
+update account set balance = balance - 50 where id = 2;
+update account set balance = balance + 50 where id = 1;</code></pre>
+        <p>A 先锁 id=1 再等 id=2；B 先锁 id=2 再等 id=1，形成循环等待。</p>
+        <h3>如何定位</h3>
+        <pre><code>show engine innodb status\G;
+
+-- 关注：
+LATEST DETECTED DEADLOCK
+TRANSACTION
+WAITING FOR THIS LOCK TO BE GRANTED
+HOLDS THE LOCK(S)
+SQL statement</code></pre>
+        <p>线上还要结合慢 SQL 日志、应用日志 traceId、事务开始和结束时间、接口调用链路，判断谁持有锁太久。</p>
+        <h3>如何避免</h3>
+        <ul>
+          <li>固定加锁顺序，例如转账永远先锁小 id，再锁大 id。</li>
+          <li>事务尽量短，不要在事务里做远程调用、慢查询、大批量循环。</li>
+          <li>where 条件必须走索引，避免锁范围扩大。</li>
+          <li>批量更新拆小批，减少锁持有时间。</li>
+          <li>合理设置锁等待超时，捕获死锁异常后重试。</li>
+          <li>用唯一索引精准命中，减少 gap lock 范围。</li>
+        </ul>
+      </section>
+
+      <section id="leftmost">
+        <h2>6. 联合索引最左匹配原则，详细列举索引失效场景</h2>
+        <p class="lead">联合索引不是多个单列索引的简单叠加。它按照从左到右的字段顺序构建 B+ 树。</p>
+        <pre><code>index idx_user_status_time(user_id, status, create_time)</code></pre>
+        <table>
+          <tr><th>SQL</th><th>能否充分使用索引</th><th>原因</th></tr>
+          <tr><td>where user_id = ?</td><td>能</td><td>命中最左字段。</td></tr>
+          <tr><td>where user_id = ? and status = ?</td><td>能</td><td>连续命中左前缀。</td></tr>
+          <tr><td>where user_id = ? and status = ? order by create_time</td><td>通常能</td><td>过滤和排序都符合索引顺序。</td></tr>
+          <tr><td>where status = ?</td><td>不能充分使用</td><td>跳过最左字段 user_id。</td></tr>
+          <tr><td>where user_id = ? and create_time &gt; ?</td><td>只能部分使用</td><td>跳过 status，create_time 利用受限。</td></tr>
+          <tr><td>where user_id &gt; ? and status = ?</td><td>status 难以继续用于定位</td><td>范围查询后面的字段通常无法继续用于索引定位。</td></tr>
+        </table>
+        <h3>索引失效高频场景</h3>
+        <table>
+          <tr><th>场景</th><th>例子</th><th>原因/处理</th></tr>
+          <tr><td>左模糊</td><td>like '%abc'</td><td>无法从 B+ 树有序前缀定位；可用倒排索引/ES/改成右模糊。</td></tr>
+          <tr><td>函数包裹字段</td><td>date(create_time) = '2026-06-29'</td><td>对索引列计算导致无法直接使用；改成范围查询。</td></tr>
+          <tr><td>隐式类型转换</td><td>varchar phone = 13800138000</td><td>字段被转换，可能导致索引失效；类型保持一致。</td></tr>
+          <tr><td>对字段运算</td><td>amount + 1 = 100</td><td>索引列参与表达式计算；改写为 amount = 99。</td></tr>
+          <tr><td>OR 条件</td><td>a = 1 or b = 2</td><td>如果两边不是都有合适索引，可能全表扫；可改 union。</td></tr>
+          <tr><td>IN 太大</td><td>id in (...大量值...)</td><td>优化器可能判断成本过高；分批或临时表 join。</td></tr>
+          <tr><td>不等于</td><td>status != 1</td><td>选择性差，可能不走索引。</td></tr>
+          <tr><td>排序字段不符合索引顺序</td><td>where a=? order by c,b</td><td>和联合索引顺序不一致，可能 filesort。</td></tr>
+        </table>
+        <div class="answer"><b>60 秒回答：</b>联合索引遵循最左匹配，因为 B+ 树是按联合字段从左到右排序的。查询必须从最左字段开始连续匹配，遇到范围查询后，后面的字段通常不能继续用于索引定位。常见失效包括左模糊、函数包裹、隐式类型转换、字段计算、跳过最左列、or 两边索引不完整、in 过大、低选择性字段、不符合索引顺序的排序。</div>
+      </section>
+
+      <section id="covering">
+        <h2>7. 覆盖索引原理，为什么能极大提升查询性能？</h2>
+        <p class="lead">覆盖索引的核心收益：查询所需字段都在二级索引叶子节点里，不需要回表。</p>
+        <pre><code>index idx_name_age(name, age)
+
+select name, age from user where name = 'Tom';
+-- name 和 age 都在 idx_name_age 中，直接返回，不回表
+
+select name, age, address from user where name = 'Tom';
+-- address 不在索引里，需要回表</code></pre>
+        <h3>为什么快</h3>
+        <ul>
+          <li>减少一次聚簇索引查询，降低随机 IO。</li>
+          <li>二级索引通常比整行数据小，缓存命中更高。</li>
+          <li>避免读取大字段，例如 text、json、varchar 大字段。</li>
+          <li>分页场景可以先用覆盖索引筛出主键，再回表少量数据。</li>
+        </ul>
+        <h3>深分页优化例子</h3>
+        <pre><code>-- 差：offset 很大时要扫描并丢弃大量行，还可能大量回表
+select * from order_info
+where tenant_id = 1
+order by create_time desc
+limit 100000, 20;
+
+-- 优化：先走覆盖索引拿 id，再回表 20 行
+select o.*
+from order_info o
+join (
+  select id from order_info
+  where tenant_id = 1
+  order by create_time desc
+  limit 100000, 20
+) t on o.id = t.id;</code></pre>
+        <div class="answer"><b>面试表达：</b>覆盖索引不是一种新的索引类型，而是一种查询效果。只要查询字段都能从某个索引中拿到，就可以避免回表。它对高频列表查询、分页查询、统计查询非常有效，但不能为了覆盖所有字段把索引建得过宽，否则会增加写入成本和索引维护成本。</div>
+      </section>
+
+      <section id="explain">
+        <h2>8. 慢 SQL 排查完整流程，Explain 关键字段含义</h2>
+        <h3>排查流程</h3>
+        <div class="flow">
+          <div><b>1. 定位</b><br>慢日志、APM、接口耗时、DB 监控。</div>
+          <div><b>2. 复现</b><br>拿真实参数和数据量复现。</div>
+          <div><b>3. Explain</b><br>看 type、key、rows、Extra。</div>
+          <div><b>4. 改写</b><br>索引、SQL、分页、排序、字段裁剪。</div>
+          <div><b>5. 验证</b><br>对比执行计划、耗时、扫描行数。</div>
+        </div>
+        <h3>Explain 字段</h3>
+        <table>
+          <tr><th>字段</th><th>含义</th><th>关注点</th></tr>
+          <tr><td>id</td><td>执行单元编号。</td><td>id 越大通常越先执行；相同 id 从上到下。</td></tr>
+          <tr><td>select_type</td><td>查询类型。</td><td>SIMPLE、PRIMARY、SUBQUERY、DERIVED。</td></tr>
+          <tr><td>table</td><td>访问的表。</td><td>看每一步访问哪张表。</td></tr>
+          <tr><td>type</td><td>访问类型。</td><td>system &gt; const &gt; eq_ref &gt; ref &gt; range &gt; index &gt; ALL。</td></tr>
+          <tr><td>possible_keys</td><td>可能用到的索引。</td><td>优化器候选索引。</td></tr>
+          <tr><td>key</td><td>实际使用的索引。</td><td>如果为 NULL，要警惕全表扫。</td></tr>
+          <tr><td>key_len</td><td>使用的索引长度。</td><td>判断联合索引用到了几个字段。</td></tr>
+          <tr><td>rows</td><td>预估扫描行数。</td><td>越大越危险。</td></tr>
+          <tr><td>filtered</td><td>条件过滤比例。</td><td>越低说明过滤后剩很少，可能扫描浪费。</td></tr>
+          <tr><td>Extra</td><td>额外信息。</td><td>Using index 好；Using temporary / filesort 要关注。</td></tr>
+        </table>
+        <h3>Extra 常见含义</h3>
+        <table>
+          <tr><th>Extra</th><th>含义</th></tr>
+          <tr><td>Using index</td><td>覆盖索引。</td></tr>
+          <tr><td>Using where</td><td>存储引擎返回后还要 Server 层过滤。</td></tr>
+          <tr><td>Using index condition</td><td>索引下推 ICP，先在存储引擎层过滤部分条件。</td></tr>
+          <tr><td>Using filesort</td><td>无法直接利用索引顺序排序，需要额外排序。</td></tr>
+          <tr><td>Using temporary</td><td>需要临时表，常见于 group by/order by/distinct。</td></tr>
+        </table>
+        <div class="answer"><b>60 秒回答：</b>慢 SQL 我会先从慢日志或 APM 定位具体 SQL 和参数，再用相近数据量复现，执行 Explain 看访问类型、实际索引、扫描行数、过滤比例和 Extra。重点关注是否全表扫描、联合索引是否只用了一部分、是否回表过多、是否出现 Using temporary 或 Using filesort。优化手段包括补合理联合索引、改写条件、避免函数和隐式转换、减少 select *、覆盖索引、深分页延迟关联、拆分复杂 SQL 和归档历史数据。</div>
+      </section>
+
+      <section id="million-table">
+        <h2>9. 千万级数据表优化思路，是否需要分库分表？字段如何取舍？</h2>
+        <p class="lead">千万级不等于一定分库分表。先判断瓶颈：查询慢、写入慢、索引太大、单表容量、热点、归档、还是业务增长不可控。</p>
+        <h3>优化优先级</h3>
+        <ol>
+          <li>先确认 SQL 和索引是否合理：避免全表扫、回表过多、排序临时表。</li>
+          <li>做字段裁剪：列表页不要 select *，大字段拆出去。</li>
+          <li>冷热分离：历史数据归档，核心表只保留热数据。</li>
+          <li>读写分离：读多写少可以引入从库，但要处理主从延迟。</li>
+          <li>缓存：高频读用 Redis/本地缓存，但要处理一致性和击穿。</li>
+          <li>分区表：按时间等维度管理历史数据，但不能解决所有查询问题。</li>
+          <li>分库分表：当单表/单库容量、写入、索引、运维都成为瓶颈时再做。</li>
+        </ol>
+        <h3>字段如何取舍</h3>
+        <table>
+          <tr><th>原则</th><th>说明</th></tr>
+          <tr><td>核心字段放主表</td><td>状态、租户、用户、时间、金额、主流程字段。</td></tr>
+          <tr><td>大字段拆表</td><td>text、json、长 varchar、请求响应报文放扩展表。</td></tr>
+          <tr><td>低频字段拆表</td><td>详情页才看的字段不要拖慢列表页。</td></tr>
+          <tr><td>冗余要克制</td><td>读性能可以用冗余换，但要有一致性维护策略。</td></tr>
+          <tr><td>索引字段短小稳定</td><td>过长字段会放大索引体积，频繁变化字段维护成本高。</td></tr>
+        </table>
+        <h3>什么时候分库分表</h3>
+        <table>
+          <tr><th>适合</th><th>不适合</th></tr>
+          <tr><td>数据量持续增长，历史归档后仍然巨大。</td><td>只是某条 SQL 没索引。</td></tr>
+          <tr><td>单库写入压力明显成为瓶颈。</td><td>数据量大但查询都能命中索引。</td></tr>
+          <tr><td>业务天然有分片键，如 user_id、tenant_id。</td><td>大量跨分片 join、分页、聚合。</td></tr>
+          <tr><td>可以接受分布式 ID、路由、聚合查询复杂度。</td><td>团队还没有分库分表运维经验。</td></tr>
+        </table>
+        <div class="answer"><b>面试金句：</b>分库分表是最后手段，不是第一反应。因为它会引入分布式 ID、分片路由、跨分片查询、跨分片事务、扩容迁移和运维复杂度。千万级表先看 SQL、索引、字段宽度、冷热数据、缓存、归档和读写分离。只有当单表容量和单库写入真的成为主要瓶颈，并且业务有稳定分片键时，再考虑分库分表。</div>
+      </section>
+
+      <section id="algorithm">
+        <h2>10. 算法手撕：中等 - 最长无重复子串</h2>
+        <p class="lead">这是滑动窗口经典题。核心是右指针扩张，左指针跳到重复字符上次出现位置的下一位。</p>
+        <h3>Java 写法</h3>
+        <pre><code>public int lengthOfLongestSubstring(String s) {
+    Map&lt;Character, Integer&gt; last = new HashMap&lt;&gt;();
+    int left = 0;
+    int ans = 0;
+
+    for (int right = 0; right &lt; s.length(); right++) {
+        char c = s.charAt(right);
+        if (last.containsKey(c) &amp;&amp; last.get(c) &gt;= left) {
+            left = last.get(c) + 1;
+        }
+        last.put(c, right);
+        ans = Math.max(ans, right - left + 1);
+    }
+
+    return ans;
+}</code></pre>
+        <h3>数组优化写法</h3>
+        <pre><code>public int lengthOfLongestSubstring(String s) {
+    int[] last = new int[128];
+    Arrays.fill(last, -1);
+    int left = 0, ans = 0;
+
+    for (int right = 0; right &lt; s.length(); right++) {
+        char c = s.charAt(right);
+        if (last[c] &gt;= left) {
+            left = last[c] + 1;
+        }
+        last[c] = right;
+        ans = Math.max(ans, right - left + 1);
+    }
+    return ans;
+}</code></pre>
+        <h3>Rust 写法</h3>
+        <pre><code>use std::collections::HashMap;
+
+pub fn length_of_longest_substring(s: String) -&gt; i32 {
+    let chars: Vec&lt;char&gt; = s.chars().collect();
+    let mut last: HashMap&lt;char, usize&gt; = HashMap::new();
+    let mut left = 0usize;
+    let mut ans = 0usize;
+
+    for right in 0..chars.len() {
+        let c = chars[right];
+        if let Some(&amp;idx) = last.get(&amp;c) {
+            if idx &gt;= left {
+                left = idx + 1;
+            }
+        }
+        last.insert(c, right);
+        ans = ans.max(right - left + 1);
+    }
+
+    ans as i32
+}</code></pre>
+        <h3>为什么 left 不能回退</h3>
+        <pre><code>s = abba
+right = 2, c = b, left 从 0 跳到 2
+right = 3, c = a, a 上次在 0，但 0 已经不在窗口内
+所以 left 不能回到 1，必须取 max 或判断 last[c] &gt;= left</code></pre>
+        <div class="answer"><b>复杂度：</b>每个字符最多进窗口一次、出窗口一次，时间 O(n)，空间 O(字符集大小)。面试解释时重点说清窗口含义：窗口 [left, right] 内始终没有重复字符。</div>
+      </section>
+
+      <section id="scripts">
+        <h2>最后：10 题口述模板</h2>
+        <div class="question"><b>1. 项目数据库设计：</b>从业务实体、状态流转、主表明细表、索引设计、幂等唯一键、慢 SQL 排查结果讲。</div>
+        <div class="question"><b>2. InnoDB 索引：</b>聚簇索引叶子节点存整行，二级索引叶子节点存索引列和主键。二级索引查非覆盖字段要回表。</div>
+        <div class="question"><b>3. MVCC：</b>隐藏字段 trx_id 和 roll_pointer 指向 undo log 版本链，ReadView 判断版本可见性，RC 每次生成，RR 事务级复用。</div>
+        <div class="question"><b>4. RR 幻读：</b>快照读靠 MVCC，当前读靠 next-key lock，也就是记录锁加间隙锁，阻止范围内插入新记录。</div>
+        <div class="question"><b>5. 死锁：</b>互斥、占有等待、不可抢占、循环等待。定位看 show engine innodb status，避免靠固定加锁顺序、短事务、索引命中。</div>
+        <div class="question"><b>6. 联合索引：</b>按字段顺序构建 B+ 树，必须从最左字段连续匹配。左模糊、函数、隐式转换、or、范围后字段都要警惕。</div>
+        <div class="question"><b>7. 覆盖索引：</b>查询字段都在索引里即可避免回表，减少随机 IO，列表页和深分页优化很常用。</div>
+        <div class="question"><b>8. Explain：</b>重点看 type、key、key_len、rows、filtered、Extra，关注 ALL、Using temporary、Using filesort。</div>
+        <div class="question"><b>9. 千万级优化：</b>先 SQL/索引/字段/冷热/缓存/归档，再考虑分库分表。分库分表会引入路由、事务、聚合、扩容复杂度。</div>
+        <div class="question"><b>10. 最长无重复子串：</b>滑动窗口。重复字符在窗口内时，left 跳到上次位置 + 1；每轮更新 last 和答案。</div>
+        <a class="toplink" href="#top">↑ 回到顶部</a>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
