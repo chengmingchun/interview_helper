@@ -1,0 +1,1471 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Java 多线程与并发编程专题</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --panel: rgba(255, 252, 245, 0.86);
+      --panel-solid: #fffaf0;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --accent: #d8652a;
+      --accent-2: #9f4d28;
+      --green: #427a50;
+      --green-soft: rgba(66, 122, 80, 0.13);
+      --blue: #386a91;
+      --blue-soft: rgba(56, 106, 145, 0.12);
+      --red: #b91c1c;
+      --red-soft: #feecec;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --shadow: 0 22px 70px rgba(60, 42, 24, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 10%, rgba(216, 101, 42, 0.11), transparent 28%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.65;
+    }
+
+    a { color: var(--accent-2); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+      width: min(1380px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 52px;
+    }
+
+    aside {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(244, 239, 230, 0.8);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+    }
+
+    aside strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    aside a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    aside a:hover {
+      color: var(--accent-2);
+      background: rgba(216, 101, 42, 0.12);
+    }
+
+    main { min-width: 0; }
+
+    .hero {
+      min-height: 430px;
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #fffaf0;
+      background:
+        linear-gradient(135deg, rgba(23, 21, 17, 0.94), rgba(159, 77, 40, 0.86)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500' viewBox='0 0 900 500'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.16'%3E%3Cpath d='M90 110h170v78H90zM360 80h190v78H360zM640 220h170v78H640zM230 330h230v78H230z'/%3E%3Cpath d='M260 148h100M550 118c86 0 86 140 90 140M460 368c120 0 120-110 180-110M180 188c0 120 50 155 50 180'/%3E%3Ccircle cx='90' cy='110' r='5' fill='%23fff'/%3E%3Ccircle cx='260' cy='148' r='5' fill='%23fff'/%3E%3Ccircle cx='360' cy='118' r='5' fill='%23fff'/%3E%3Ccircle cx='550' cy='118' r='5' fill='%23fff'/%3E%3Ccircle cx='640' cy='258' r='5' fill='%23fff'/%3E%3Ccircle cx='810' cy='258' r='5' fill='%23fff'/%3E%3Ccircle cx='230' cy='368' r='5' fill='%23fff'/%3E%3Ccircle cx='460' cy='368' r='5' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      box-shadow: var(--shadow);
+    }
+
+    .crumb {
+      display: inline-flex;
+      margin-bottom: 22px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--code);
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h1 {
+      max-width: 930px;
+      margin: 0 0 18px;
+      font-size: clamp(38px, 7vw, 72px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 910px;
+      margin: 0;
+      color: rgba(232, 217, 189, 0.86);
+      font-size: 18px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .metric {
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .metric b { display: block; font-size: 22px; }
+    .metric span { color: rgba(232, 217, 189, 0.82); font-size: 13px; }
+
+    section {
+      margin-top: 18px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 20px;
+    }
+
+    p { margin: 0 0 12px; }
+    ul, ol { margin: 0 0 14px; padding-left: 22px; }
+    li + li { margin-top: 5px; }
+
+    .lead {
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .box {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-solid);
+    }
+
+    .box h3:first-child { margin-top: 0; }
+
+    .tag {
+      display: inline-flex;
+      margin: 3px 5px 3px 0;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: rgba(216, 101, 42, 0.12);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .ok { color: var(--green); background: var(--green-soft); }
+    .info { color: var(--blue); background: var(--blue-soft); }
+    .risk { color: var(--red); background: var(--red-soft); }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .step {
+      min-height: 122px;
+      padding: 14px;
+      border: 1px solid rgba(216, 101, 42, 0.22);
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--panel-solid), rgba(244, 239, 230, 0.62));
+    }
+
+    .step b {
+      display: block;
+      color: var(--accent-2);
+      font-size: 15px;
+    }
+
+    .step span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      color: var(--ink);
+      background: rgba(232, 222, 206, 0.56);
+      font-size: 13px;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      color: var(--ink);
+      background: rgba(32, 26, 20, 0.08);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 16px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    pre code { padding: 0; color: inherit; background: transparent; }
+
+    details {
+      margin: 10px 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-solid);
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 800;
+    }
+
+    details > div {
+      padding: 0 14px 14px;
+      color: var(--muted);
+    }
+
+    .note {
+      padding: 14px 16px;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(216, 101, 42, 0.1);
+    }
+
+    .quiz button {
+      display: inline-flex;
+      margin: 4px 6px 4px 0;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--panel-solid);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .quiz button.correct { border-color: rgba(66, 122, 80, 0.42); background: var(--green-soft); color: var(--green); }
+    .quiz button.wrong { border-color: #f3b4b4; background: var(--red-soft); color: var(--red); }
+
+    .toplink {
+      display: inline-flex;
+      margin-top: 10px;
+      font-size: 13px;
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; max-height: none; }
+      aside nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pipeline { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .hero-grid, .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .layout { width: min(100% - 20px, 1380px); padding-top: 10px; }
+      .hero, section { padding: 18px; }
+      aside nav, .grid-2, .grid-3, .hero-grid, .pipeline { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="top">
+    <aside>
+      <strong>Java 多线程路线</strong>
+      <nav>
+        <a href="#map">1. 总体地图</a>
+        <a href="#create">2. 创建线程</a>
+        <a href="#state">3. 状态与生命周期</a>
+        <a href="#jmm">4. JMM 与 volatile</a>
+        <a href="#sync">5. synchronized</a>
+        <a href="#lock">6. Lock 与条件队列</a>
+        <a href="#atomic">7. 原子类与 CAS</a>
+        <a href="#collections">8. 并发容器</a>
+        <a href="#pool">9. 线程池</a>
+        <a href="#future">10. Future 与异步</a>
+        <a href="#tools">11. JUC 工具类</a>
+        <a href="#threadlocal">12. ThreadLocal</a>
+        <a href="#virtual">13. 虚拟线程</a>
+        <a href="#problems">14. 常见问题</a>
+        <a href="#interview">15. 面试模板</a>
+        <a href="#quiz">16. 自测题</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <span class="crumb">Today: Java Concurrency</span>
+        <h1>Java 多线程：从基础模型到 JUC 面试实战</h1>
+        <p>这页重写 Java 多线程部分：不只背概念，而是用反例、正确写法和工程场景串起来。你要能讲清线程生命周期、JMM、锁、线程池、并发容器、CompletableFuture、虚拟线程，以及线上排查思路。</p>
+        <div class="hero-grid">
+          <div class="metric"><b>13 类</b><span>核心并发知识点</span></div>
+          <div class="metric"><b>30+</b><span>Java 代码示例</span></div>
+          <div class="metric"><b>5 层</b><span>线程、锁、容器、线程池、异步</span></div>
+          <div class="metric"><b>面试版</b><span>能讲、能写、能排查</span></div>
+        </div>
+      </header>
+
+      <section id="map">
+        <h2>1. 总体地图：Java 多线程到底学什么</h2>
+        <p class="lead">Java 多线程不是只会 `Thread` 和 `synchronized`。面试要按“线程模型、内存模型、同步工具、任务编排、工程排查”五层讲。</p>
+        <div class="grid-3">
+          <div class="box">
+            <h3>基础层</h3>
+            <ul>
+              <li>线程创建：`Thread`、`Runnable`、`Callable`、线程池。</li>
+              <li>线程状态：NEW、RUNNABLE、BLOCKED、WAITING、TIMED_WAITING、TERMINATED。</li>
+              <li>线程协作：`join`、`sleep`、`wait/notify`、中断。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>安全层</h3>
+            <ul>
+              <li>共享变量的可见性、原子性、有序性。</li>
+              <li>JMM、`volatile`、`synchronized`、`Lock`。</li>
+              <li>死锁、活锁、饥饿、竞态条件。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>工程层</h3>
+            <ul>
+              <li>线程池参数和拒绝策略。</li>
+              <li>并发容器与阻塞队列。</li>
+              <li>异步编排、超时、降级、链路追踪和线程栈排查。</li>
+            </ul>
+          </div>
+        </div>
+        <div class="pipeline">
+          <div class="step"><b>任务</b><span>Runnable / Callable / CompletableFuture</span></div>
+          <div class="step"><b>执行</b><span>Thread / ExecutorService / 虚拟线程</span></div>
+          <div class="step"><b>共享</b><span>共享变量、对象状态、集合</span></div>
+          <div class="step"><b>同步</b><span>synchronized / Lock / volatile / CAS</span></div>
+          <div class="step"><b>协作</b><span>BlockingQueue / Latch / Semaphore</span></div>
+          <div class="step"><b>排查</b><span>线程栈、死锁、线程池耗尽、慢任务</span></div>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="create">
+        <h2>2. 创建线程：四种写法与推荐顺序</h2>
+        <p class="lead">面试里要知道各种写法，但工程里通常不要手动频繁 `new Thread()`，而是把任务交给线程池。</p>
+
+        <h3>2.1 继承 Thread：能用，但耦合高</h3>
+        <pre><code class="language-java">class MyThread extends Thread {
+    @Override
+    public void run() {
+        System.out.println(Thread.currentThread().getName() + " running");
+    }
+}
+
+public class Demo {
+    public static void main(String[] args) {
+        new MyThread().start(); // 注意：调用 start() 才是启动新线程
+        // new MyThread().run(); // 只是普通方法调用，不会开启新线程
+    }
+}</code></pre>
+
+        <h3>2.2 实现 Runnable：任务和线程分离</h3>
+        <pre><code class="language-java">public class RunnableDemo {
+    public static void main(String[] args) {
+        Runnable task = () -> {
+            String name = Thread.currentThread().getName();
+            System.out.println(name + " handles order");
+        };
+
+        Thread t1 = new Thread(task, "worker-1");
+        Thread t2 = new Thread(task, "worker-2");
+        t1.start();
+        t2.start();
+    }
+}</code></pre>
+
+        <h3>2.3 Callable + Future：有返回值和异常</h3>
+        <pre><code class="language-java">import java.util.concurrent.*;
+
+public class CallableDemo {
+    public static void main(String[] args) throws Exception {
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+
+        Callable&lt;Integer&gt; task = () -> {
+            TimeUnit.MILLISECONDS.sleep(200);
+            return 42;
+        };
+
+        Future&lt;Integer&gt; future = pool.submit(task);
+        Integer result = future.get(1, TimeUnit.SECONDS);
+        System.out.println("result = " + result);
+
+        pool.shutdown();
+    }
+}</code></pre>
+
+        <h3>2.4 线程池：生产更推荐</h3>
+        <pre><code class="language-java">import java.util.concurrent.*;
+
+public class PoolSubmitDemo {
+    public static void main(String[] args) {
+        ExecutorService pool = new ThreadPoolExecutor(
+            2,
+            4,
+            60,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue&lt;&gt;(100),
+            r -> new Thread(r, "biz-worker-" + System.nanoTime()),
+            new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+
+        for (int i = 0; i &lt; 10; i++) {
+            int taskId = i;
+            pool.execute(() -> System.out.println("task " + taskId));
+        }
+
+        pool.shutdown();
+    }
+}</code></pre>
+
+        <div class="note">
+          <b>面试说法：</b>创建线程有继承 Thread、实现 Runnable、实现 Callable、提交到线程池等方式。实际项目里我优先用线程池，因为它能复用线程、限制并发、统一命名、处理队列和拒绝策略。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="state">
+        <h2>3. 线程状态与生命周期</h2>
+        <table>
+          <thead><tr><th>状态</th><th>含义</th><th>常见触发</th></tr></thead>
+          <tbody>
+            <tr><td>NEW</td><td>创建了线程对象，还没 `start`</td><td>`new Thread()`</td></tr>
+            <tr><td>RUNNABLE</td><td>可运行，可能正在 CPU 上跑，也可能等待 CPU 时间片</td><td>`start()` 后</td></tr>
+            <tr><td>BLOCKED</td><td>等待进入 synchronized 监视器锁</td><td>竞争对象锁</td></tr>
+            <tr><td>WAITING</td><td>无限期等待其他线程唤醒</td><td>`wait()`、`join()`、`park()`</td></tr>
+            <tr><td>TIMED_WAITING</td><td>带超时时间的等待</td><td>`sleep`、`wait(timeout)`、`get(timeout)`</td></tr>
+            <tr><td>TERMINATED</td><td>线程执行结束</td><td>`run` 方法结束或抛出未捕获异常</td></tr>
+          </tbody>
+        </table>
+
+        <h3>join：等待另一个线程结束</h3>
+        <pre><code class="language-java">public class JoinDemo {
+    public static void main(String[] args) throws InterruptedException {
+        Thread downloader = new Thread(() -> {
+            try {
+                Thread.sleep(300);
+                System.out.println("file downloaded");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        downloader.start();
+        downloader.join(); // main 等 downloader 结束
+        System.out.println("start parsing file");
+    }
+}</code></pre>
+
+        <h3>中断：不是强杀线程，而是协作取消信号</h3>
+        <pre><code class="language-java">public class InterruptDemo {
+    public static void main(String[] args) throws InterruptedException {
+        Thread worker = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Thread.sleep(100);
+                    System.out.println("working...");
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt(); // 恢复中断标记
+                }
+            }
+            System.out.println("exit safely");
+        });
+
+        worker.start();
+        Thread.sleep(350);
+        worker.interrupt();
+    }
+}</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="jmm">
+        <h2>4. JMM 与 volatile：可见性、原子性、有序性</h2>
+        <p class="lead">Java 内存模型要解决的是：多个线程读写共享变量时，一个线程的修改什么时候对另一个线程可见，以及指令重排会不会破坏并发语义。</p>
+        <div class="grid-3">
+          <div class="box">
+            <h3>可见性</h3>
+            <p>线程 A 修改共享变量，线程 B 不一定立刻看到。`volatile`、锁释放/获取、线程启动/结束等会建立 happens-before。</p>
+          </div>
+          <div class="box">
+            <h3>原子性</h3>
+            <p>`count++` 不是原子操作，它包含读、加、写三步。要用锁或原子类保证复合操作安全。</p>
+          </div>
+          <div class="box">
+            <h3>有序性</h3>
+            <p>编译器和 CPU 可能重排指令，只要单线程语义不变。并发下要靠内存屏障和同步规则限制重排。</p>
+          </div>
+        </div>
+
+        <h3>volatile 适合做停止标记</h3>
+        <pre><code class="language-java">public class VolatileStopDemo {
+    private static volatile boolean running = true;
+
+    public static void main(String[] args) throws InterruptedException {
+        Thread worker = new Thread(() -> {
+            while (running) {
+                // do work
+            }
+            System.out.println("stopped");
+        });
+
+        worker.start();
+        Thread.sleep(100);
+        running = false; // 对 worker 可见
+    }
+}</code></pre>
+
+        <h3>volatile 不保证 count++ 原子性</h3>
+        <pre><code class="language-java">public class VolatileNotAtomic {
+    private static volatile int count = 0;
+
+    public static void main(String[] args) throws InterruptedException {
+        Thread[] threads = new Thread[10];
+        for (int i = 0; i &lt; threads.length; i++) {
+            threads[i] = new Thread(() -> {
+                for (int j = 0; j &lt; 10_000; j++) {
+                    count++; // 读 -> 加 -> 写，多个线程会互相覆盖
+                }
+            });
+            threads[i].start();
+        }
+
+        for (Thread t : threads) {
+            t.join();
+        }
+        System.out.println(count); // 通常小于 100000
+    }
+}</code></pre>
+
+        <h3>双重检查锁定：为什么 instance 要 volatile</h3>
+        <pre><code class="language-java">public class Singleton {
+    private static volatile Singleton instance;
+
+    private Singleton() {}
+
+    public static Singleton getInstance() {
+        if (instance == null) {
+            synchronized (Singleton.class) {
+                if (instance == null) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}</code></pre>
+        <p>`new Singleton()` 可能被拆成分配内存、初始化对象、引用赋值。没有 `volatile` 时，另一个线程可能看到“引用不为空但对象尚未初始化完成”的状态。</p>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="sync">
+        <h2>5. synchronized：内置锁、可重入、对象锁</h2>
+        <p class="lead">`synchronized` 同时解决互斥和可见性：进入同步块要获取锁，退出同步块会释放锁并刷新修改。</p>
+
+        <h3>5.1 线程不安全反例</h3>
+        <pre><code class="language-java">public class UnsafeCounter {
+    private int count = 0;
+
+    public void increment() {
+        count++;
+    }
+
+    public int get() {
+        return count;
+    }
+}</code></pre>
+
+        <h3>5.2 synchronized 修复</h3>
+        <pre><code class="language-java">public class SafeCounter {
+    private int count = 0;
+
+    public synchronized void increment() {
+        count++;
+    }
+
+    public synchronized int get() {
+        return count;
+    }
+}</code></pre>
+
+        <h3>5.3 锁对象不同，保护不了同一份数据</h3>
+        <pre><code class="language-java">public class WrongLockDemo {
+    private int count = 0;
+
+    public void increment() {
+        Object lock = new Object(); // 每次都是新锁，等于没锁
+        synchronized (lock) {
+            count++;
+        }
+    }
+}</code></pre>
+
+        <h3>5.4 正确锁住共享对象</h3>
+        <pre><code class="language-java">public class RightLockDemo {
+    private final Object lock = new Object();
+    private int count = 0;
+
+    public void increment() {
+        synchronized (lock) {
+            count++;
+        }
+    }
+}</code></pre>
+
+        <h3>5.5 wait/notify：必须在 synchronized 内使用</h3>
+        <pre><code class="language-java">import java.util.LinkedList;
+import java.util.Queue;
+
+public class WaitNotifyQueue&lt;T&gt; {
+    private final Queue&lt;T&gt; queue = new LinkedList&lt;&gt;();
+    private final int capacity;
+
+    public WaitNotifyQueue(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public synchronized void put(T item) throws InterruptedException {
+        while (queue.size() == capacity) {
+            wait(); // 用 while 防止虚假唤醒
+        }
+        queue.offer(item);
+        notifyAll();
+    }
+
+    public synchronized T take() throws InterruptedException {
+        while (queue.isEmpty()) {
+            wait();
+        }
+        T item = queue.poll();
+        notifyAll();
+        return item;
+    }
+}</code></pre>
+        <div class="note">
+          <b>记忆点：</b>`wait` 会释放锁并进入等待队列；`sleep` 不释放锁；`notify` 只唤醒一个等待线程；`notifyAll` 唤醒全部等待线程，由它们重新竞争锁。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="lock">
+        <h2>6. Lock、Condition、读写锁</h2>
+        <p class="lead">`Lock` 比 `synchronized` 更灵活：可中断、可超时、可公平、可绑定多个条件队列。但要记得在 `finally` 中释放锁。</p>
+
+        <h3>6.1 ReentrantLock 基本用法</h3>
+        <pre><code class="language-java">import java.util.concurrent.locks.ReentrantLock;
+
+public class ReentrantLockCounter {
+    private final ReentrantLock lock = new ReentrantLock();
+    private int count = 0;
+
+    public void increment() {
+        lock.lock();
+        try {
+            count++;
+        } finally {
+            lock.unlock();
+        }
+    }
+}</code></pre>
+
+        <h3>6.2 tryLock：避免无限等待</h3>
+        <pre><code class="language-java">import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class TryLockDemo {
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public boolean update() throws InterruptedException {
+        if (lock.tryLock(200, TimeUnit.MILLISECONDS)) {
+            try {
+                // update shared state
+                return true;
+            } finally {
+                lock.unlock();
+            }
+        }
+        return false; // 降级或稍后重试
+    }
+}</code></pre>
+
+        <h3>6.3 Condition：两个条件队列实现阻塞队列</h3>
+        <pre><code class="language-java">import java.util.ArrayDeque;
+import java.util.Queue;
+import java.util.concurrent.locks.*;
+
+public class ConditionQueue&lt;T&gt; {
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition notFull = lock.newCondition();
+    private final Condition notEmpty = lock.newCondition();
+    private final Queue&lt;T&gt; queue = new ArrayDeque&lt;&gt;();
+    private final int capacity;
+
+    public ConditionQueue(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public void put(T item) throws InterruptedException {
+        lock.lock();
+        try {
+            while (queue.size() == capacity) {
+                notFull.await();
+            }
+            queue.offer(item);
+            notEmpty.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public T take() throws InterruptedException {
+        lock.lock();
+        try {
+            while (queue.isEmpty()) {
+                notEmpty.await();
+            }
+            T item = queue.poll();
+            notFull.signal();
+            return item;
+        } finally {
+            lock.unlock();
+        }
+    }
+}</code></pre>
+
+        <h3>6.4 ReentrantReadWriteLock：读多写少</h3>
+        <pre><code class="language-java">import java.util.*;
+import java.util.concurrent.locks.*;
+
+public class CacheWithReadWriteLock {
+    private final Map&lt;String, String&gt; cache = new HashMap&lt;&gt;();
+    private final ReentrantReadWriteLock rw = new ReentrantReadWriteLock();
+
+    public String get(String key) {
+        rw.readLock().lock();
+        try {
+            return cache.get(key);
+        } finally {
+            rw.readLock().unlock();
+        }
+    }
+
+    public void put(String key, String value) {
+        rw.writeLock().lock();
+        try {
+            cache.put(key, value);
+        } finally {
+            rw.writeLock().unlock();
+        }
+    }
+}</code></pre>
+
+        <h3>6.5 StampedLock：乐观读</h3>
+        <pre><code class="language-java">import java.util.concurrent.locks.StampedLock;
+
+public class Point {
+    private double x;
+    private double y;
+    private final StampedLock lock = new StampedLock();
+
+    public void move(double deltaX, double deltaY) {
+        long stamp = lock.writeLock();
+        try {
+            x += deltaX;
+            y += deltaY;
+        } finally {
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    public double distanceFromOrigin() {
+        long stamp = lock.tryOptimisticRead();
+        double currentX = x;
+        double currentY = y;
+        if (!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                currentX = x;
+                currentY = y;
+            } finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return Math.sqrt(currentX * currentX + currentY * currentY);
+    }
+}</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="atomic">
+        <h2>7. 原子类与 CAS：无锁并发的常见入口</h2>
+        <p class="lead">原子类基于 CAS 思想：比较当前值是否还是预期值，是则更新，否则失败重试。适合简单计数、状态切换、引用更新。</p>
+
+        <h3>7.1 AtomicInteger 修复 count++</h3>
+        <pre><code class="language-java">import java.util.concurrent.atomic.AtomicInteger;
+
+public class AtomicCounter {
+    private final AtomicInteger count = new AtomicInteger(0);
+
+    public int increment() {
+        return count.incrementAndGet();
+    }
+
+    public int get() {
+        return count.get();
+    }
+}</code></pre>
+
+        <h3>7.2 compareAndSet 做状态流转</h3>
+        <pre><code class="language-java">import java.util.concurrent.atomic.AtomicReference;
+
+public class OrderStateMachine {
+    enum State { CREATED, PAID, CANCELED }
+
+    private final AtomicReference&lt;State&gt; state =
+        new AtomicReference&lt;&gt;(State.CREATED);
+
+    public boolean pay() {
+        return state.compareAndSet(State.CREATED, State.PAID);
+    }
+
+    public boolean cancel() {
+        return state.compareAndSet(State.CREATED, State.CANCELED);
+    }
+}</code></pre>
+
+        <h3>7.3 LongAdder：高并发计数更适合</h3>
+        <pre><code class="language-java">import java.util.concurrent.atomic.LongAdder;
+
+public class QpsCounter {
+    private final LongAdder requests = new LongAdder();
+
+    public void record() {
+        requests.increment();
+    }
+
+    public long snapshot() {
+        return requests.sum();
+    }
+}</code></pre>
+        <p>`AtomicLong` 在高并发下所有线程竞争一个变量；`LongAdder` 分散到多个槽位，最后汇总，适合统计类计数，不适合要求每次读取都严格最新的场景。</p>
+
+        <h3>7.4 ABA 问题与版本号</h3>
+        <pre><code class="language-java">import java.util.concurrent.atomic.AtomicStampedReference;
+
+public class AbaDemo {
+    public static void main(String[] args) {
+        AtomicStampedReference&lt;String&gt; ref =
+            new AtomicStampedReference&lt;&gt;("A", 0);
+
+        int[] stampHolder = new int[1];
+        String value = ref.get(stampHolder);
+        int stamp = stampHolder[0];
+
+        boolean ok = ref.compareAndSet(value, "B", stamp, stamp + 1);
+        System.out.println(ok);
+    }
+}</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="collections">
+        <h2>8. 并发容器：不要拿 HashMap 硬扛并发</h2>
+        <table>
+          <thead><tr><th>容器</th><th>适合场景</th><th>注意点</th></tr></thead>
+          <tbody>
+            <tr><td>ConcurrentHashMap</td><td>高并发读写 Map</td><td>单个操作线程安全，复合逻辑仍要额外控制</td></tr>
+            <tr><td>CopyOnWriteArrayList</td><td>读多写少，如监听器列表</td><td>写时复制成本高，不适合频繁写</td></tr>
+            <tr><td>BlockingQueue</td><td>生产者消费者、线程池任务队列</td><td>要选择容量，避免无界队列导致内存风险</td></tr>
+            <tr><td>ConcurrentLinkedQueue</td><td>非阻塞队列</td><td>没有阻塞等待语义</td></tr>
+          </tbody>
+        </table>
+
+        <h3>8.1 ConcurrentHashMap 的 computeIfAbsent</h3>
+        <pre><code class="language-java">import java.util.concurrent.*;
+
+public class CacheDemo {
+    private final ConcurrentHashMap&lt;String, String&gt; cache = new ConcurrentHashMap&lt;&gt;();
+
+    public String getValue(String key) {
+        return cache.computeIfAbsent(key, this::loadFromDb);
+    }
+
+    private String loadFromDb(String key) {
+        return "value-of-" + key;
+    }
+}</code></pre>
+
+        <h3>8.2 复合操作仍可能需要锁</h3>
+        <pre><code class="language-java">import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class LimitRegistry {
+    private final ConcurrentHashMap&lt;String, Integer&gt; used = new ConcurrentHashMap&lt;&gt;();
+    private final int limit = 10;
+
+    public boolean tryAcquire(String userId) {
+        AtomicBoolean acquired = new AtomicBoolean(false);
+        used.compute(userId, (k, oldValue) -> {
+            int current = oldValue == null ? 0 : oldValue;
+            if (current &gt;= limit) {
+                return current;
+            }
+            acquired.set(true);
+            return current + 1;
+        });
+        return acquired.get();
+    }
+}</code></pre>
+
+        <h3>8.3 BlockingQueue：生产者消费者</h3>
+        <pre><code class="language-java">import java.util.concurrent.*;
+
+public class BlockingQueueDemo {
+    public static void main(String[] args) {
+        BlockingQueue&lt;String&gt; queue = new ArrayBlockingQueue&lt;&gt;(100);
+
+        Thread producer = new Thread(() -> {
+            try {
+                queue.put("order-1");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        Thread consumer = new Thread(() -> {
+            try {
+                String order = queue.take();
+                System.out.println("handle " + order);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        producer.start();
+        consumer.start();
+    }
+}</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="pool">
+        <h2>9. 线程池：高频面试点</h2>
+        <p class="lead">线程池的核心价值是复用线程、控制并发、隔离资源、统一监控。生产上要避免直接用 `Executors` 的无界队列风险。</p>
+
+        <h3>9.1 七个核心参数</h3>
+        <table>
+          <thead><tr><th>参数</th><th>含义</th><th>面试解释</th></tr></thead>
+          <tbody>
+            <tr><td>corePoolSize</td><td>核心线程数</td><td>长期保留的线程数量</td></tr>
+            <tr><td>maximumPoolSize</td><td>最大线程数</td><td>队列满后最多扩到多少线程</td></tr>
+            <tr><td>keepAliveTime</td><td>空闲存活时间</td><td>非核心线程空闲多久回收</td></tr>
+            <tr><td>unit</td><td>时间单位</td><td>配合 keepAliveTime</td></tr>
+            <tr><td>workQueue</td><td>任务队列</td><td>常见 ArrayBlockingQueue、LinkedBlockingQueue、SynchronousQueue</td></tr>
+            <tr><td>threadFactory</td><td>线程工厂</td><td>命名线程、设置异常处理器</td></tr>
+            <tr><td>handler</td><td>拒绝策略</td><td>队列满且线程达到最大值时触发</td></tr>
+          </tbody>
+        </table>
+
+        <h3>9.2 线程池执行流程</h3>
+        <ol>
+          <li>当前线程数小于核心线程数：直接创建核心线程执行任务。</li>
+          <li>核心线程已满：尝试放入任务队列。</li>
+          <li>队列也满：尝试创建非核心线程，直到最大线程数。</li>
+          <li>最大线程数也满：执行拒绝策略。</li>
+        </ol>
+
+        <h3>9.3 推荐写法：显式创建 ThreadPoolExecutor</h3>
+        <pre><code class="language-java">import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class ThreadPoolFactory {
+    public static ExecutorService newOrderPool() {
+        AtomicInteger seq = new AtomicInteger();
+
+        ThreadFactory factory = r -> {
+            Thread t = new Thread(r);
+            t.setName("order-pool-" + seq.incrementAndGet());
+            t.setUncaughtExceptionHandler((thread, ex) ->
+                System.err.println(thread.getName() + " failed: " + ex.getMessage()));
+            return t;
+        };
+
+        return new ThreadPoolExecutor(
+            8,
+            16,
+            60,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue&lt;&gt;(1000),
+            factory,
+            new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+    }
+}</code></pre>
+
+        <h3>9.4 拒绝策略怎么选</h3>
+        <table>
+          <thead><tr><th>策略</th><th>行为</th><th>适合</th></tr></thead>
+          <tbody>
+            <tr><td>AbortPolicy</td><td>直接抛异常</td><td>希望快速暴露问题</td></tr>
+            <tr><td>CallerRunsPolicy</td><td>由提交任务的线程执行</td><td>削峰，给上游施加反压</td></tr>
+            <tr><td>DiscardPolicy</td><td>静默丢弃</td><td>极少直接使用，容易丢任务无感知</td></tr>
+            <tr><td>DiscardOldestPolicy</td><td>丢掉队列最老任务</td><td>只关心最新任务的场景</td></tr>
+          </tbody>
+        </table>
+
+        <h3>9.5 优雅关闭</h3>
+        <pre><code class="language-java">import java.util.concurrent.*;
+
+public class ShutdownDemo {
+    public static void shutdownGracefully(ExecutorService pool) {
+        pool.shutdown();
+        try {
+            if (!pool.awaitTermination(10, TimeUnit.SECONDS)) {
+                pool.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            pool.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+}</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="future">
+        <h2>10. Future、CompletableFuture 与异步编排</h2>
+        <p class="lead">`Future` 能拿结果，但组合能力弱；`CompletableFuture` 更适合多个异步任务编排、异常处理和超时控制。</p>
+
+        <h3>10.1 Future 的局限</h3>
+        <pre><code class="language-java">Future&lt;String&gt; userFuture = pool.submit(() -> queryUser(userId));
+Future&lt;String&gt; orderFuture = pool.submit(() -> queryOrders(userId));
+
+// get 会阻塞，组合逻辑需要手写
+String user = userFuture.get(500, TimeUnit.MILLISECONDS);
+String orders = orderFuture.get(500, TimeUnit.MILLISECONDS);</code></pre>
+
+        <h3>10.2 CompletableFuture 并行查询</h3>
+        <pre><code class="language-java">import java.util.concurrent.*;
+
+public class CompletableFutureDemo {
+    private final Executor executor = Executors.newFixedThreadPool(8);
+
+    public String buildProfile(String userId) {
+        CompletableFuture&lt;String&gt; userFuture =
+            CompletableFuture.supplyAsync(() -> queryUser(userId), executor);
+
+        CompletableFuture&lt;String&gt; orderFuture =
+            CompletableFuture.supplyAsync(() -> queryOrders(userId), executor);
+
+        return userFuture.thenCombine(orderFuture, (user, orders) ->
+            user + "\n" + orders
+        ).orTimeout(800, TimeUnit.MILLISECONDS)
+         .exceptionally(ex -> "fallback profile")
+         .join();
+    }
+
+    private String queryUser(String userId) { return "user:" + userId; }
+    private String queryOrders(String userId) { return "orders:[]"; }
+}</code></pre>
+
+        <h3>10.3 allOf：等待多个任务完成</h3>
+        <pre><code class="language-java">CompletableFuture&lt;String&gt; a = CompletableFuture.supplyAsync(() -> "A");
+CompletableFuture&lt;String&gt; b = CompletableFuture.supplyAsync(() -> "B");
+CompletableFuture&lt;String&gt; c = CompletableFuture.supplyAsync(() -> "C");
+
+CompletableFuture&lt;Void&gt; all = CompletableFuture.allOf(a, b, c);
+all.join();
+
+System.out.println(a.join() + b.join() + c.join());</code></pre>
+
+        <h3>10.4 异常处理区别</h3>
+        <pre><code class="language-java">CompletableFuture&lt;String&gt; future = CompletableFuture
+    .supplyAsync(() -> {
+        if (true) throw new RuntimeException("remote failed");
+        return "ok";
+    })
+    .exceptionally(ex -> "fallback"); // 只处理异常，返回兜底值
+
+CompletableFuture&lt;String&gt; future2 = CompletableFuture
+    .supplyAsync(() -> "ok")
+    .handle((value, ex) -> ex == null ? value : "fallback"); // 成功失败都处理</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="tools">
+        <h2>11. JUC 工具类：面试和工程都常用</h2>
+        <div class="grid-2">
+          <div class="box">
+            <h3>CountDownLatch：一等多</h3>
+            <pre><code class="language-java">CountDownLatch latch = new CountDownLatch(3);
+
+for (int i = 0; i &lt; 3; i++) {
+    new Thread(() -> {
+        try {
+            // init service
+        } finally {
+            latch.countDown();
+        }
+    }).start();
+}
+
+latch.await();
+System.out.println("all services ready");</code></pre>
+          </div>
+          <div class="box">
+            <h3>CyclicBarrier：多等多</h3>
+            <pre><code class="language-java">CyclicBarrier barrier = new CyclicBarrier(3,
+    () -> System.out.println("all arrived"));
+
+for (int i = 0; i &lt; 3; i++) {
+    new Thread(() -> {
+        try {
+            barrier.await();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }).start();
+}</code></pre>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="box">
+            <h3>Semaphore：限并发</h3>
+            <pre><code class="language-java">Semaphore semaphore = new Semaphore(10);
+
+public void callRemote() throws InterruptedException {
+    if (semaphore.tryAcquire(200, TimeUnit.MILLISECONDS)) {
+        try {
+            // call remote service
+        } finally {
+            semaphore.release();
+        }
+    } else {
+        throw new RuntimeException("too many requests");
+    }
+}</code></pre>
+          </div>
+          <div class="box">
+            <h3>Exchanger：两个线程交换数据</h3>
+            <pre><code class="language-java">Exchanger&lt;String&gt; exchanger = new Exchanger&lt;&gt;();
+
+new Thread(() -> {
+    try {
+        String received = exchanger.exchange("from A");
+        System.out.println(received);
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+}).start();</code></pre>
+          </div>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="threadlocal">
+        <h2>12. ThreadLocal：线程隔离变量与内存泄漏</h2>
+        <p class="lead">`ThreadLocal` 给每个线程一份独立变量，常用于用户上下文、traceId、日期格式等。但在线程池中必须 `remove`，否则线程复用会污染上下文。</p>
+
+        <h3>12.1 存 traceId</h3>
+        <pre><code class="language-java">public class TraceContext {
+    private static final ThreadLocal&lt;String&gt; TRACE_ID = new ThreadLocal&lt;&gt;();
+
+    public static void set(String traceId) {
+        TRACE_ID.set(traceId);
+    }
+
+    public static String get() {
+        return TRACE_ID.get();
+    }
+
+    public static void clear() {
+        TRACE_ID.remove();
+    }
+}</code></pre>
+
+        <h3>12.2 在线程池里必须清理</h3>
+        <pre><code class="language-java">public void handleRequest(String traceId) {
+    try {
+        TraceContext.set(traceId);
+        // business logic
+    } finally {
+        TraceContext.clear(); // 防止下一个请求复用线程时读到旧值
+    }
+}</code></pre>
+
+        <h3>12.3 为什么会内存泄漏</h3>
+        <p>`ThreadLocalMap` 的 key 是弱引用，但 value 是强引用。在线程池里线程长期存活，如果不 `remove`，value 可能一直挂在线程上，造成内存泄漏或上下文串号。</p>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="virtual">
+        <h2>13. Java 21 虚拟线程：适合 I/O 密集任务</h2>
+        <p class="lead">虚拟线程是轻量级线程，适合大量阻塞 I/O 请求。它不是让 CPU 计算变快，也不是替代所有线程池隔离。</p>
+
+        <h3>13.1 每个请求一个虚拟线程</h3>
+        <pre><code class="language-java">import java.util.concurrent.*;
+
+public class VirtualThreadDemo {
+    public static void main(String[] args) throws Exception {
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            Future&lt;String&gt; future = executor.submit(() -> {
+                Thread.sleep(100);
+                return Thread.currentThread().toString();
+            });
+            System.out.println(future.get());
+        }
+    }
+}</code></pre>
+
+        <h3>13.2 适合与不适合</h3>
+        <table>
+          <thead><tr><th>场景</th><th>是否适合</th><th>原因</th></tr></thead>
+          <tbody>
+            <tr><td>大量 HTTP/RPC/DB 阻塞调用</td><td>适合</td><td>虚拟线程阻塞成本低，写法仍是同步代码</td></tr>
+            <tr><td>CPU 密集计算</td><td>不适合提升吞吐</td><td>CPU 核数不变，虚拟线程不能突破算力</td></tr>
+            <tr><td>需要严格资源隔离</td><td>仍需限流</td><td>虚拟线程很多，不代表数据库连接也很多</td></tr>
+            <tr><td>大量 synchronized 阻塞</td><td>谨慎</td><td>可能出现 carrier thread pinning，需要观察</td></tr>
+          </tbody>
+        </table>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="problems">
+        <h2>14. 常见并发问题与排查</h2>
+        <h3>14.1 死锁示例</h3>
+        <pre><code class="language-java">public class DeadLockDemo {
+    private static final Object A = new Object();
+    private static final Object B = new Object();
+
+    public static void main(String[] args) {
+        new Thread(() -> {
+            synchronized (A) {
+                sleep();
+                synchronized (B) {
+                    System.out.println("thread 1");
+                }
+            }
+        }).start();
+
+        new Thread(() -> {
+            synchronized (B) {
+                sleep();
+                synchronized (A) {
+                    System.out.println("thread 2");
+                }
+            }
+        }).start();
+    }
+
+    private static void sleep() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}</code></pre>
+
+        <h3>14.2 避免死锁</h3>
+        <ul>
+          <li>固定加锁顺序：所有线程都先锁 A 再锁 B。</li>
+          <li>减少锁范围：不要在持锁时做 RPC、DB、文件 I/O。</li>
+          <li>使用 `tryLock` 超时退出。</li>
+          <li>用线程栈和 `jstack` 查找 deadlock。</li>
+        </ul>
+
+        <h3>14.3 线程池耗尽</h3>
+        <table>
+          <thead><tr><th>现象</th><th>可能原因</th><th>处理</th></tr></thead>
+          <tbody>
+            <tr><td>接口 P99 飙升</td><td>线程池队列堆积、慢下游、锁等待</td><td>看活跃线程、队列长度、任务耗时、线程栈</td></tr>
+            <tr><td>CPU 不高但很慢</td><td>大量线程 WAITING/TIMED_WAITING</td><td>排查 DB/RPC 超时、连接池不足、锁竞争</td></tr>
+            <tr><td>拒绝任务增加</td><td>线程池满且队列满</td><td>限流、降级、扩容、拆分线程池、优化慢任务</td></tr>
+            <tr><td>内存上涨</td><td>无界队列堆任务或 ThreadLocal 未清理</td><td>改有界队列，清理 ThreadLocal，增加背压</td></tr>
+          </tbody>
+        </table>
+
+        <h3>14.4 排查命令思路</h3>
+        <pre><code># Linux 常见思路
+top -Hp &lt;pid&gt;              # 找高 CPU 线程
+printf "%x\n" &lt;tid&gt;        # 线程 id 转 16 进制
+jstack &lt;pid&gt; | grep -A30 nid=0x...
+
+# Java 自带诊断
+jcmd &lt;pid&gt; Thread.print
+jcmd &lt;pid&gt; VM.native_memory summary
+jmap -histo &lt;pid&gt;</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="interview">
+        <h2>15. 高频面试回答模板</h2>
+        <details open>
+          <summary>Q1：说说 synchronized 和 ReentrantLock 的区别。</summary>
+          <div>`synchronized` 是 JVM 内置锁，语法简单，异常退出会自动释放锁，适合大多数互斥场景。`ReentrantLock` 是 JUC 提供的显式锁，必须手动 unlock，但支持公平锁、可中断等待、超时获取锁、多个 Condition 条件队列等高级能力。普通互斥我优先用 synchronized，需要超时、可中断或多条件队列时用 ReentrantLock。</div>
+        </details>
+        <details>
+          <summary>Q2：volatile 能保证线程安全吗？</summary>
+          <div>不能笼统说能。`volatile` 保证可见性和一定有序性，不保证复合操作原子性。比如停止标记适合 volatile；但 `count++` 不适合，因为它包含读、加、写三步，要用 synchronized、Lock 或 AtomicInteger。</div>
+        </details>
+        <details>
+          <summary>Q3：线程池的执行流程是什么？</summary>
+          <div>提交任务后，如果当前线程数小于核心线程数，就创建核心线程执行；如果核心线程满了，就尝试入队；如果队列满了，就创建非核心线程直到最大线程数；如果最大线程也满，就执行拒绝策略。这个流程也解释了为什么无界队列会让 maximumPoolSize 失效。</div>
+        </details>
+        <details>
+          <summary>Q4：为什么不推荐 Executors.newFixedThreadPool？</summary>
+          <div>它默认使用无界 LinkedBlockingQueue，如果任务生产速度大于消费速度，队列可能无限堆积导致 OOM。生产中更推荐显式创建 ThreadPoolExecutor，设置有界队列、线程命名、拒绝策略、监控指标和优雅关闭。</div>
+        </details>
+        <details>
+          <summary>Q5：ThreadLocal 为什么会内存泄漏？</summary>
+          <div>ThreadLocalMap 的 key 是弱引用，但 value 是强引用。在线程池场景中线程长期存活，如果任务结束不 remove，value 可能一直被线程持有，导致内存泄漏或请求上下文串号。所以一般在 finally 中调用 remove。</div>
+        </details>
+        <details>
+          <summary>Q6：CountDownLatch 和 CyclicBarrier 区别？</summary>
+          <div>CountDownLatch 是一个或多个线程等待其他线程完成，计数减到 0 后不能重置；CyclicBarrier 是一组线程互相等待到齐，可以循环使用，还可以设置 barrier action。前者像“发令枪等待准备完成”，后者像“多个人到集合点再一起走”。</div>
+        </details>
+        <details>
+          <summary>Q7：Java 21 虚拟线程解决什么问题？</summary>
+          <div>虚拟线程解决的是大量阻塞 I/O 场景下平台线程成本高的问题，让同步写法也能承载大量并发请求。它不提升 CPU 密集计算的速度，也不取消资源限流的必要，数据库连接、下游 QPS、锁竞争仍然要控制。</div>
+        </details>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="quiz">
+        <h2>16. 自测题</h2>
+        <div class="quiz" data-answer="b">
+          <p><b>1. `count++` 用 volatile 修饰 count 后是否线程安全？</b></p>
+          <button data-choice="a">安全</button>
+          <button data-choice="b">不安全，volatile 不保证复合操作原子性</button>
+          <button data-choice="c">只要 CPU 核数少就安全</button>
+        </div>
+        <div class="quiz" data-answer="a">
+          <p><b>2. `wait()` 和 `sleep()` 最大区别之一是？</b></p>
+          <button data-choice="a">wait 会释放锁，sleep 不释放锁</button>
+          <button data-choice="b">sleep 只能在 synchronized 中调用</button>
+          <button data-choice="c">wait 不会进入等待状态</button>
+        </div>
+        <div class="quiz" data-answer="c">
+          <p><b>3. 线程池队列是无界队列时，哪个参数通常很难发挥作用？</b></p>
+          <button data-choice="a">corePoolSize</button>
+          <button data-choice="b">threadFactory</button>
+          <button data-choice="c">maximumPoolSize</button>
+        </div>
+        <div class="quiz" data-answer="b">
+          <p><b>4. ThreadLocal 在线程池中使用后应该做什么？</b></p>
+          <button data-choice="a">什么都不用做</button>
+          <button data-choice="b">在 finally 中 remove</button>
+          <button data-choice="c">把变量设成 volatile</button>
+        </div>
+        <div class="quiz" data-answer="a">
+          <p><b>5. 虚拟线程更适合哪类任务？</b></p>
+          <button data-choice="a">大量阻塞 I/O</button>
+          <button data-choice="b">纯 CPU 密集计算</button>
+          <button data-choice="c">替代数据库连接池限制</button>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll(".quiz").forEach((quiz) => {
+      const answer = quiz.dataset.answer;
+      quiz.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          quiz.querySelectorAll("button").forEach((item) => {
+            item.classList.remove("correct", "wrong");
+          });
+          button.classList.add(button.dataset.choice === answer ? "correct" : "wrong");
+        });
+      });
+    });
+  </script>
+</body>
+</html>
