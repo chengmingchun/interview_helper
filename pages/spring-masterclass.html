@@ -1,0 +1,1286 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spring 与 Spring Boot 面试专题：源码机制、实战案例、设计模式</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --panel: rgba(255, 252, 245, 0.86);
+      --panel-solid: #fffaf0;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --accent: #d8652a;
+      --accent-2: #9f4d28;
+      --green: #427a50;
+      --green-soft: rgba(66, 122, 80, 0.13);
+      --blue: #386a91;
+      --blue-soft: rgba(56, 106, 145, 0.12);
+      --red: #b91c1c;
+      --red-soft: #feecec;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --shadow: 0 22px 70px rgba(60, 42, 24, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 10%, rgba(216, 101, 42, 0.11), transparent 28%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.65;
+    }
+
+    a { color: var(--accent-2); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+      width: min(1380px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 52px;
+    }
+
+    aside {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(244, 239, 230, 0.8);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+    }
+
+    aside strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    aside a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    aside a:hover {
+      color: var(--accent-2);
+      background: rgba(216, 101, 42, 0.12);
+    }
+
+    main { min-width: 0; }
+
+    .hero {
+      min-height: 430px;
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #fffaf0;
+      background:
+        linear-gradient(135deg, rgba(23, 21, 17, 0.94), rgba(159, 77, 40, 0.86)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500' viewBox='0 0 900 500'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.16'%3E%3Cpath d='M100 120h190v78H100zM380 76h170v78H380zM635 220h175v78H635zM245 335h245v78H245z'/%3E%3Cpath d='M290 159h90M550 115c86 0 86 140 85 143M490 374c118 0 115-116 145-116M190 198c0 110 55 148 55 176'/%3E%3Ccircle cx='100' cy='120' r='5' fill='%23fff'/%3E%3Ccircle cx='290' cy='159' r='5' fill='%23fff'/%3E%3Ccircle cx='380' cy='115' r='5' fill='%23fff'/%3E%3Ccircle cx='550' cy='115' r='5' fill='%23fff'/%3E%3Ccircle cx='635' cy='258' r='5' fill='%23fff'/%3E%3Ccircle cx='810' cy='258' r='5' fill='%23fff'/%3E%3Ccircle cx='245' cy='374' r='5' fill='%23fff'/%3E%3Ccircle cx='490' cy='374' r='5' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      box-shadow: var(--shadow);
+    }
+
+    .crumb {
+      display: inline-flex;
+      margin-bottom: 22px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--code);
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h1 {
+      max-width: 960px;
+      margin: 0 0 18px;
+      font-size: clamp(38px, 7vw, 72px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 920px;
+      margin: 0;
+      color: rgba(232, 217, 189, 0.86);
+      font-size: 18px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .metric {
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .metric b { display: block; font-size: 22px; }
+    .metric span { color: rgba(232, 217, 189, 0.82); font-size: 13px; }
+
+    section {
+      margin-top: 18px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 20px;
+    }
+
+    p { margin: 0 0 12px; }
+    ul, ol { margin: 0 0 14px; padding-left: 22px; }
+    li + li { margin-top: 5px; }
+
+    .lead {
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .box {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-solid);
+    }
+
+    .box h3:first-child { margin-top: 0; }
+
+    .tag {
+      display: inline-flex;
+      margin: 3px 5px 3px 0;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: rgba(216, 101, 42, 0.12);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .ok { color: var(--green); background: var(--green-soft); }
+    .info { color: var(--blue); background: var(--blue-soft); }
+    .risk { color: var(--red); background: var(--red-soft); }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .step {
+      min-height: 126px;
+      padding: 14px;
+      border: 1px solid rgba(216, 101, 42, 0.22);
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--panel-solid), rgba(244, 239, 230, 0.62));
+    }
+
+    .step b {
+      display: block;
+      color: var(--accent-2);
+      font-size: 15px;
+    }
+
+    .step span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      color: var(--ink);
+      background: rgba(232, 222, 206, 0.56);
+      font-size: 13px;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      color: var(--ink);
+      background: rgba(32, 26, 20, 0.08);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 16px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    pre code { padding: 0; color: inherit; background: transparent; }
+
+    details {
+      margin: 10px 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-solid);
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 800;
+    }
+
+    details > div {
+      padding: 0 14px 14px;
+      color: var(--muted);
+    }
+
+    .note {
+      padding: 14px 16px;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(216, 101, 42, 0.1);
+    }
+
+    .quiz button {
+      display: inline-flex;
+      margin: 4px 6px 4px 0;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--panel-solid);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .quiz button.correct { border-color: rgba(66, 122, 80, 0.42); background: var(--green-soft); color: var(--green); }
+    .quiz button.wrong { border-color: #f3b4b4; background: var(--red-soft); color: var(--red); }
+
+    .toplink {
+      display: inline-flex;
+      margin-top: 10px;
+      font-size: 13px;
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; max-height: none; }
+      aside nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pipeline { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .hero-grid, .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .layout { width: min(100% - 20px, 1380px); padding-top: 10px; }
+      .hero, section { padding: 18px; }
+      aside nav, .grid-2, .grid-3, .hero-grid, .pipeline { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="top">
+    <aside>
+      <strong>Spring 面试路线</strong>
+      <nav>
+        <a href="#map">1. 总体地图</a>
+        <a href="#ioc">2. IoC / DI</a>
+        <a href="#bean">3. Bean 生命周期</a>
+        <a href="#aop">4. AOP 与代理</a>
+        <a href="#transaction">5. 事务机制</a>
+        <a href="#boot">6. Spring Boot 自动配置</a>
+        <a href="#mvc">7. Spring MVC</a>
+        <a href="#data">8. 数据访问</a>
+        <a href="#patterns">9. 设计模式</a>
+        <a href="#case-order">10. 实战：订单下单</a>
+        <a href="#case-strategy">11. 实战：支付策略</a>
+        <a href="#case-event">12. 实战：事件解耦</a>
+        <a href="#case-cache">13. 实战：缓存与幂等</a>
+        <a href="#testing">14. 测试与可观测</a>
+        <a href="#interview">15. 面试模板</a>
+        <a href="#quiz">16. 自测题</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <span class="crumb">Today: Spring / Spring Boot</span>
+        <h1>Spring 重构版：机制、设计模式与实战案例</h1>
+        <p>这页不是罗列注解，而是把 Spring 当成一个“对象装配 + 横切增强 + 事务边界 + Web 请求分发 + 自动配置”的工程平台来学。你要能讲清 IoC、Bean 生命周期、AOP、事务、自动配置，还能把策略、模板方法、观察者、代理、工厂等设计模式落到真实业务代码里。</p>
+        <div class="hero-grid">
+          <div class="metric"><b>6 大机制</b><span>IoC、AOP、事务、MVC、Boot、Data</span></div>
+          <div class="metric"><b>10+ 模式</b><span>工厂、代理、模板、策略、观察者</span></div>
+          <div class="metric"><b>4 个实战</b><span>订单、支付、事件、缓存幂等</span></div>
+          <div class="metric"><b>当前线</b><span>Boot 4 / Framework 7 点到为止</span></div>
+        </div>
+      </header>
+
+      <section id="map">
+        <h2>1. 总体地图：Spring 要按机制学</h2>
+        <p class="lead">Spring 官方文档把 Core、AOP、Data Access、Web、Testing 等作为主线；Spring Boot 则强调创建可独立运行的生产级应用、自动配置和生产特性。面试时要讲机制，不要只背注解。</p>
+        <div class="pipeline">
+          <div class="step"><b>扫描</b><span>ComponentScan 找候选 Bean，读取注解和配置。</span></div>
+          <div class="step"><b>注册</b><span>BeanDefinition 描述 Bean 类型、作用域、依赖。</span></div>
+          <div class="step"><b>实例化</b><span>构造器、工厂方法、FactoryBean 创建对象。</span></div>
+          <div class="step"><b>注入</b><span>构造器、字段、setter、配置属性绑定。</span></div>
+          <div class="step"><b>增强</b><span>BeanPostProcessor 创建 AOP 代理或扩展能力。</span></div>
+          <div class="step"><b>运行</b><span>MVC、事务、数据访问、事件、Actuator。</span></div>
+        </div>
+        <div class="grid-3">
+          <div class="box">
+            <h3>面试高频</h3>
+            <ul>
+              <li>IoC 和 DI 的区别。</li>
+              <li>Bean 生命周期。</li>
+              <li>AOP 代理失效场景。</li>
+              <li>`@Transactional` 失效场景。</li>
+              <li>Spring Boot 自动配置原理。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>实战高频</h3>
+            <ul>
+              <li>下单事务边界怎么设计。</li>
+              <li>多支付渠道如何用策略模式。</li>
+              <li>领域事件如何解耦。</li>
+              <li>缓存、幂等、分布式锁怎么放进 Spring。</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>版本提醒</h3>
+            <p>截至 2026 年 7 月，Spring Boot 4.1 当前要求至少 Java 17，并依赖 Spring Framework 7.0.8 或以上。面试不用死背小版本，但要知道现代 Spring 已进入 Jakarta 命名空间时代。</p>
+          </div>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="ioc">
+        <h2>2. IoC / DI：容器帮你管理对象关系</h2>
+        <p class="lead">IoC 是控制反转：对象不再自己 new 依赖，而是把创建、装配、生命周期交给容器。DI 是 IoC 最常见的实现方式：通过构造器、setter 或字段把依赖注入进来。</p>
+
+        <h3>2.1 不推荐：业务类自己 new 依赖</h3>
+        <pre><code class="language-java">public class OrderService {
+    private final InventoryClient inventoryClient = new InventoryClient();
+    private final PaymentClient paymentClient = new PaymentClient();
+
+    public void createOrder(OrderCommand command) {
+        inventoryClient.lock(command.skuId(), command.count());
+        paymentClient.prePay(command.userId(), command.amount());
+    }
+}</code></pre>
+        <p>问题：强耦合、难替换、难测试、难加代理增强，也很难按环境切换实现。</p>
+
+        <h3>2.2 推荐：构造器注入</h3>
+        <pre><code class="language-java">@Service
+public class OrderService {
+    private final InventoryClient inventoryClient;
+    private final PaymentClient paymentClient;
+
+    public OrderService(InventoryClient inventoryClient, PaymentClient paymentClient) {
+        this.inventoryClient = inventoryClient;
+        this.paymentClient = paymentClient;
+    }
+
+    public void createOrder(OrderCommand command) {
+        inventoryClient.lock(command.skuId(), command.count());
+        paymentClient.prePay(command.userId(), command.amount());
+    }
+}</code></pre>
+
+        <h3>2.3 多实现注入：按名称或 @Qualifier</h3>
+        <pre><code class="language-java">public interface SmsSender {
+    void send(String phone, String text);
+}
+
+@Component("aliyunSmsSender")
+class AliyunSmsSender implements SmsSender {
+    public void send(String phone, String text) {}
+}
+
+@Component("tencentSmsSender")
+class TencentSmsSender implements SmsSender {
+    public void send(String phone, String text) {}
+}
+
+@Service
+class LoginService {
+    private final SmsSender smsSender;
+
+    LoginService(@Qualifier("aliyunSmsSender") SmsSender smsSender) {
+        this.smsSender = smsSender;
+    }
+}</code></pre>
+
+        <h3>2.4 配置属性绑定</h3>
+        <pre><code class="language-java">@ConfigurationProperties(prefix = "pay")
+public record PayProperties(
+    String appId,
+    String secret,
+    Duration timeout
+) {}
+
+@Configuration
+@EnableConfigurationProperties(PayProperties.class)
+class PayConfig {
+}</code></pre>
+        <div class="note">
+          <b>构造器注入为什么推荐：</b>依赖不可变、必需依赖一眼可见、便于单元测试，也能更早暴露循环依赖。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="bean">
+        <h2>3. Bean 生命周期：从 BeanDefinition 到可用对象</h2>
+        <p class="lead">Bean 生命周期是 Spring 面试的骨架题。你不需要背每个扩展点的源码行号，但要讲出主流程和关键扩展点。</p>
+        <ol>
+          <li>扫描配置，生成 `BeanDefinition`。</li>
+          <li>实例化 Bean：构造器或工厂方法。</li>
+          <li>属性填充：依赖注入。</li>
+          <li>执行 Aware 回调：如 `BeanNameAware`、`ApplicationContextAware`。</li>
+          <li>执行 `BeanPostProcessor#postProcessBeforeInitialization`。</li>
+          <li>初始化：`@PostConstruct`、`InitializingBean`、`init-method`。</li>
+          <li>执行 `BeanPostProcessor#postProcessAfterInitialization`，AOP 代理常在这里生成。</li>
+          <li>容器关闭时销毁：`@PreDestroy`、`DisposableBean`、`destroy-method`。</li>
+        </ol>
+
+        <h3>生命周期示例</h3>
+        <pre><code class="language-java">@Component
+public class ReportClient implements InitializingBean, DisposableBean {
+    @PostConstruct
+    public void postConstruct() {
+        System.out.println("1. @PostConstruct");
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        System.out.println("2. afterPropertiesSet");
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        System.out.println("3. @PreDestroy");
+    }
+
+    @Override
+    public void destroy() {
+        System.out.println("4. destroy");
+    }
+}</code></pre>
+
+        <h3>BeanPostProcessor：统一增强 Bean</h3>
+        <pre><code class="language-java">@Component
+public class ClientLogBeanPostProcessor implements BeanPostProcessor {
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
+        if (beanName.endsWith("Client")) {
+            System.out.println("client bean ready: " + beanName);
+        }
+        return bean;
+    }
+}</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="aop">
+        <h2>4. AOP 与代理：横切逻辑不要散落业务代码</h2>
+        <p class="lead">AOP 适合日志、监控、事务、权限、幂等、限流等横切逻辑。Spring AOP 基于代理，默认只拦截 Spring Bean 的方法调用。</p>
+
+        <h3>4.1 自定义耗时日志切面</h3>
+        <pre><code class="language-java">@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CostLog {
+}
+
+@Aspect
+@Component
+public class CostLogAspect {
+    @Around("@annotation(CostLog)")
+    public Object logCost(ProceedingJoinPoint pjp) throws Throwable {
+        long start = System.currentTimeMillis();
+        try {
+            return pjp.proceed();
+        } finally {
+            long cost = System.currentTimeMillis() - start;
+            System.out.println(pjp.getSignature() + " cost " + cost + "ms");
+        }
+    }
+}</code></pre>
+
+        <h3>4.2 使用</h3>
+        <pre><code class="language-java">@Service
+public class PricingService {
+    @CostLog
+    public BigDecimal calculatePrice(Long skuId) {
+        return BigDecimal.TEN;
+    }
+}</code></pre>
+
+        <h3>4.3 AOP 失效场景</h3>
+        <table>
+          <thead><tr><th>场景</th><th>为什么</th><th>处理</th></tr></thead>
+          <tbody>
+            <tr><td>同类内部方法调用</td><td>`this.method()` 没走代理对象</td><td>拆到另一个 Bean，或通过代理调用</td></tr>
+            <tr><td>方法不是 public</td><td>代理拦截能力受限</td><td>把切点方法设计为 public</td></tr>
+            <tr><td>对象不是 Spring Bean</td><td>容器没机会生成代理</td><td>交给 Spring 管理</td></tr>
+            <tr><td>final 类或 final 方法</td><td>CGLIB 无法覆盖 final 方法</td><td>避免 final 或改设计</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <b>代理选择：</b>有接口时可用 JDK 动态代理；没有接口时通常用 CGLIB 生成子类代理。Spring Boot 默认更倾向使用类代理以减少接口限制，但机制仍是代理。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="transaction">
+        <h2>5. 事务机制：@Transactional 的边界和坑</h2>
+        <p class="lead">Spring 声明式事务本质上也是 AOP 代理：方法执行前开启事务，成功提交，异常回滚。它的坑基本都来自“没走代理”和“异常规则不符合预期”。</p>
+
+        <h3>5.1 正确的下单事务边界</h3>
+        <pre><code class="language-java">@Service
+public class OrderApplicationService {
+    private final OrderRepository orderRepository;
+    private final OutboxRepository outboxRepository;
+
+    public OrderApplicationService(OrderRepository orderRepository,
+                                   OutboxRepository outboxRepository) {
+        this.orderRepository = orderRepository;
+        this.outboxRepository = outboxRepository;
+    }
+
+    @Transactional
+    public Long createOrder(CreateOrderCommand command) {
+        Order order = Order.create(command.userId(), command.items());
+        orderRepository.save(order);
+
+        OutboxMessage message = OutboxMessage.of(
+            "OrderCreated",
+            order.getId().toString(),
+            JsonUtils.toJson(new OrderCreatedEvent(order.getId()))
+        );
+        outboxRepository.save(message);
+        return order.getId();
+    }
+}</code></pre>
+        <p>业务表和 outbox 消息表同事务提交，避免“订单成功但消息没发出去”。消息投递由后台任务或 CDC 异步完成。</p>
+
+        <h3>5.2 事务传播</h3>
+        <table>
+          <thead><tr><th>传播行为</th><th>含义</th><th>常见使用</th></tr></thead>
+          <tbody>
+            <tr><td>REQUIRED</td><td>有事务就加入，没有就新建</td><td>默认，最常见</td></tr>
+            <tr><td>REQUIRES_NEW</td><td>挂起外层事务，新建独立事务</td><td>审计日志、独立流水，但要谨慎</td></tr>
+            <tr><td>NESTED</td><td>嵌套事务，依赖保存点</td><td>局部回滚</td></tr>
+            <tr><td>SUPPORTS</td><td>有事务就加入，没有就非事务执行</td><td>只读查询可见</td></tr>
+            <tr><td>MANDATORY</td><td>必须存在事务，否则报错</td><td>强制上游控制事务</td></tr>
+          </tbody>
+        </table>
+
+        <h3>5.3 常见失效</h3>
+        <pre><code class="language-java">@Service
+public class UserService {
+    public void outer() {
+        inner(); // 同类内部调用，没走代理，事务可能不生效
+    }
+
+    @Transactional
+    public void inner() {
+        // update db
+    }
+}</code></pre>
+
+        <h3>5.4 异常回滚规则</h3>
+        <pre><code class="language-java">@Transactional(rollbackFor = Exception.class)
+public void importData(MultipartFile file) throws IOException {
+    // 默认只对 RuntimeException 和 Error 回滚
+    // 如果要 checked exception 回滚，需要 rollbackFor
+}</code></pre>
+
+        <h3>5.5 事务里不要做什么</h3>
+        <ul>
+          <li>不要在事务内做长时间 RPC，容易拖长锁持有时间。</li>
+          <li>不要在事务内发不可回滚的外部消息，优先 outbox。</li>
+          <li>不要吞掉异常后还期待事务回滚。</li>
+          <li>不要把过大的批处理放进一个大事务。</li>
+        </ul>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="boot">
+        <h2>6. Spring Boot 自动配置：约定优于配置</h2>
+        <p class="lead">Spring Boot 的价值是用 starter、自动配置、外部化配置和 Actuator 快速搭建生产级应用。官方描述里强调“stand-alone、production-grade、opinionated、minimum fuss”。</p>
+
+        <h3>6.1 自动配置大致流程</h3>
+        <ol>
+          <li>`@SpringBootApplication` 组合了配置类、组件扫描和自动配置能力。</li>
+          <li>Boot 读取自动配置候选类。</li>
+          <li>通过 `@ConditionalOnClass`、`@ConditionalOnMissingBean`、`@ConditionalOnProperty` 等条件判断是否生效。</li>
+          <li>如果 classpath、配置属性、已有 Bean 满足条件，就注册默认 Bean。</li>
+          <li>用户自己定义 Bean 时，通常通过 `@ConditionalOnMissingBean` 覆盖默认配置。</li>
+        </ol>
+
+        <h3>6.2 自定义 starter 思路</h3>
+        <pre><code class="language-java">@ConfigurationProperties(prefix = "audit")
+public record AuditProperties(boolean enabled, String appName) {}
+
+public class AuditClient {
+    private final AuditProperties properties;
+
+    public AuditClient(AuditProperties properties) {
+        this.properties = properties;
+    }
+
+    public void send(String action) {
+        System.out.println(properties.appName() + ":" + action);
+    }
+}</code></pre>
+
+        <pre><code class="language-java">@AutoConfiguration
+@EnableConfigurationProperties(AuditProperties.class)
+@ConditionalOnProperty(prefix = "audit", name = "enabled", havingValue = "true")
+public class AuditAutoConfiguration {
+    @Bean
+    @ConditionalOnMissingBean
+    public AuditClient auditClient(AuditProperties properties) {
+        return new AuditClient(properties);
+    }
+}</code></pre>
+
+        <h3>6.3 自动配置常用条件</h3>
+        <table>
+          <thead><tr><th>条件注解</th><th>含义</th><th>例子</th></tr></thead>
+          <tbody>
+            <tr><td>@ConditionalOnClass</td><td>classpath 有某个类才生效</td><td>有 Redis 客户端才配 Redis</td></tr>
+            <tr><td>@ConditionalOnMissingBean</td><td>用户没自定义 Bean 才生效</td><td>默认 ObjectMapper</td></tr>
+            <tr><td>@ConditionalOnProperty</td><td>配置开关满足才生效</td><td>feature.enabled=true</td></tr>
+            <tr><td>@ConditionalOnWebApplication</td><td>Web 应用才生效</td><td>MVC 配置</td></tr>
+          </tbody>
+        </table>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="mvc">
+        <h2>7. Spring MVC：请求如何到 Controller</h2>
+        <p class="lead">MVC 面试按 DispatcherServlet 主线讲：请求进来，找 Handler，执行拦截器，参数解析，调用 Controller，返回值处理，视图或 JSON 输出。</p>
+        <div class="pipeline">
+          <div class="step"><b>入口</b><span>DispatcherServlet 接收请求。</span></div>
+          <div class="step"><b>映射</b><span>HandlerMapping 找到 Controller 方法。</span></div>
+          <div class="step"><b>适配</b><span>HandlerAdapter 负责调用方法。</span></div>
+          <div class="step"><b>参数</b><span>ArgumentResolver 解析路径、请求体、参数。</span></div>
+          <div class="step"><b>返回</b><span>ReturnValueHandler 处理 JSON、视图、响应体。</span></div>
+          <div class="step"><b>异常</b><span>ExceptionHandler / ControllerAdvice 统一处理。</span></div>
+        </div>
+
+        <h3>统一响应和异常处理</h3>
+        <pre><code class="language-java">public record ApiResult&lt;T&gt;(int code, String message, T data) {
+    public static &lt;T&gt; ApiResult&lt;T&gt; ok(T data) {
+        return new ApiResult&lt;&gt;(0, "ok", data);
+    }
+
+    public static &lt;T&gt; ApiResult&lt;T&gt; fail(String message) {
+        return new ApiResult&lt;&gt;(500, message, null);
+    }
+}
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    @ExceptionHandler(BizException.class)
+    public ApiResult&lt;Void&gt; handleBiz(BizException e) {
+        return ApiResult.fail(e.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ApiResult&lt;Void&gt; handleUnknown(Exception e) {
+        return ApiResult.fail("system error");
+    }
+}</code></pre>
+
+        <h3>拦截器实战：traceId</h3>
+        <pre><code class="language-java">@Component
+public class TraceInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request,
+                             HttpServletResponse response,
+                             Object handler) {
+        String traceId = Optional.ofNullable(request.getHeader("X-Trace-Id"))
+            .orElse(UUID.randomUUID().toString());
+        MDC.put("traceId", traceId);
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request,
+                                HttpServletResponse response,
+                                Object handler,
+                                Exception ex) {
+        MDC.clear();
+    }
+}</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="data">
+        <h2>8. 数据访问：Repository、事务和查询边界</h2>
+        <p class="lead">Spring Data JPA / MyBatis / JdbcTemplate 都能用，关键是分清 Repository、Service、事务和 DTO 边界。</p>
+        <div class="grid-3">
+          <div class="box">
+            <h3>Repository</h3>
+            <p>封装数据访问，不放业务流程。接口可以是 JPA Repository、MyBatis Mapper 或自定义 DAO。</p>
+          </div>
+          <div class="box">
+            <h3>Service</h3>
+            <p>承载业务事务、领域规则、调用编排。`@Transactional` 通常放在应用服务层。</p>
+          </div>
+          <div class="box">
+            <h3>Controller</h3>
+            <p>处理 HTTP 参数和响应，不直接写复杂业务和事务。</p>
+          </div>
+        </div>
+
+        <h3>分页查询案例</h3>
+        <pre><code class="language-java">@RestController
+@RequestMapping("/orders")
+public class OrderController {
+    private final OrderQueryService orderQueryService;
+
+    public OrderController(OrderQueryService orderQueryService) {
+        this.orderQueryService = orderQueryService;
+    }
+
+    @GetMapping
+    public Page&lt;OrderView&gt; page(@RequestParam Long userId,
+                                @PageableDefault(size = 20) Pageable pageable) {
+        return orderQueryService.pageUserOrders(userId, pageable);
+    }
+}</code></pre>
+        <pre><code class="language-java">@Service
+public class OrderQueryService {
+    private final OrderRepository orderRepository;
+
+    public OrderQueryService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public Page&lt;OrderView&gt; pageUserOrders(Long userId, Pageable pageable) {
+        return orderRepository.findByUserId(userId, pageable)
+            .map(order -> new OrderView(order.getId(), order.getStatus(), order.getAmount()));
+    }
+}</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="patterns">
+        <h2>9. Spring 里的设计模式</h2>
+        <p class="lead">Spring 本身就是设计模式的大型实战场：容器是工厂，AOP 是代理，JdbcTemplate 是模板方法，ApplicationEvent 是观察者，BeanPostProcessor 是责任链味道的扩展点。</p>
+        <table>
+          <thead><tr><th>设计模式</th><th>Spring 体现</th><th>实战用法</th></tr></thead>
+          <tbody>
+            <tr><td>工厂模式</td><td>BeanFactory、ApplicationContext、FactoryBean</td><td>统一创建对象，屏蔽实例化细节</td></tr>
+            <tr><td>单例模式</td><td>默认 singleton Bean</td><td>无状态 Service 单例复用</td></tr>
+            <tr><td>代理模式</td><td>AOP、事务、缓存、安全</td><td>不改业务代码增强能力</td></tr>
+            <tr><td>模板方法</td><td>JdbcTemplate、RedisTemplate、RestTemplate</td><td>固定资源管理流程，开放业务回调</td></tr>
+            <tr><td>策略模式</td><td>注入 `Map&lt;String, Handler&gt;`</td><td>多支付渠道、多消息处理器</td></tr>
+            <tr><td>观察者模式</td><td>ApplicationEventPublisher / Listener</td><td>订单创建后发通知、积分、日志</td></tr>
+            <tr><td>适配器模式</td><td>HandlerAdapter</td><td>MVC 适配不同 Handler 调用方式</td></tr>
+            <tr><td>责任链模式</td><td>Filter、Interceptor、BeanPostProcessor 链</td><td>请求链路、校验链、审批链</td></tr>
+          </tbody>
+        </table>
+
+        <h3>FactoryBean 示例</h3>
+        <pre><code class="language-java">@Component
+public class RemoteClientFactoryBean implements FactoryBean&lt;RemoteClient&gt; {
+    @Override
+    public RemoteClient getObject() {
+        return new RemoteClient("https://api.example.com");
+    }
+
+    @Override
+    public Class&lt;?&gt; getObjectType() {
+        return RemoteClient.class;
+    }
+}</code></pre>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="case-order">
+        <h2>10. 实战案例：订单下单服务怎么设计</h2>
+        <p class="lead">目标：下单要落库、扣库存、发消息、可追踪、失败可补偿。核心原则是短事务、状态机、outbox、幂等。</p>
+
+        <h3>10.1 Controller 只做入口</h3>
+        <pre><code class="language-java">@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    private final OrderApplicationService orderService;
+
+    public OrderController(OrderApplicationService orderService) {
+        this.orderService = orderService;
+    }
+
+    @PostMapping
+    public ApiResult&lt;Long&gt; create(@Valid @RequestBody CreateOrderCommand command) {
+        return ApiResult.ok(orderService.createOrder(command));
+    }
+}</code></pre>
+
+        <h3>10.2 Service 控制事务边界</h3>
+        <pre><code class="language-java">@Service
+public class OrderApplicationService {
+    private final InventoryService inventoryService;
+    private final OrderRepository orderRepository;
+    private final OutboxRepository outboxRepository;
+
+    public OrderApplicationService(InventoryService inventoryService,
+                                   OrderRepository orderRepository,
+                                   OutboxRepository outboxRepository) {
+        this.inventoryService = inventoryService;
+        this.orderRepository = orderRepository;
+        this.outboxRepository = outboxRepository;
+    }
+
+    @Transactional
+    public Long createOrder(CreateOrderCommand command) {
+        inventoryService.lockStock(command.skuId(), command.count());
+
+        Order order = Order.create(command.userId(), command.skuId(), command.count());
+        orderRepository.save(order);
+
+        outboxRepository.save(OutboxMessage.orderCreated(order.getId()));
+        return order.getId();
+    }
+}</code></pre>
+
+        <h3>10.3 Outbox 后台投递</h3>
+        <pre><code class="language-java">@Component
+public class OutboxPublisher {
+    private final OutboxRepository outboxRepository;
+    private final MessageClient messageClient;
+
+    public OutboxPublisher(OutboxRepository outboxRepository, MessageClient messageClient) {
+        this.outboxRepository = outboxRepository;
+        this.messageClient = messageClient;
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void publish() {
+        List&lt;OutboxMessage&gt; messages = outboxRepository.findPending(100);
+        for (OutboxMessage message : messages) {
+            try {
+                messageClient.send(message.topic(), message.body());
+                outboxRepository.markSent(message.id());
+            } catch (Exception e) {
+                outboxRepository.markFailed(message.id(), e.getMessage());
+            }
+        }
+    }
+}</code></pre>
+
+        <div class="note">
+          <b>这个案例里用到的模式：</b>Service Layer、Repository、状态机、Outbox、模板式调度、事务代理。面试可以把它和 MQ 可靠性、幂等、补偿一起讲。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="case-strategy">
+        <h2>11. 实战案例：支付渠道策略模式</h2>
+        <p class="lead">多渠道支付别写一堆 if/else。让每个支付渠道实现同一个接口，Spring 自动注入成 `Map`，路由时按渠道选择策略。</p>
+
+        <h3>11.1 策略接口</h3>
+        <pre><code class="language-java">public interface PayStrategy {
+    String channel();
+    PayResult pay(PayCommand command);
+}</code></pre>
+
+        <h3>11.2 两个实现</h3>
+        <pre><code class="language-java">@Component
+public class AlipayStrategy implements PayStrategy {
+    @Override
+    public String channel() {
+        return "ALIPAY";
+    }
+
+    @Override
+    public PayResult pay(PayCommand command) {
+        return PayResult.success("alipay-trade-no");
+    }
+}
+
+@Component
+public class WechatPayStrategy implements PayStrategy {
+    @Override
+    public String channel() {
+        return "WECHAT";
+    }
+
+    @Override
+    public PayResult pay(PayCommand command) {
+        return PayResult.success("wechat-trade-no");
+    }
+}</code></pre>
+
+        <h3>11.3 路由器</h3>
+        <pre><code class="language-java">@Service
+public class PayRouter {
+    private final Map&lt;String, PayStrategy&gt; strategies;
+
+    public PayRouter(List&lt;PayStrategy&gt; strategyList) {
+        this.strategies = strategyList.stream()
+            .collect(Collectors.toUnmodifiableMap(PayStrategy::channel, Function.identity()));
+    }
+
+    public PayResult pay(PayCommand command) {
+        PayStrategy strategy = strategies.get(command.channel());
+        if (strategy == null) {
+            throw new BizException("unsupported pay channel: " + command.channel());
+        }
+        return strategy.pay(command);
+    }
+}</code></pre>
+
+        <h3>11.4 为什么比 if/else 好</h3>
+        <ul>
+          <li>新增渠道只新增一个策略类，不改核心路由逻辑。</li>
+          <li>每个渠道可独立测试、独立配置、独立降级。</li>
+          <li>符合开闭原则，也方便按渠道做 AOP 监控。</li>
+        </ul>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="case-event">
+        <h2>12. 实战案例：ApplicationEvent 做领域事件解耦</h2>
+        <p class="lead">订单创建后可能要发优惠券、加积分、发通知、写审计。不要把这些都塞进下单主流程，可以用事件解耦；强可靠跨进程仍优先 MQ/outbox。</p>
+
+        <h3>12.1 发布事件</h3>
+        <pre><code class="language-java">public record OrderCreatedEvent(Long orderId, Long userId) {}
+
+@Service
+public class OrderDomainService {
+    private final ApplicationEventPublisher publisher;
+
+    public OrderDomainService(ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
+
+    @Transactional
+    public Long createOrder(CreateOrderCommand command) {
+        Long orderId = saveOrder(command);
+        publisher.publishEvent(new OrderCreatedEvent(orderId, command.userId()));
+        return orderId;
+    }
+}</code></pre>
+
+        <h3>12.2 事务提交后再处理</h3>
+        <pre><code class="language-java">@Component
+public class CouponListener {
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onOrderCreated(OrderCreatedEvent event) {
+        // 只有下单事务提交成功后才发券
+        System.out.println("send coupon to user " + event.userId());
+    }
+}</code></pre>
+
+        <h3>12.3 异步监听</h3>
+        <pre><code class="language-java">@Configuration
+@EnableAsync
+class AsyncConfig {
+}
+
+@Component
+public class NotifyListener {
+    @Async
+    @EventListener
+    public void notifyUser(OrderCreatedEvent event) {
+        // 异步发送通知
+    }
+}</code></pre>
+
+        <div class="note">
+          <b>注意：</b>Spring 本地事件只在当前进程内可靠。跨服务、强可靠通知要用 MQ/outbox；本地事件适合进程内模块解耦。
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="case-cache">
+        <h2>13. 实战案例：缓存、幂等与切面</h2>
+        <p class="lead">Spring 的缓存抽象适合读多写少；幂等可以用 AOP 包装接口入参和业务 key，统一做重复提交控制。</p>
+
+        <h3>13.1 Cacheable 查询缓存</h3>
+        <pre><code class="language-java">@Service
+public class ProductQueryService {
+    private final ProductRepository productRepository;
+
+    public ProductQueryService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    @Cacheable(cacheNames = "product", key = "#skuId", unless = "#result == null")
+    public ProductView getProduct(Long skuId) {
+        return productRepository.findBySkuId(skuId)
+            .map(ProductView::from)
+            .orElse(null);
+    }
+
+    @CacheEvict(cacheNames = "product", key = "#skuId")
+    public void updateProduct(Long skuId, UpdateProductCommand command) {
+        productRepository.update(skuId, command);
+    }
+}</code></pre>
+
+        <h3>13.2 幂等注解</h3>
+        <pre><code class="language-java">@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Idempotent {
+    String key();
+    long ttlSeconds() default 10;
+}</code></pre>
+
+        <h3>13.3 幂等切面</h3>
+        <pre><code class="language-java">@Aspect
+@Component
+public class IdempotentAspect {
+    private final StringRedisTemplate redisTemplate;
+
+    public IdempotentAspect(StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
+    @Around("@annotation(idempotent)")
+    public Object around(ProceedingJoinPoint pjp, Idempotent idempotent) throws Throwable {
+        String key = parseKey(pjp, idempotent.key());
+        Boolean success = redisTemplate.opsForValue()
+            .setIfAbsent(key, "1", Duration.ofSeconds(idempotent.ttlSeconds()));
+        if (!Boolean.TRUE.equals(success)) {
+            throw new BizException("duplicate request");
+        }
+        return pjp.proceed();
+    }
+
+    private String parseKey(ProceedingJoinPoint pjp, String expression) {
+        return "idem:" + expression;
+    }
+}</code></pre>
+
+        <h3>13.4 使用</h3>
+        <pre><code class="language-java">@PostMapping("/pay")
+@Idempotent(key = "#request.requestId", ttlSeconds = 30)
+public ApiResult&lt;PayResult&gt; pay(@RequestBody PayRequest request) {
+    return ApiResult.ok(payService.pay(request));
+}</code></pre>
+        <p>真实项目里 `parseKey` 应使用 SpEL 解析参数，并根据业务决定是否在失败时释放幂等 key。</p>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="testing">
+        <h2>14. 测试与可观测：别只会启动项目</h2>
+        <h3>14.1 单元测试：mock 依赖</h3>
+        <pre><code class="language-java">@ExtendWith(MockitoExtension.class)
+class PayRouterTest {
+    @Test
+    void should_route_to_alipay() {
+        PayStrategy alipay = mock(PayStrategy.class);
+        when(alipay.channel()).thenReturn("ALIPAY");
+        when(alipay.pay(any())).thenReturn(PayResult.success("trade"));
+
+        PayRouter router = new PayRouter(List.of(alipay));
+        PayResult result = router.pay(new PayCommand("ALIPAY", BigDecimal.TEN));
+
+        assertTrue(result.success());
+    }
+}</code></pre>
+
+        <h3>14.2 Web 层测试</h3>
+        <pre><code class="language-java">@WebMvcTest(OrderController.class)
+class OrderControllerTest {
+    @Autowired
+    MockMvc mockMvc;
+
+    @MockBean
+    OrderApplicationService orderService;
+
+    @Test
+    void should_create_order() throws Exception {
+        when(orderService.createOrder(any())).thenReturn(1L);
+
+        mockMvc.perform(post("/api/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"userId\":1,\"skuId\":2,\"count\":1}"))
+            .andExpect(status().isOk());
+    }
+}</code></pre>
+
+        <h3>14.3 生产可观测</h3>
+        <ul>
+          <li>Actuator 暴露 health、metrics、prometheus、loggers 等端点。</li>
+          <li>Micrometer 统一指标采集，接 Prometheus/Grafana。</li>
+          <li>日志带 traceId，异常统一处理，慢 SQL 和慢接口要告警。</li>
+          <li>关键线程池、连接池、缓存命中率、事务耗时要监控。</li>
+        </ul>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="interview">
+        <h2>15. 高频面试回答模板</h2>
+        <details open>
+          <summary>Q1：Spring IoC 是什么？</summary>
+          <div>IoC 是控制反转，对象不再自己创建依赖，而是由 Spring 容器负责创建、装配和管理生命周期。DI 是实现 IoC 的主要方式，Spring 通过构造器、setter、字段等方式把依赖注入 Bean。这样可以降低耦合、方便替换实现、测试和做 AOP 增强。</div>
+        </details>
+        <details>
+          <summary>Q2：Bean 生命周期怎么讲？</summary>
+          <div>先把配置解析成 BeanDefinition，然后实例化 Bean，填充属性，执行 Aware 回调，执行 BeanPostProcessor 前置处理，执行初始化方法，比如 @PostConstruct 和 InitializingBean，再执行 BeanPostProcessor 后置处理，AOP 代理通常在后置处理阶段生成。容器关闭时执行销毁回调。</div>
+        </details>
+        <details>
+          <summary>Q3：@Transactional 为什么会失效？</summary>
+          <div>因为声明式事务基于代理。常见失效包括同类内部方法调用没走代理、方法不是 public、对象不是 Spring Bean、异常被吞掉、默认 checked exception 不回滚、数据库引擎不支持事务、异步线程里事务上下文不传播等。</div>
+        </details>
+        <details>
+          <summary>Q4：Spring Boot 自动配置原理？</summary>
+          <div>Boot 根据 classpath、配置属性、已有 Bean、Web 环境等条件判断是否注册默认 Bean。它通过 starter 引入依赖，通过自动配置类提供默认配置，通过条件注解控制是否生效。用户自定义 Bean 时，很多默认配置会因为 @ConditionalOnMissingBean 而让位。</div>
+        </details>
+        <details>
+          <summary>Q5：Spring 用到了哪些设计模式？</summary>
+          <div>BeanFactory/ApplicationContext 是工厂模式，默认 singleton Bean 体现单例，AOP 和事务是代理模式，JdbcTemplate 是模板方法，ApplicationEvent 是观察者，HandlerAdapter 是适配器，Filter/Interceptor 是责任链，业务多渠道处理常用策略模式。</div>
+        </details>
+        <details>
+          <summary>Q6：如何设计多支付渠道？</summary>
+          <div>定义 PayStrategy 接口，每个渠道实现一个策略 Bean。启动时注入 List 或 Map，构建 channel 到 strategy 的映射。支付时根据渠道路由到对应策略。这样新增渠道只加实现类，不改核心流程，也方便按渠道做监控、降级和测试。</div>
+        </details>
+        <details>
+          <summary>Q7：本地事件和 MQ 怎么选？</summary>
+          <div>Spring ApplicationEvent 适合进程内模块解耦，比如订单创建后本应用内发通知、写审计。跨服务或强可靠场景不要只靠本地事件，应该用 MQ 或 outbox，保证消息可重试、可追踪、可补偿。</div>
+        </details>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="quiz">
+        <h2>16. 自测题</h2>
+        <div class="quiz" data-answer="b">
+          <p><b>1. Spring 声明式事务的底层核心机制是什么？</b></p>
+          <button data-choice="a">字节码解释器</button>
+          <button data-choice="b">AOP 代理</button>
+          <button data-choice="c">数据库触发器</button>
+        </div>
+        <div class="quiz" data-answer="a">
+          <p><b>2. 构造器注入的优势是？</b></p>
+          <button data-choice="a">依赖明确、不可变、便于测试</button>
+          <button data-choice="b">可以隐藏所有依赖</button>
+          <button data-choice="c">一定能解决所有循环依赖</button>
+        </div>
+        <div class="quiz" data-answer="c">
+          <p><b>3. 多支付渠道最适合用哪个业务设计模式？</b></p>
+          <button data-choice="a">单例模式</button>
+          <button data-choice="b">装饰器模式</button>
+          <button data-choice="c">策略模式</button>
+        </div>
+        <div class="quiz" data-answer="b">
+          <p><b>4. 下单成功后可靠发 MQ，推荐哪种模式？</b></p>
+          <button data-choice="a">事务里直接 HTTP 调 MQ 后不管结果</button>
+          <button data-choice="b">本地消息表 / Outbox</button>
+          <button data-choice="c">只用本地变量保存消息</button>
+        </div>
+        <div class="quiz" data-answer="a">
+          <p><b>5. Spring MVC 的统一入口是谁？</b></p>
+          <button data-choice="a">DispatcherServlet</button>
+          <button data-choice="b">BeanFactory</button>
+          <button data-choice="c">JdbcTemplate</button>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
+      <section id="sources">
+        <h2>资料来源</h2>
+        <ul>
+          <li><a href="https://docs.spring.io/spring-framework/reference/index.html" target="_blank" rel="noreferrer">Spring Framework Reference Documentation</a></li>
+          <li><a href="https://docs.spring.io/spring-framework/reference/core.html" target="_blank" rel="noreferrer">Spring Core Technologies</a></li>
+          <li><a href="https://docs.spring.io/spring-boot/index.html" target="_blank" rel="noreferrer">Spring Boot Documentation</a></li>
+          <li><a href="https://docs.spring.io/spring-boot/system-requirements.html" target="_blank" rel="noreferrer">Spring Boot System Requirements</a></li>
+          <li><a href="https://spring.io/projects/spring-boot" target="_blank" rel="noreferrer">Spring Boot Project Page</a></li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll(".quiz").forEach((quiz) => {
+      const answer = quiz.dataset.answer;
+      quiz.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          quiz.querySelectorAll("button").forEach((item) => {
+            item.classList.remove("correct", "wrong");
+          });
+          button.classList.add(button.dataset.choice === answer ? "correct" : "wrong");
+        });
+      });
+    });
+  </script>
+</body>
+</html>
