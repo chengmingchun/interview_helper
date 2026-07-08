@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>贪心算法面试专题</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --green: #3e7b4f;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div, aside { min-width: 0; }
+    button, textarea, select { font: inherit; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .layout > aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.82);
+      overflow: auto;
+    }
+
+    .brand {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+
+    .back {
+      display: inline-flex;
+      margin-top: 12px;
+      color: var(--accent-2);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    nav { display: grid; gap: 8px; }
+
+    nav button,
+    .chip,
+    .ghost,
+    .answer-toggle {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.68);
+      cursor: pointer;
+    }
+
+    nav button {
+      padding: 10px 12px;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    nav button.active,
+    .chip.active {
+      color: var(--accent-2);
+      border-color: rgba(216, 101, 42, 0.45);
+      background: var(--accent-soft);
+    }
+
+    main {
+      width: min(1180px, 100%);
+      padding: 34px 36px 56px;
+    }
+
+    .hero,
+    .card,
+    .quiz-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero { padding: 30px; margin-bottom: 28px; }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 18px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 960px;
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 5.8vw, 62px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-head p,
+    .card-head p { margin: 0; color: var(--muted); }
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .card { overflow: hidden; }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 26px 18px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .card-head h3 { margin: 0 0 6px; font-size: 25px; line-height: 1.2; }
+
+    .badge {
+      display: inline-flex;
+      height: 28px;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .source {
+      display: inline-flex;
+      margin-top: 10px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: var(--green);
+      background: rgba(62, 123, 79, 0.12);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 26px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .chip { padding: 8px 11px; color: var(--muted); }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      padding: 22px 26px 26px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel p { margin: 0 0 13px; }
+    .panel li { margin: 8px 0; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 6px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .side { display: grid; gap: 12px; align-self: start; }
+
+    .box {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.7);
+    }
+
+    .box h4 { margin: 0 0 8px; font-size: 16px; }
+    .box p { margin: 0; color: var(--muted); }
+
+    .drill {
+      padding: 12px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+    }
+
+    .answer {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent-soft);
+    }
+
+    .answer.show { display: block; }
+    .answer-toggle, .ghost { padding: 9px 11px; margin-top: 10px; }
+
+    .practice,
+    .playground { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .read-card {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .read-card div,
+    .trace-line {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.62);
+    }
+
+    .read-card b,
+    .trace-line b { display: block; margin-bottom: 4px; }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    select {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(255, 250, 240, 0.88);
+    }
+
+    .output {
+      min-height: 160px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+    }
+
+    .trace {
+      display: grid;
+      gap: 10px;
+      max-height: 520px;
+      overflow: auto;
+    }
+
+    .quiz-card { padding: 18px; margin-bottom: 12px; box-shadow: none; }
+    .quiz-card h3 { margin: 0 0 10px; font-size: 18px; }
+
+    .option {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option.correct { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+    .option.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .card-body { grid-template-columns: minmax(0, 1fr) 300px; }
+      main { padding: 28px 24px 48px; }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .layout > aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .card-body, .practice, .playground, .read-card { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      .card-head { display: block; }
+      main { padding: 14px; }
+      .hero { padding: 20px; }
+      .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Greedy Algorithm Drill</b>
+        <span>适用场景 · 证明模板 · Java/Rust 双解</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">算法专题 / Greedy · Java · Rust · Proof</span>
+        <h1>贪心算法只用在“当前最优选择可被证明安全”的题里。</h1>
+        <p>高级写法不是把代码写玄，而是把状态压到最少、边界说到最清、证明讲到最短。Java 可以适度用 Stream，Rust 可以用 iterator / windows / sort_unstable_by_key，但有状态贪心仍然优先写清楚循环。</p>
+      </section>
+
+      <section class="section" id="knowledge">
+        <div class="section-head">
+          <h2>知识与经典题</h2>
+          <p>每张卡都给出题源、读题信号、证明思路，以及 Java/Rust 的简洁实现。</p>
+        </div>
+        <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="playground">
+        <div class="section-head">
+          <h2>交互推演台</h2>
+          <p>把贪心过程一步步跑出来：你要能说清“这一刻为什么可以这么选”。</p>
+        </div>
+        <div class="playground">
+          <div class="box">
+            <h4>选择题型</h4>
+            <select id="demoType">
+              <option value="interval">无重叠区间 / 射气球</option>
+              <option value="jump">跳跃游戏 II</option>
+              <option value="gas">加油站</option>
+              <option value="partition">划分字母区间</option>
+            </select>
+            <textarea id="demoInput">[1,2],[2,3],[3,4],[1,3]</textarea>
+            <button class="ghost" id="runDemo">运行推演</button>
+          </div>
+          <div class="trace" id="demoOutput">
+            <div class="trace-line"><b>怎么用</b>选一个题型，输入示例数据，观察排序、边界、选择和跳过的全过程。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="practice">
+        <div class="section-head">
+          <h2>口述训练台</h2>
+          <p>写一段你的贪心题回答，检查是否有“适用条件 + 策略 + 证明 + 双语实现意识”。</p>
+        </div>
+        <div class="practice">
+          <div class="box">
+            <h4>你的回答</h4>
+            <textarea id="answerText" placeholder="比如：这题能用贪心，因为选择结束最早的区间是安全的。任取一个最优解，如果第一项不是它，可以交换成它，不会减少后续可选空间..."></textarea>
+            <button class="ghost" id="checkAnswer">生成检查清单</button>
+          </div>
+          <div class="output" id="answerOutput">等待你的回答。</div>
+        </div>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>自测纠错</h2>
+          <p>错了就回到对应知识卡，尤其关注“为什么能贪心”和“什么时候不能贪心”。</p>
+        </div>
+        <div id="quizList"></div>
+        <button class="ghost" id="resetQuiz">重做自测</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: "when-to-use",
+        title: "贪心算法用在什么情况",
+        tag: "适用条件",
+        intro: "不是看到最大、最小、排序就用贪心；必须能证明局部选择是安全选择。",
+        source: "方法论：贪心选型总纲",
+        problem: "面试官通常不是问“什么是贪心”，而是给一个题让你判断能不能贪心。",
+        signal: "题目出现区间选择、覆盖边界、资源匹配、局部收益可拆分时，先尝试找安全选择。",
+        pitfall: "只说“局部最优推出全局最优”不够，要能给交换论证或单调性证明。",
+        tabs: {
+          "什么时候用": `<p><b>贪心适合这类题：</b>每一步存在一个明显的“安全选择”，做完以后剩余问题仍然是同类问题，并且这个选择可以通过交换论证或单调性证明不会让答案变差。</p><ul><li><b>区间选择：</b>选最多不重叠区间、最少箭、会议安排，常按右端点排序。</li><li><b>覆盖范围：</b>维护当前能覆盖到的最远边界，例如跳跃游戏。</li><li><b>资源匹配：</b>小资源满足小需求，例如分发饼干。</li><li><b>收益拆分：</b>全局收益可拆成局部收益，例如股票 II。</li><li><b>环形亏空：</b>整体可行 + 局部失败整段跳过，例如加油站。</li></ul>`,
+          "什么时候别用": `<ul><li><b>当前选择会强烈影响后续组合：</b>0/1 背包通常要 DP。</li><li><b>币值体系不标准：</b>零钱兑换不一定能每次拿大币值，例如 1、3、4 凑 6。</li><li><b>有手续费、冷冻期、次数限制：</b>股票问题通常从贪心变 DP。</li><li><b>无法证明安全选择：</b>如果只能说“我感觉这样最好”，就不要硬贪心。</li></ul>`,
+          "证明模板": `<ol><li><b>定义策略：</b>我每一步选什么。</li><li><b>说明安全：</b>它不会比最优解差。</li><li><b>交换论证：</b>最优解没这么选，也能替换成我的选择。</li><li><b>缩小问题：</b>选完后，剩下仍是同类子问题。</li><li><b>复杂度：</b>多数是排序 O(n log n)，少数线性 O(n)。</li></ol>`
+        },
+        memory: "能贪心 = 有安全选择 + 最优子结构 + 能交换证明。",
+        drill: ["面试官问：贪心算法到底什么时候能用？", "当局部选择是安全选择，并且能证明这个选择不会让全局最优变差时才能用。常用证明是交换论证：把任意最优解中的某一步换成我的贪心选择，结果仍可行且不变差。"]
+      },
+      {
+        id: "interval",
+        title: "无重叠区间：按右端点排序",
+        tag: "区间贪心",
+        intro: "区间题最经典的安全选择：结束越早，留给后面的空间越大。",
+        source: "LeetCode 435. Non-overlapping Intervals",
+        problem: "给一组区间，删除最少数量区间，使剩余区间互不重叠。等价于保留最多不重叠区间。",
+        signal: "关键词：区间、最多保留、最少删除、不重叠。通常按右端点升序排序。",
+        pitfall: "别按开始时间排序；开始早可能结束很晚，会吞掉大量后续空间。",
+        tabs: {
+          "思路": `<p><b>适用：</b>选择最多不重叠区间，或删除最少区间使剩余不重叠。</p><ul><li>按右端点升序排序。</li><li>能接上当前 end 就保留。</li><li>答案 = 总数 - 最多可保留数量。</li><li>证明：最优解第一段如果不是结束最早的，换成结束最早的不会减少后续空间。</li></ul>`,
+          "Java": `<pre>int eraseOverlapIntervals(int[][] a) {
+    Arrays.sort(a, Comparator.comparingInt(x -&gt; x[1]));
+    int keep = 0, end = Integer.MIN_VALUE;
+    for (var x : a) if (x[0] &gt;= end) {
+        keep++;
+        end = x[1];
+    }
+    return a.length - keep;
+}</pre><p><code>Comparator.comparingInt</code> 比 <code>x[1] - y[1]</code> 更稳，避免溢出。</p>`,
+          "Rust": `<pre>fn erase_overlap_intervals(mut a: Vec&lt;Vec&lt;i32&gt;&gt;) -&gt; i32 {
+    a.sort_unstable_by_key(|x| x[1]);
+    let (mut keep, mut end) = (0, i32::MIN);
+    for x in &a {
+        if x[0] &gt;= end {
+            keep += 1;
+            end = x[1];
+        }
+    }
+    a.len() as i32 - keep
+}</pre><p><code>sort_unstable_by_key</code> 简洁、快；不要求稳定排序时优先用。</p>`
+        },
+        memory: "区间选最多：按右端点升序，结束越早越安全。",
+        drill: ["为什么不是按开始时间排序？", "开始早可能结束很晚，会占用大量空间。按结束时间最早选，能最大化后续可选区间。"]
+      },
+      {
+        id: "arrows",
+        title: "最少箭引爆气球：区间交集组",
+        tag: "区间交集",
+        intro: "每支箭放在当前组最早结束点，能覆盖多少覆盖多少。",
+        source: "LeetCode 452. Minimum Number of Arrows to Burst Balloons",
+        problem: "每个气球是一个水平区间，一支箭在 x 位置能射爆所有包含 x 的气球，求最少箭数。",
+        signal: "关键词：区间交集、最少组数、边界相接也可覆盖。仍然按右端点升序。",
+        pitfall: "新开一箭条件是 start > arrow，不是 start >= arrow，因为端点相接也能被同一箭射中。",
+        tabs: {
+          "思路": `<ul><li>按右端点升序排序。</li><li>箭射在当前气球右端点。</li><li>下个气球 start <= arrow，说明同一支箭能射爆。</li><li>start > arrow，说明必须新开一组。</li></ul>`,
+          "Java": `<pre>int findMinArrowShots(int[][] p) {
+    Arrays.sort(p, Comparator.comparingInt(x -&gt; x[1]));
+    int ans = 0;
+    long arrow = Long.MIN_VALUE;
+    for (var x : p) if (x[0] &gt; arrow) {
+        ans++;
+        arrow = x[1];
+    }
+    return ans;
+}</pre>`,
+          "Rust": `<pre>fn find_min_arrow_shots(mut p: Vec&lt;Vec&lt;i32&gt;&gt;) -&gt; i32 {
+    p.sort_unstable_by_key(|x| x[1]);
+    let (mut ans, mut arrow) = (0, i64::MIN);
+    for x in &p {
+        if x[0] as i64 &gt; arrow {
+            ans += 1;
+            arrow = x[1] as i64;
+        }
+    }
+    ans
+}</pre>`
+        },
+        memory: "箭放在最早结束点，边界相接也算覆盖，所以新箭条件是 start > arrow。",
+        drill: ["这题和无重叠区间的区别是什么？", "都按右端点排序。无重叠区间是尽量保留不相交区间；射气球是把相交区间归成一组，每组一支箭。"]
+      },
+      {
+        id: "jump",
+        title: "跳跃游戏：维护最远覆盖",
+        tag: "覆盖范围",
+        intro: "跳跃游戏的高级点：不要真的模拟跳，只维护当前层边界和下一层边界。",
+        source: "LeetCode 55 / 45. Jump Game I & II",
+        problem: "数组每个位置表示最远可跳距离，判断能否到达终点，或求到达终点的最少跳数。",
+        signal: "关键词：可达范围、最少步数、每次可向前跳若干格。把它看成 BFS 层序边界压缩。",
+        pitfall: "不要枚举所有跳法；只维护当前步数能覆盖到哪、下一步最远到哪。",
+        tabs: {
+          "思路": `<ul><li><b>能否到达：</b>维护 farthest，如果 i > farthest，说明断了。</li><li><b>最少跳数：</b>end 是当前步数能覆盖的边界，nextEnd 是下一步能覆盖的最远边界。</li><li>遍历到 end，必须增加一步，并把 end 扩到 nextEnd。</li></ul>`,
+          "Java": `<pre>int jump(int[] nums) {
+    int step = 0, end = 0, next = 0;
+    for (int i = 0; i &lt; nums.length - 1; i++) {
+        next = Math.max(next, i + nums[i]);
+        if (i == end) {
+            step++;
+            end = next;
+        }
+    }
+    return step;
+}</pre><p>这其实是 BFS 层序思想的贪心压缩版：每次走完一层就扩边界。</p>`,
+          "Rust": `<pre>fn jump(nums: Vec&lt;i32&gt;) -&gt; i32 {
+    let (mut step, mut end, mut next) = (0, 0usize, 0usize);
+    for i in 0..nums.len() - 1 {
+        next = next.max(i + nums[i] as usize);
+        if i == end {
+            step += 1;
+            end = next;
+        }
+    }
+    step
+}</pre>`
+        },
+        memory: "不是模拟跳，是维护当前可达边界和下一层最远边界。",
+        drill: ["跳跃游戏 II 为什么遍历到 n - 2？", "因为到达最后一个位置后不需要再跳。遍历到倒数第二个位置，就能决定进入最后位置的那一步。"]
+      },
+      {
+        id: "stock",
+        title: "买卖股票 II：收益拆分",
+        tag: "流式写法",
+        intro: "这类题最适合展示简洁功底：正差价累加，一行就够。",
+        source: "LeetCode 122. Best Time to Buy and Sell Stock II",
+        problem: "给每日股价，可无限次买卖，但同一时间最多持有一股，求最大利润。",
+        signal: "关键词：无限次交易、无手续费、无冷冻期。上涨段利润可拆成相邻正差价。",
+        pitfall: "如果题目加了手续费、冷冻期、交易次数限制，就不能继续正差价贪心，要转 DP。",
+        tabs: {
+          "思路": `<p><b>适用前提：</b>无限次交易、无手续费、无冷冻期、同一时间最多持有一股。</p><p>连续上涨 <code>a -> b -> c</code> 的收益 <code>c - a</code> 等于 <code>(b - a) + (c - b)</code>，所以所有相邻正差价都吃掉。</p>`,
+          "Java": `<pre>int maxProfit(int[] p) {
+    return IntStream.range(1, p.length)
+        .map(i -&gt; Math.max(0, p[i] - p[i - 1]))
+        .sum();
+}</pre><p>这才是适合 Stream 的地方：无副作用、状态局部、表达就是公式。</p>`,
+          "Rust": `<pre>fn max_profit(p: Vec&lt;i32&gt;) -&gt; i32 {
+    p.windows(2).map(|w| (w[1] - w[0]).max(0)).sum()
+}</pre><p><code>windows(2)</code> 是 Rust 写相邻差分的优雅解法。</p>`
+        },
+        memory: "无限交易吃所有正差价；有手续费/冷冻期/次数限制就转 DP。",
+        drill: ["为什么这题可以用流表达式，而跳跃游戏不建议硬用？", "股票 II 的状态是纯相邻差分，没有复杂可变边界；跳跃游戏依赖 end/next 的状态推进，强行流式会隐藏状态，反而不高级。"]
+      },
+      {
+        id: "cookies",
+        title: "分发饼干：最小资源满足最小需求",
+        tag: "双指针",
+        intro: "资源匹配类贪心：小需求先满足，小资源能用就别浪费大的。",
+        source: "LeetCode 455. Assign Cookies",
+        problem: "每个孩子有胃口值，每块饼干有尺寸；饼干尺寸 >= 胃口才能满足，求最多满足孩子数。",
+        signal: "关键词：资源匹配、最多满足、每个资源只能用一次。排序后双指针。",
+        pitfall: "别先满足大胃口；小饼干若能满足小胃口，就应该立刻用掉。",
+        tabs: {
+          "思路": `<ul><li>孩子胃口升序。</li><li>饼干尺寸升序。</li><li>当前饼干能满足当前孩子，就匹配。</li><li>不能满足，说明它也满足不了更大胃口孩子，只能丢掉。</li></ul>`,
+          "Java": `<pre>int findContentChildren(int[] g, int[] s) {
+    Arrays.sort(g);
+    Arrays.sort(s);
+    int i = 0;
+    for (int x : s) if (i &lt; g.length && x &gt;= g[i]) i++;
+    return i;
+}</pre><p>把孩子指针压成一个变量，饼干用增强 for 扫过去，干净。</p>`,
+          "Rust": `<pre>fn find_content_children(mut g: Vec&lt;i32&gt;, mut s: Vec&lt;i32&gt;) -&gt; i32 {
+    g.sort_unstable();
+    s.sort_unstable();
+    let mut i = 0;
+    for x in s {
+        if i &lt; g.len() && x &gt;= g[i] { i += 1; }
+    }
+    i as i32
+}</pre>`
+        },
+        memory: "小饼干先喂小胃口；能满足就用，不能满足就丢。",
+        drill: ["为什么不是优先满足胃口最大的孩子？", "大孩子会消耗大饼干，可能让小饼干失去用途。先满足小胃口能最大化资源利用率。"]
+      },
+      {
+        id: "gas",
+        title: "加油站：局部亏空整段跳过",
+        tag: "环形贪心",
+        intro: "这题体现代码功底的点是：总量判可行，局部 tank 判起点。",
+        source: "LeetCode 134. Gas Station",
+        problem: "环形路线上每站有 gas，去下一站消耗 cost，求能绕一圈的起点，不存在返回 -1。",
+        signal: "关键词：环形、总量可行、起点选择。total 判断是否有解，tank 负责跳过不可能起点。",
+        pitfall: "tank < 0 不是只排除当前 start，而是排除 start 到 i 的所有点。",
+        tabs: {
+          "思路": `<ul><li><b>total：</b>全局油量是否够。total < 0 必然无解。</li><li><b>tank：</b>从当前 start 出发到当前位置的剩余油量。</li><li>tank < 0 时，start 到 i 中间任何点都不可能作为起点，直接 start = i + 1。</li></ul>`,
+          "Java": `<pre>int canCompleteCircuit(int[] gas, int[] cost) {
+    int total = 0, tank = 0, start = 0;
+    for (int i = 0; i &lt; gas.length; i++) {
+        int d = gas[i] - cost[i];
+        total += d;
+        tank += d;
+        if (tank &lt; 0) {
+            start = i + 1;
+            tank = 0;
+        }
+    }
+    return total &gt;= 0 ? start : -1;
+}</pre>`,
+          "Rust": `<pre>fn can_complete_circuit(gas: Vec&lt;i32&gt;, cost: Vec&lt;i32&gt;) -&gt; i32 {
+    let (mut total, mut tank, mut start) = (0, 0, 0);
+    for (i, (&g, &c)) in gas.iter().zip(&cost).enumerate() {
+        let d = g - c;
+        total += d;
+        tank += d;
+        if tank &lt; 0 {
+            start = i + 1;
+            tank = 0;
+        }
+    }
+    if total &gt;= 0 { start as i32 } else { -1 }
+}</pre>`
+        },
+        memory: "总量不够必无解；局部亏空说明这段起点全部不行。",
+        drill: ["为什么 tank < 0 时能跳过中间所有点？", "因为从 start 到 i 整体已经亏油，中间任意点出发都少了前面的油量积累，只会更差，所以都不可能是答案。"]
+      },
+      {
+        id: "partition",
+        title: "划分字母区间：动态右边界",
+        tag: "边界合并",
+        intro: "每个字符的最后出现位置，决定当前片段至少要扩到哪里。",
+        source: "LeetCode 763. Partition Labels",
+        problem: "把字符串切成尽可能多的片段，使每个字母最多出现在一个片段中，返回每段长度。",
+        signal: "关键词：切分、字符不能跨段、尽可能多。用最后出现位置不断扩右边界。",
+        pitfall: "不能看到某个字符结束就切，要等当前片段内所有字符的最后位置都被覆盖。",
+        tabs: {
+          "思路": `<ul><li>先记录每个字符最后出现位置。</li><li>扫描字符串，维护当前片段右边界 end。</li><li>每遇到字符 c，end = max(end, last[c])。</li><li>当 i == end，说明片段内字符都不会出现在后面，可以切。</li></ul>`,
+          "Java": `<pre>List&lt;Integer&gt; partitionLabels(String s) {
+    int[] last = new int[26];
+    IntStream.range(0, s.length()).forEach(i -&gt; last[s.charAt(i) - 'a'] = i);
+    List&lt;Integer&gt; ans = new ArrayList&lt;&gt;();
+    for (int i = 0, l = 0, r = 0; i &lt; s.length(); i++) {
+        r = Math.max(r, last[s.charAt(i) - 'a']);
+        if (i == r) {
+            ans.add(r - l + 1);
+            l = i + 1;
+        }
+    }
+    return ans;
+}</pre><p>初始化 last 用 <code>IntStream.range</code> 很顺；切分部分保留循环，状态更清晰。</p>`,
+          "Rust": `<pre>fn partition_labels(s: String) -&gt; Vec&lt;i32&gt; {
+    let b = s.as_bytes();
+    let mut last = [0usize; 26];
+    for (i, &c) in b.iter().enumerate() { last[(c - b'a') as usize] = i; }
+    let (mut ans, mut l, mut r) = (vec![], 0usize, 0usize);
+    for (i, &c) in b.iter().enumerate() {
+        r = r.max(last[(c - b'a') as usize]);
+        if i == r {
+            ans.push((r - l + 1) as i32);
+            l = i + 1;
+        }
+    }
+    ans
+}</pre>`
+        },
+        memory: "字符最后位置不断扩右边界；走到边界才切一刀。",
+        drill: ["为什么 i == end 时能切分？", "因为当前片段里所有字符的最后出现位置都不超过 end，后续不会再出现这些字符，所以切断是安全的。"]
+      },
+      {
+        id: "lemonade",
+        title: "柠檬水找零：保留更通用的小面额",
+        tag: "模拟贪心",
+        intro: "这题看似简单，关键是解释为什么 20 元优先找 10 + 5。",
+        source: "LeetCode 860. Lemonade Change",
+        problem: "每杯 5 元，顾客依次付 5/10/20，初始无零钱，判断能否给所有顾客正确找零。",
+        signal: "关键词：顺序模拟、找零、局部选择。20 元找零时优先消耗用途更窄的 10。",
+        pitfall: "别优先用三个 5 找 20；5 的用途更广，应该尽量保留。",
+        tabs: {
+          "思路": `<ul><li>5 元最通用，能给 10 找零，也能给 20 找零。</li><li>10 元只能参与 20 找零。</li><li>所以收到 20 时，优先用 10 + 5，保留更多 5。</li></ul>`,
+          "Java": `<pre>boolean lemonadeChange(int[] bills) {
+    int five = 0, ten = 0;
+    for (int x : bills) {
+        if (x == 5) five++;
+        else if (x == 10 && five-- &gt; 0) ten++;
+        else if (x == 20 && ten &gt; 0 && five &gt; 0) { ten--; five--; }
+        else if (x == 20 && five &gt;= 3) five -= 3;
+        else return false;
+    }
+    return true;
+}</pre><p><code>five-- > 0</code> 很短，但面试时要主动说明它会后置递减；追求可读可改回普通 if。</p>`,
+          "Rust": `<pre>fn lemonade_change(bills: Vec&lt;i32&gt;) -&gt; bool {
+    let (mut five, mut ten) = (0, 0);
+    for x in bills {
+        match x {
+            5 =&gt; five += 1,
+            10 if five &gt; 0 =&gt; { five -= 1; ten += 1; }
+            20 if ten &gt; 0 && five &gt; 0 =&gt; { ten -= 1; five -= 1; }
+            20 if five &gt;= 3 =&gt; five -= 3,
+            _ =&gt; return false,
+        }
+    }
+    true
+}</pre><p>Rust 的 <code>match guard</code> 很适合写这种条件分派。</p>`
+        },
+        memory: "20 找零优先 10+5，因为 5 比 10 更通用。",
+        drill: ["这里的贪心选择是什么？", "收到 20 时优先用 10+5，而不是 5+5+5。因为 10 的用途更窄，先用掉它可以保留更多 5 给后续找零。"]
+      },
+      {
+        id: "template",
+        title: "面试回答模板：策略、证明、代码风格",
+        tag: "表达",
+        intro: "想体现代码功底，不是炫技，而是该短的地方短，该稳的地方稳。",
+        source: "面试表达模板",
+        problem: "把任意贪心题讲成一段有判断、有证明、有边界、有复杂度的答案。",
+        signal: "先说选型，再说策略，再说证明，最后说实现与复杂度。",
+        pitfall: "别只背代码。贪心面试最看重为什么这个局部选择不会错。",
+        tabs: {
+          "60 秒模板": `<p><b>这题我先判断能否贪心：</b>如果每一步有一个安全选择，并且选择后剩下的问题仍是同类子问题，就可以用贪心。我的策略是……；正确性可以用交换论证：任取一个最优解，如果它没有采用我的选择，把对应部分替换成我的选择，答案不变差。实现上通常先排序或维护一个边界变量，复杂度是……</p>`,
+          "代码风格": `<ul><li><b>Java：</b>排序用 <code>Comparator.comparingInt</code>，纯差分用 <code>IntStream.range</code>，复杂状态别硬 Stream。</li><li><b>Rust：</b>排序用 <code>sort_unstable_by_key</code>，相邻差分用 <code>windows(2)</code>，条件分派用 <code>match guard</code>。</li><li><b>边界：</b>区间题重点说清 <code>&gt;</code> 和 <code>&gt;=</code>；比较器避免减法溢出。</li><li><b>高级感：</b>变量少、状态准、证明短、复杂度清楚。</li></ul>`,
+          "反例": `<ul><li><b>0/1 背包：</b>不能按价值、重量、性价比简单贪心。</li><li><b>零钱兑换：</b>币值 1、3、4 凑 6，贪心 4+1+1，不如 3+3。</li><li><b>股票带手续费/冷冻期：</b>正差价累加失效，转 DP。</li></ul>`
+        },
+        memory: "高级代码 = 简洁但不藏状态；能用 Stream/iterator 时用，不能用时别硬炫。",
+        drill: ["怎么在面试里体现代码功底？", "用最贴合问题结构的表达：相邻差分用 Stream/windows，排序用 key extractor，有状态边界用清晰循环；同时主动说明边界和证明。"]
+      }
+    ];
+
+    const quizzes = [
+      ["贪心算法能用的关键条件是什么？", ["局部选择可被证明安全", "题目出现最大最小", "代码可以一行写完"], 0, "最大最小只是信号，安全选择和证明才是关键。"],
+      ["区间选择最多不重叠区间，通常按什么排序？", ["右端点升序", "左端点升序", "区间长度降序"], 0, "结束越早，后续空间越大。"],
+      ["Java 区间排序更推荐哪种写法？", ["Comparator.comparingInt(x -> x[1])", "x[1] - y[1]", "随机排序"], 0, "减法比较器可能溢出，comparingInt 更稳。"],
+      ["股票 II 适合用 Stream / windows 的原因是？", ["收益是相邻正差分的纯累加", "它有复杂可变边界", "它必须递归"], 0, "无复杂状态时，函数式写法清晰且短。"],
+      ["跳跃游戏 II 的核心不是模拟跳，而是维护什么？", ["当前边界 end 和下一边界 next", "所有路径", "排序后的数组"], 0, "它是 BFS 层序思想的贪心压缩。"],
+      ["加油站中 tank < 0 时为什么能跳过一段？", ["亏空段内任意点都不可能作为起点", "说明 total 一定小于 0", "说明要排序"], 0, "中间点没有前面油量积累，只会更差。"],
+      ["哪个场景通常不能直接贪心？", ["0/1 背包", "分发饼干", "射气球"], 0, "0/1 背包选择会影响组合空间，通常用 DP。"]
+    ];
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function renderNav() {
+      const nav = byId("nav");
+      nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
+        `<button data-jump="playground">交互推演</button><button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+      nav.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          byId(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function renderTopics() {
+      const grid = byId("topicGrid");
+      grid.innerHTML = "";
+      topics.forEach((topic) => {
+        const reading = {
+          "题源与读题": `
+            <p><b>题源：</b>${topic.source}</p>
+            <div class="read-card">
+              <div><b>题目到底问什么</b>${topic.problem}</div>
+              <div><b>读题信号</b>${topic.signal}</div>
+              <div><b>手撕第一句话</b>我先判断这题是否存在可证明安全的局部选择，再决定是否用贪心。</div>
+              <div><b>最容易掉的坑</b>${topic.pitfall}</div>
+            </div>
+          `
+        };
+        const panels = Object.assign(reading, topic.tabs);
+        const tabs = Object.keys(panels);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.id = topic.id;
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${topic.title}</h3>
+              <p>${topic.intro}</p>
+              <span class="source">${topic.source}</span>
+            </div>
+            <span class="badge">${topic.tag}</span>
+          </div>
+          <div class="tabs">
+            ${tabs.map((tab, index) => `<button class="chip ${index === 0 ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}
+          </div>
+          <div class="card-body">
+            <div>
+              ${tabs.map((tab, index) => `<div class="panel ${index === 0 ? "active" : ""}" data-panel="${tab}">${panels[tab]}</div>`).join("")}
+            </div>
+            <aside class="side">
+              <div class="box">
+                <h4>记忆钩子</h4>
+                <p>${topic.memory}</p>
+              </div>
+              <div class="box">
+                <h4>面试追问</h4>
+                <div class="drill">${topic.drill[0]}</div>
+                <div class="answer">${topic.drill[1]}</div>
+                <button class="answer-toggle">显示答案</button>
+              </div>
+            </aside>
+          </div>
+        `;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((item) => item.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach((item) => item.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelector(".answer-toggle").addEventListener("click", (event) => {
+          const answer = card.querySelector(".answer");
+          answer.classList.toggle("show");
+          event.currentTarget.textContent = answer.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderQuiz() {
+      const list = byId("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, options, answer, hint], index) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${q}</h3>${options.map((option, i) => `<button class="option" data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll(".option").forEach((option) => {
+          option.addEventListener("click", () => {
+            card.querySelectorAll(".option").forEach((node) => node.disabled = true);
+            const picked = Number(option.dataset.i);
+            option.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll(".option")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    byId("checkAnswer").addEventListener("click", () => {
+      const text = byId("answerText").value.trim();
+      if (!text) {
+        byId("answerOutput").textContent = "先写一段你的口述答案。";
+        return;
+      }
+      const checks = [
+        ["适用条件", "有没有说明为什么这题能贪心，而不是只说局部最优？"],
+        ["贪心策略", "有没有明确排序规则、边界变量或资源匹配规则？"],
+        ["正确性证明", "有没有用交换论证、单调性或整段跳过证明？"],
+        ["代码风格", "有没有在适合的地方使用 Stream / iterator，而不是硬炫？"],
+        ["边界", "有没有说清 > / >=、比较器溢出、空数组、相接区间？"],
+        ["复杂度", "有没有给 O(n log n) 或 O(n)，以及为什么？"]
+      ];
+      byId("answerOutput").textContent = checks.map(([name, desc]) => `- ${name}: ${desc}`).join("\n") + "\n\n你的答案长度：" + text.length + " 字。下一步：补一版‘适用条件→策略→证明→Java/Rust实现→复杂度’的高级回答。";
+    });
+
+    function renderTrace(lines) {
+      byId("demoOutput").innerHTML = lines.map((line, index) => `<div class="trace-line"><b>Step ${index + 1}</b>${line}</div>`).join("");
+    }
+
+    function parseIntervals(text) {
+      const matches = text.match(/\[-?\d+\s*,\s*-?\d+\]/g) || [];
+      return matches.map((item) => item.slice(1, -1).split(",").map((x) => Number(x.trim())));
+    }
+
+    function parseNums(text) {
+      return text.split(/[,，\s]+/).map((x) => Number(x.trim())).filter((x) => Number.isFinite(x));
+    }
+
+    function demoInterval(text) {
+      const arr = parseIntervals(text).sort((a, b) => a[1] - b[1]);
+      let end = -Infinity;
+      let keep = 0;
+      const lines = [`按右端点排序：${arr.map((x) => `[${x[0]},${x[1]}]`).join(" ")}`];
+      arr.forEach(([l, r]) => {
+        if (l >= end) {
+          keep++;
+          lines.push(`[${l},${r}] 的 start=${l} >= 当前 end=${end === -Infinity ? "-∞" : end}，保留它，并把 end 更新为 ${r}。`);
+          end = r;
+        } else {
+          lines.push(`[${l},${r}] 的 start=${l} < 当前 end=${end}，和已选区间冲突，删除它。`);
+        }
+      });
+      lines.push(`最多保留 ${keep} 个，最少删除 ${arr.length - keep} 个。手撕重点：结束越早，留给后面空间越大。`);
+      return lines;
+    }
+
+    function demoJump(text) {
+      const nums = parseNums(text);
+      let step = 0, end = 0, next = 0;
+      const lines = [`数组：${nums.join(", ")}。end=当前步数能覆盖的边界，next=下一步能覆盖的最远边界。`];
+      for (let i = 0; i < nums.length - 1; i++) {
+        next = Math.max(next, i + nums[i]);
+        lines.push(`i=${i}, nums[i]=${nums[i]}，next=max(next, i+nums[i])=${next}。`);
+        if (i === end) {
+          step++;
+          end = next;
+          lines.push(`走完当前层边界 i==end，必须跳第 ${step} 步，新边界 end=${end}。`);
+        }
+      }
+      lines.push(`答案：${step} 步。手撕重点：这是 BFS 层序的边界压缩，不枚举路径。`);
+      return lines;
+    }
+
+    function demoGas(text) {
+      const nums = parseNums(text);
+      const half = Math.floor(nums.length / 2);
+      const gas = nums.slice(0, half);
+      const cost = nums.slice(half);
+      let total = 0, tank = 0, start = 0;
+      const lines = [`输入前半段 gas=[${gas}]，后半段 cost=[${cost}]。`];
+      for (let i = 0; i < gas.length; i++) {
+        const d = gas[i] - cost[i];
+        total += d;
+        tank += d;
+        lines.push(`站点 ${i}: gas-cost=${d}，total=${total}，tank=${tank}。`);
+        if (tank < 0) {
+          lines.push(`tank < 0，说明 start=${start} 到 ${i} 整段起点都不行，直接 start=${i + 1}，tank 清零。`);
+          start = i + 1;
+          tank = 0;
+        }
+      }
+      lines.push(total >= 0 ? `total>=0，有解，起点是 ${start}。` : `total<0，全局油量不够，无解 -1。`);
+      return lines;
+    }
+
+    function demoPartition(text) {
+      const s = text.trim();
+      const last = {};
+      [...s].forEach((ch, i) => last[ch] = i);
+      let left = 0, right = 0;
+      const ans = [];
+      const lines = [`字符串：${s}。先记录每个字符最后出现位置：${Object.entries(last).map(([k,v]) => `${k}:${v}`).join("，")}。`];
+      [...s].forEach((ch, i) => {
+        right = Math.max(right, last[ch]);
+        lines.push(`i=${i}, ch=${ch}，当前片段右边界 right=max(right,last[ch])=${right}。`);
+        if (i === right) {
+          ans.push(right - left + 1);
+          lines.push(`i==right，可以切分，片段长度 ${right - left + 1}。下一段从 ${i + 1} 开始。`);
+          left = i + 1;
+        }
+      });
+      lines.push(`答案：[${ans.join(", ")}]。手撕重点：边界覆盖片段内所有字符的最后位置才能切。`);
+      return lines;
+    }
+
+    byId("runDemo").addEventListener("click", () => {
+      const type = byId("demoType").value;
+      const text = byId("demoInput").value.trim();
+      const demos = { interval: demoInterval, jump: demoJump, gas: demoGas, partition: demoPartition };
+      renderTrace(demos[type](text));
+    });
+
+    byId("demoType").addEventListener("change", (event) => {
+      const samples = {
+        interval: "[1,2],[2,3],[3,4],[1,3]",
+        jump: "2,3,1,1,4",
+        gas: "1,2,3,4,5,3,4,5,1,2",
+        partition: "ababcbacadefegdehijhklij"
+      };
+      byId("demoInput").value = samples[event.target.value];
+    });
+
+    byId("resetQuiz").addEventListener("click", renderQuiz);
+
+    renderNav();
+    renderTopics();
+    renderQuiz();
+  </script>
+</body>
+</html>

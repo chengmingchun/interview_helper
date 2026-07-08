@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>单调栈 / 单调队列专题</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --green: #3e7b4f;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div, aside { min-width: 0; }
+    button, textarea, select { font: inherit; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .layout > aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.82);
+      overflow: auto;
+    }
+
+    .brand {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+
+    .back {
+      display: inline-flex;
+      margin-top: 12px;
+      color: var(--accent-2);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    nav { display: grid; gap: 8px; }
+
+    nav button,
+    .chip,
+    .ghost,
+    .answer-toggle {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.68);
+      cursor: pointer;
+    }
+
+    nav button {
+      padding: 10px 12px;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    nav button.active,
+    .chip.active {
+      color: var(--accent-2);
+      border-color: rgba(216, 101, 42, 0.45);
+      background: var(--accent-soft);
+    }
+
+    main {
+      width: min(1180px, 100%);
+      padding: 34px 36px 56px;
+    }
+
+    .hero,
+    .card,
+    .quiz-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero { padding: 30px; margin-bottom: 28px; }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 18px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 960px;
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 5.8vw, 62px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-head p,
+    .card-head p { margin: 0; color: var(--muted); }
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .card { overflow: hidden; }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 26px 18px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .card-head h3 { margin: 0 0 6px; font-size: 25px; line-height: 1.2; }
+
+    .badge {
+      display: inline-flex;
+      height: 28px;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .source {
+      display: inline-flex;
+      margin-top: 10px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: var(--green);
+      background: rgba(62, 123, 79, 0.12);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 26px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .chip { padding: 8px 11px; color: var(--muted); }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      padding: 22px 26px 26px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel p { margin: 0 0 13px; }
+    .panel li { margin: 8px 0; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 6px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .side { display: grid; gap: 12px; align-self: start; }
+
+    .box {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.7);
+    }
+
+    .box h4 { margin: 0 0 8px; font-size: 16px; }
+    .box p { margin: 0; color: var(--muted); }
+
+    .drill {
+      padding: 12px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+    }
+
+    .answer {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent-soft);
+    }
+
+    .answer.show { display: block; }
+    .answer-toggle, .ghost { padding: 9px 11px; margin-top: 10px; }
+
+    .practice,
+    .playground { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .read-card {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .read-card div,
+    .trace-line {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.62);
+    }
+
+    .read-card b,
+    .trace-line b { display: block; margin-bottom: 4px; }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    select {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(255, 250, 240, 0.88);
+    }
+
+    .output {
+      min-height: 160px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+    }
+
+    .trace {
+      display: grid;
+      gap: 10px;
+      max-height: 520px;
+      overflow: auto;
+    }
+
+    .quiz-card { padding: 18px; margin-bottom: 12px; box-shadow: none; }
+    .quiz-card h3 { margin: 0 0 10px; font-size: 18px; }
+
+    .option {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option.correct { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+    .option.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .card-body { grid-template-columns: minmax(0, 1fr) 300px; }
+      main { padding: 28px 24px 48px; }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .layout > aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .card-body, .practice, .playground, .read-card { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      .card-head { display: block; }
+      main { padding: 14px; }
+      .hero { padding: 20px; }
+      .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Monotonic DS Drill</b>
+        <span>单调栈 · 单调队列 · 一眼区分</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">算法专题 / Monotonic Stack · Monotonic Queue</span>
+        <h1>单调栈找“离我最近的更大/更小”，单调队列维护“窗口里的最大/最小”。</h1>
+        <p>你分不清它们，多半是因为都在 while 里弹元素。真正区别是：单调栈解决“下一个/上一个更大更小”的邻近关系；单调队列解决“固定或动态窗口里的极值”。</p>
+      </section>
+
+      <section class="section" id="knowledge">
+        <div class="section-head">
+          <h2>一眼区分 + 经典题</h2>
+          <p>先判断问题在问“邻近关系”还是“窗口极值”，再对照题源和读题信号决定用栈还是队列。</p>
+        </div>
+        <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="playground">
+        <div class="section-head">
+          <h2>交互推演台</h2>
+          <p>直接观察“谁被弹出、为什么弹、答案从哪里来”，把栈和队列的差异刻进脑子里。</p>
+        </div>
+        <div class="playground">
+          <div class="box">
+            <h4>选择题型</h4>
+            <select id="demoType">
+              <option value="next">下一个更大元素</option>
+              <option value="daily">每日温度</option>
+              <option value="window">滑动窗口最大值</option>
+              <option value="histogram">柱状图最大矩形</option>
+            </select>
+            <textarea id="demoInput">2,1,2,4,3</textarea>
+            <button class="ghost" id="runDemo">运行推演</button>
+          </div>
+          <div class="trace" id="demoOutput">
+            <div class="trace-line"><b>怎么用</b>选一个题型，输入数组。滑动窗口最大值格式：nums | k，例如 1,3,-1,-3,5,3,6,7 | 3。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="practice">
+        <div class="section-head">
+          <h2>口述训练台</h2>
+          <p>输入你的判断过程，检查是否真的分清了单调栈和单调队列。</p>
+        </div>
+        <div class="practice">
+          <div class="box">
+            <h4>你的回答</h4>
+            <textarea id="answerText" placeholder="比如：这题问每个元素右边第一个更大值，所以是单调栈；如果题目问每个长度为 k 的窗口最大值，才是单调队列..."></textarea>
+            <button class="ghost" id="checkAnswer">生成检查清单</button>
+          </div>
+          <div class="output" id="answerOutput">等待你的回答。</div>
+        </div>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>自测纠错</h2>
+          <p>错了就回到第一张对比卡，先把题目问法分清楚。</p>
+        </div>
+        <div id="quizList"></div>
+        <button class="ghost" id="resetQuiz">重做自测</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: "diff",
+        title: "先把两者一句话分清楚",
+        tag: "核心区别",
+        intro: "它们都维护单调性，但服务的问题完全不同：一个看邻近，一个看窗口。",
+        source: "方法论：单调栈 / 单调队列选型总纲",
+        problem: "面试最常见的坑不是不会写模板，而是把单调栈和单调队列混用。",
+        signal: "问“下一个/上一个/最近更大更小”是栈；问“每个窗口/区间里的最大最小”是队列。",
+        pitfall: "别看到 while 弹元素就下结论。两者都弹，区别在答案来源和是否存在过期逻辑。",
+        tabs: {
+          "一句话": `<ul><li><b>单调栈：</b>找每个元素左边/右边第一个更大或更小的元素。</li><li><b>单调队列：</b>维护滑动窗口内的最大值或最小值。</li><li><b>判断口诀：</b>问“下一个/上一个/最近”用栈；问“窗口/区间内最大最小”用队列。</li></ul>`,
+          "结构差异": `<ul><li><b>单调栈：</b>只在一端进出，元素出栈后通常再也不会回来，用来结算答案。</li><li><b>单调队列：</b>队尾弹掉无用元素，队头弹掉过期元素，队头永远是当前窗口答案。</li><li><b>本质：</b>栈关心“谁能成为谁的第一个更大/更小”；队列关心“谁还有资格留在窗口里当极值”。</li></ul>`,
+          "选型表": `<pre>题目问法                    数据结构
+右边第一个更大              单调栈
+左边第一个更小              单调栈
+每日温度还要等几天          单调栈
+柱状图最大矩形              单调栈
+滑动窗口最大值              单调队列
+长度为 k 的窗口最小值       单调队列
+带窗口约束的前缀和最优值    单调队列</pre>`
+        },
+        memory: "最近关系用栈；窗口极值用队列。别被 while 弹元素迷惑。",
+        drill: ["为什么它们看起来很像？", "因为都用 while 弹掉以后不可能成为答案的元素。但单调栈弹出时通常是在结算某个元素的最近更大/更小；单调队列弹出时是在维护窗口候选极值。"]
+      },
+      {
+        id: "stack-template",
+        title: "单调栈模板：下一个更大元素",
+        tag: "邻近关系",
+        intro: "看到“右边第一个更大”“还要等几天”“最近更高”，优先想单调栈。",
+        source: "LeetCode 496 / 503. Next Greater Element I & II",
+        problem: "对每个元素，找到它右侧第一个比它大的元素；环形版本还要把数组看成首尾相接。",
+        signal: "关键词：右边第一个、下一个更大、最近更高。答案通常回填给被弹出的下标。",
+        pitfall: "栈里通常放下标，不只是值；否则距离、宽度、回填答案都会不方便。",
+        tabs: {
+          "思路": `<p><b>模板：</b>维护一个单调递减栈，栈里放下标。当前元素比栈顶大时，说明当前元素就是栈顶元素右边第一个更大值。</p><ul><li>栈里不是随便放值，通常放下标，方便算距离。</li><li>弹栈时结算答案。</li><li>每个元素最多入栈一次、出栈一次，时间 O(n)。</li></ul>`,
+          "Java": `<pre>int[] nextGreater(int[] a) {
+    int n = a.length;
+    int[] ans = new int[n];
+    Arrays.fill(ans, -1);
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+    for (int i = 0; i &lt; n; i++) {
+        while (!st.isEmpty() && a[i] &gt; a[st.peek()]) ans[st.pop()] = a[i];
+        st.push(i);
+    }
+    return ans;
+}</pre>`,
+          "Rust": `<pre>fn next_greater(a: Vec&lt;i32&gt;) -&gt; Vec&lt;i32&gt; {
+    let mut ans = vec![-1; a.len()];
+    let mut st: Vec&lt;usize&gt; = vec![];
+    for i in 0..a.len() {
+        while st.last().is_some_and(|&j| a[i] &gt; a[j]) {
+            ans[st.pop().unwrap()] = a[i];
+        }
+        st.push(i);
+    }
+    ans
+}</pre>`
+        },
+        memory: "单调栈：当前元素让谁出栈，当前元素就是谁的答案。",
+        drill: ["单调栈里为什么常放下标而不是值？", "因为很多题要计算距离、宽度或回填答案。放下标既能取值比较，又能计算位置关系。"]
+      },
+      {
+        id: "daily-temperatures",
+        title: "每日温度：单调栈算距离",
+        tag: "LeetCode 高频",
+        intro: "这题是下一个更大元素的变体，只是答案从值变成距离。",
+        source: "LeetCode 739. Daily Temperatures",
+        problem: "给每天温度，返回每一天还要等几天才会出现更高温度；没有则为 0。",
+        signal: "关键词：之后第一个更高、等待几天。它不是窗口题，是右侧第一个更大。",
+        pitfall: "答案是 i - j，不是温度差；弹出 j 时才知道 j 的答案。",
+        tabs: {
+          "思路": `<ul><li>栈里放还没找到更高温度的下标。</li><li>当前温度更高时，弹出旧下标 j，答案是 i - j。</li><li>栈保持从栈底到栈顶温度递减。</li></ul>`,
+          "Java": `<pre>int[] dailyTemperatures(int[] t) {
+    int[] ans = new int[t.length];
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+    for (int i = 0; i &lt; t.length; i++) {
+        while (!st.isEmpty() && t[i] &gt; t[st.peek()]) {
+            int j = st.pop();
+            ans[j] = i - j;
+        }
+        st.push(i);
+    }
+    return ans;
+}</pre>`,
+          "Rust": `<pre>fn daily_temperatures(t: Vec&lt;i32&gt;) -&gt; Vec&lt;i32&gt; {
+    let mut ans = vec![0; t.len()];
+    let mut st: Vec&lt;usize&gt; = vec![];
+    for i in 0..t.len() {
+        while st.last().is_some_and(|&j| t[i] &gt; t[j]) {
+            let j = st.pop().unwrap();
+            ans[j] = (i - j) as i32;
+        }
+        st.push(i);
+    }
+    ans
+}</pre>`
+        },
+        memory: "每日温度 = 下一个更大元素 + 算下标差。",
+        drill: ["每日温度为什么不是单调队列？", "因为它不是问固定窗口里的最大值，而是问每个位置右边第一个更高温度在哪里。这是邻近关系，所以用单调栈。"]
+      },
+      {
+        id: "histogram",
+        title: "柱状图最大矩形：找左右第一个更矮",
+        tag: "边界结算",
+        intro: "单调栈高级题：高度出栈时，左右边界同时确定。",
+        source: "LeetCode 84. Largest Rectangle in Histogram",
+        problem: "给柱状图每根柱子的高度，求能组成的最大矩形面积。",
+        signal: "关键词：以某根柱子为最低高度向左右扩展。需要找左右第一个更矮。",
+        pitfall: "弹栈时右边界是当前 i，左边界是弹出后新的栈顶；宽度是 i - left - 1。",
+        tabs: {
+          "思路": `<p><b>核心：</b>维护递增栈。当前高度更矮时，栈顶高度不能继续向右扩展，立刻结算以它为最低高度的最大矩形。</p><ul><li>弹出的柱子 h 是矩形高度。</li><li>右边界是当前 i。</li><li>左边界是弹出后新的栈顶。</li><li>两端加哨兵 0，统一清算。</li></ul>`,
+          "Java": `<pre>int largestRectangleArea(int[] h) {
+    int n = h.length, ans = 0;
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+    for (int i = 0; i &lt;= n; i++) {
+        int cur = i == n ? 0 : h[i];
+        while (!st.isEmpty() && cur &lt; h[st.peek()]) {
+            int height = h[st.pop()];
+            int left = st.isEmpty() ? -1 : st.peek();
+            ans = Math.max(ans, height * (i - left - 1));
+        }
+        st.push(i);
+    }
+    return ans;
+}</pre>`,
+          "Rust": `<pre>fn largest_rectangle_area(h: Vec&lt;i32&gt;) -&gt; i32 {
+    let (mut ans, mut st) = (0, Vec::new());
+    for i in 0..=h.len() {
+        let cur = if i == h.len() { 0 } else { h[i] };
+        while st.last().is_some_and(|&j| cur &lt; h[j]) {
+            let height = h[st.pop().unwrap()];
+            let left = st.last().map_or(-1, |&j| j as i32);
+            ans = ans.max(height * (i as i32 - left - 1));
+        }
+        st.push(i);
+    }
+    ans
+}</pre>`
+        },
+        memory: "柱子出栈那一刻，左右第一个更矮都知道了。",
+        drill: ["为什么要在最后放一个高度 0 的哨兵？", "为了把栈里剩下的柱子统一弹出结算，否则递增尾巴永远等不到右边更矮的柱子。"]
+      },
+      {
+        id: "queue-template",
+        title: "单调队列模板：滑动窗口最大值",
+        tag: "窗口极值",
+        intro: "看到“每个长度为 k 的窗口最大值/最小值”，优先想单调队列。",
+        source: "LeetCode 239. Sliding Window Maximum",
+        problem: "给数组和窗口大小 k，窗口每次右移一格，返回每个窗口里的最大值。",
+        signal: "关键词：长度为 k 的窗口、每个窗口最大值。队头就是当前窗口答案。",
+        pitfall: "一定存下标，因为要判断队头是否过期：index <= i - k。",
+        tabs: {
+          "思路": `<p><b>模板：</b>队列里放下标，并让对应值从队头到队尾单调递减。队头就是当前窗口最大值。</p><ul><li>队尾弹掉比当前值小的下标，因为它们以后不可能成为最大值。</li><li>队头如果过期，也就是下标 <= i - k，就弹出。</li><li>窗口形成后，队头就是答案。</li></ul>`,
+          "Java": `<pre>int[] maxSlidingWindow(int[] a, int k) {
+    int[] ans = new int[a.length - k + 1];
+    Deque&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+    for (int i = 0; i &lt; a.length; i++) {
+        while (!q.isEmpty() && a[q.peekLast()] &lt;= a[i]) q.pollLast();
+        q.offerLast(i);
+        if (q.peekFirst() &lt;= i - k) q.pollFirst();
+        if (i &gt;= k - 1) ans[i - k + 1] = a[q.peekFirst()];
+    }
+    return ans;
+}</pre>`,
+          "Rust": `<pre>use std::collections::VecDeque;
+
+fn max_sliding_window(a: Vec&lt;i32&gt;, k: i32) -&gt; Vec&lt;i32&gt; {
+    let k = k as usize;
+    let (mut q, mut ans) = (VecDeque::new(), vec![]);
+    for i in 0..a.len() {
+        while q.back().is_some_and(|&j| a[j] &lt;= a[i]) { q.pop_back(); }
+        q.push_back(i);
+        if q.front().is_some_and(|&j| j + k &lt;= i) { q.pop_front(); }
+        if i + 1 &gt;= k { ans.push(a[*q.front().unwrap()]); }
+    }
+    ans
+}</pre>`
+        },
+        memory: "单调队列：队头是答案，队尾清弱者，队头清过期。",
+        drill: ["单调队列为什么要存下标？", "因为要判断窗口是否过期。只存值不知道它是不是已经滑出窗口。"]
+      },
+      {
+        id: "queue-vs-stack-code",
+        title: "代码上怎么一眼分辨",
+        tag: "易混点",
+        intro: "看代码动作：单调栈主要 pop 结算答案；单调队列还要 poll 过期元素。",
+        source: "代码审题模板",
+        problem: "看到一段代码或题面，快速判断它应该用单调栈还是单调队列。",
+        signal: "有过期逻辑、队头读答案，多半是队列；弹出时回填答案，多半是栈。",
+        pitfall: "只看数据结构名不够，要看答案是在 pop 时产生，还是从队头读取。",
+        tabs: {
+          "看操作": `<pre>单调栈：
+while 栈顶被当前元素击败:
+    弹栈并结算这个栈顶元素的答案
+当前下标入栈
+
+单调队列：
+while 队尾比当前元素弱:
+    弹队尾
+当前下标入队尾
+if 队头过期:
+    弹队头
+队头就是当前窗口答案</pre>`,
+          "看答案": `<ul><li><b>单调栈：</b>答案通常回填到被弹出的那个下标，例如 ans[j] = i - j。</li><li><b>单调队列：</b>答案通常读取队头，例如 ans[pos] = nums[q.peekFirst()]。</li><li><b>单调栈：</b>元素被弹出是因为找到了最近更大/更小。</li><li><b>单调队列：</b>元素被弹出是因为它弱了，或者过期了。</li></ul>`,
+          "记忆图": `<pre>单调栈：         单调队列：
+当前元素          当前元素
+  ↓                 ↓
+打掉栈顶          打掉队尾弱者
+  ↓                 ↓
+结算栈顶答案      清理队头过期
+                    ↓
+                  队头给窗口答案</pre>`
+        },
+        memory: "栈：弹出即结算；队列：队头给答案，队尾清弱者，队头清过期。",
+        drill: ["看到 while 弹元素就能确定是单调栈吗？", "不能。单调栈和单调队列都会 while 弹元素。要看题目是否有窗口过期逻辑，以及答案是回填弹出元素还是读取队头。"]
+      },
+      {
+        id: "shortest-subarray",
+        title: "进阶：前缀和 + 单调队列",
+        tag: "动态窗口",
+        intro: "不只是固定窗口，带约束的前缀和最值也常用单调队列。",
+        source: "LeetCode 862. Shortest Subarray with Sum at Least K",
+        problem: "给整数数组和 K，求和至少为 K 的最短非空连续子数组长度，可包含负数。",
+        signal: "关键词：前缀和、至少 K、最短长度、数组含负数。普通滑窗会失效。",
+        pitfall: "含负数时窗口和不再单调，不能用普通双指针，要用前缀和 + 单调队列维护候选左端点。",
+        tabs: {
+          "思路": `<p><b>题型：</b>求和至少为 K 的最短子数组。用前缀和 pre，问题变成找 i &lt; j 且 pre[j] - pre[i] >= K，最小化 j - i。</p><ul><li>队列中维护前缀和下标，pre 值递增。</li><li>如果当前 pre[j] - 队头 pre[i] >= K，队头可以结算并弹出。</li><li>如果队尾 pre 大于等于当前 pre，队尾更差，弹掉。</li></ul>`,
+          "Java": `<pre>int shortestSubarray(int[] nums, int k) {
+    int n = nums.length, ans = n + 1;
+    long[] pre = new long[n + 1];
+    for (int i = 0; i &lt; n; i++) pre[i + 1] = pre[i] + nums[i];
+    Deque&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+    for (int i = 0; i &lt;= n; i++) {
+        while (!q.isEmpty() && pre[i] - pre[q.peekFirst()] &gt;= k) ans = Math.min(ans, i - q.pollFirst());
+        while (!q.isEmpty() && pre[q.peekLast()] &gt;= pre[i]) q.pollLast();
+        q.offerLast(i);
+    }
+    return ans &lt;= n ? ans : -1;
+}</pre>`,
+          "Rust": `<pre>use std::collections::VecDeque;
+
+fn shortest_subarray(nums: Vec&lt;i32&gt;, k: i32) -&gt; i32 {
+    let n = nums.len();
+    let mut pre = vec![0i64; n + 1];
+    for i in 0..n { pre[i + 1] = pre[i] + nums[i] as i64; }
+    let (mut q, mut ans) = (VecDeque::new(), n + 1);
+    for i in 0..=n {
+        while q.front().is_some_and(|&j| pre[i] - pre[j] &gt;= k as i64) {
+            ans = ans.min(i - q.pop_front().unwrap());
+        }
+        while q.back().is_some_and(|&j| pre[j] &gt;= pre[i]) { q.pop_back(); }
+        q.push_back(i);
+    }
+    if ans &lt;= n { ans as i32 } else { -1 }
+}</pre>`
+        },
+        memory: "前缀和队列维护递增 pre；队头负责结算最短长度，队尾负责去掉更差前缀。",
+        drill: ["为什么前缀和也能用单调队列？", "因为队列里存的是候选左端点。前缀和越小、下标越靠后越有竞争力；更大的旧前缀既不利于达成 K，也不利于缩短长度。"]
+      },
+      {
+        id: "template",
+        title: "面试回答模板",
+        tag: "表达",
+        intro: "真正分清以后，回答会非常短：先判断题目问法，再套对应模板。",
+        source: "面试表达模板",
+        problem: "把单调栈/队列题讲成一段稳定答案：题目问法、选型、维护规则、答案来源、复杂度。",
+        signal: "先判断邻近关系或窗口极值，再说明栈/队列如何维护单调性。",
+        pitfall: "别直接开始背代码。先说答案从哪里产生，面试官才知道你真懂。",
+        tabs: {
+          "单调栈模板": `<p><b>这题问的是每个元素左边或右边第一个更大/更小，所以用单调栈。</b>栈里存下标，保持某种单调性。当前元素破坏单调性时，弹出栈顶并结算答案。每个元素最多入栈出栈一次，所以时间 O(n)。</p>`,
+          "单调队列模板": `<p><b>这题问的是窗口里的最大/最小，或者带窗口约束的最优候选，所以用单调队列。</b>队尾弹掉以后不可能成为答案的弱元素，队头弹掉滑出窗口的过期元素。队头始终是当前窗口答案，整体 O(n)。</p>`,
+          "防混口诀": `<ul><li>问“第一个更大/更小”——单调栈。</li><li>问“窗口最大/最小”——单调队列。</li><li>单调栈：弹出时结算。</li><li>单调队列：队头是答案。</li><li>有过期逻辑，大概率是队列。</li></ul>`
+        },
+        memory: "第一个更大更小是栈；窗口最大最小是队列；有过期看队列。",
+        drill: ["面试官让你区分单调栈和单调队列，你怎么说？", "单调栈解决邻近关系，典型是下一个更大元素；单调队列解决窗口极值，典型是滑动窗口最大值。代码上单调栈弹出时结算答案，单调队列队头始终提供当前窗口答案。"]
+      }
+    ];
+
+    const quizzes = [
+      ["题目问右边第一个更大元素，用什么？", ["单调栈", "单调队列", "并查集"], 0, "右边第一个更大是邻近关系，用单调栈。"],
+      ["题目问每个长度为 k 的窗口最大值，用什么？", ["单调队列", "单调栈", "普通递归"], 0, "窗口极值是单调队列的主场。"],
+      ["单调队列为什么通常存下标？", ["为了判断窗口过期", "为了递归", "为了排序更快"], 0, "队头元素可能滑出窗口，必须用下标判断。"],
+      ["每日温度为什么是单调栈？", ["问每个位置右边第一个更高温度", "问固定窗口最大值", "问全局排序"], 0, "它问的是右边第一个更高，是下一个更大元素。"],
+      ["单调栈弹出元素时通常在做什么？", ["结算被弹元素的答案", "清理窗口过期", "随机删除"], 0, "当前元素让栈顶找到了最近更大/更小，所以弹出并结算。"],
+      ["单调队列中队头通常代表什么？", ["当前窗口答案", "刚被击败的元素", "递归入口"], 0, "队头是当前窗口最大值或最小值的候选答案。"],
+      ["看到过期逻辑 i - k，通常意味着？", ["单调队列", "单调栈", "二分查找"], 0, "有窗口滑动和过期元素，通常是单调队列。"]
+    ];
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function renderNav() {
+      const nav = byId("nav");
+      nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
+        `<button data-jump="playground">交互推演</button><button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+      nav.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          byId(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function renderTopics() {
+      const grid = byId("topicGrid");
+      grid.innerHTML = "";
+      topics.forEach((topic) => {
+        const reading = {
+          "题源与读题": `
+            <p><b>题源：</b>${topic.source}</p>
+            <div class="read-card">
+              <div><b>题目到底问什么</b>${topic.problem}</div>
+              <div><b>读题信号</b>${topic.signal}</div>
+              <div><b>手撕第一句话</b>我先判断题目问的是邻近关系还是窗口极值，再选择单调栈或单调队列。</div>
+              <div><b>最容易掉的坑</b>${topic.pitfall}</div>
+            </div>
+          `
+        };
+        const panels = Object.assign(reading, topic.tabs);
+        const tabs = Object.keys(panels);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.id = topic.id;
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${topic.title}</h3>
+              <p>${topic.intro}</p>
+              <span class="source">${topic.source}</span>
+            </div>
+            <span class="badge">${topic.tag}</span>
+          </div>
+          <div class="tabs">
+            ${tabs.map((tab, index) => `<button class="chip ${index === 0 ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}
+          </div>
+          <div class="card-body">
+            <div>
+              ${tabs.map((tab, index) => `<div class="panel ${index === 0 ? "active" : ""}" data-panel="${tab}">${panels[tab]}</div>`).join("")}
+            </div>
+            <aside class="side">
+              <div class="box">
+                <h4>记忆钩子</h4>
+                <p>${topic.memory}</p>
+              </div>
+              <div class="box">
+                <h4>面试追问</h4>
+                <div class="drill">${topic.drill[0]}</div>
+                <div class="answer">${topic.drill[1]}</div>
+                <button class="answer-toggle">显示答案</button>
+              </div>
+            </aside>
+          </div>
+        `;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((item) => item.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach((item) => item.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelector(".answer-toggle").addEventListener("click", (event) => {
+          const answer = card.querySelector(".answer");
+          answer.classList.toggle("show");
+          event.currentTarget.textContent = answer.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderQuiz() {
+      const list = byId("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, options, answer, hint], index) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${q}</h3>${options.map((option, i) => `<button class="option" data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll(".option").forEach((option) => {
+          option.addEventListener("click", () => {
+            card.querySelectorAll(".option").forEach((node) => node.disabled = true);
+            const picked = Number(option.dataset.i);
+            option.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll(".option")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    byId("checkAnswer").addEventListener("click", () => {
+      const text = byId("answerText").value.trim();
+      if (!text) {
+        byId("answerOutput").textContent = "先写一段你的口述答案。";
+        return;
+      }
+      const checks = [
+        ["题目问法", "有没有先判断是邻近关系还是窗口极值？"],
+        ["数据结构", "有没有明确说为什么用单调栈或单调队列？"],
+        ["维护规则", "有没有说清单调递增/递减，以及弹出条件？"],
+        ["答案来源", "栈是弹出时结算，队列是队头给答案，你说清了吗？"],
+        ["下标意义", "有没有说明为什么通常存下标？"],
+        ["复杂度", "有没有说明每个元素最多进出一次，所以 O(n)？"]
+      ];
+      byId("answerOutput").textContent = checks.map(([name, desc]) => `- ${name}: ${desc}`).join("\n") + "\n\n你的答案长度：" + text.length + " 字。下一步：补一版‘题目问法→选型→维护规则→答案来源→复杂度’的回答。";
+    });
+
+    function renderTrace(lines) {
+      byId("demoOutput").innerHTML = lines.map((line, index) => `<div class="trace-line"><b>Step ${index + 1}</b>${line}</div>`).join("");
+    }
+
+    function parseNums(text) {
+      return text.split(/[,，\s]+/).map((x) => Number(x.trim())).filter((x) => Number.isFinite(x));
+    }
+
+    function stackText(st, nums) {
+      return `[${st.map((i) => `${i}:${nums[i]}`).join(" | ")}]`;
+    }
+
+    function demoNext(text) {
+      const nums = parseNums(text);
+      const ans = Array(nums.length).fill(-1);
+      const st = [];
+      const lines = [`数组：${nums.join(", ")}。维护递减栈，当前元素比栈顶大时，当前元素就是栈顶的下一个更大。`];
+      nums.forEach((x, i) => {
+        lines.push(`读到 i=${i}, x=${x}，当前栈 ${stackText(st, nums)}。`);
+        while (st.length && x > nums[st[st.length - 1]]) {
+          const j = st.pop();
+          ans[j] = x;
+          lines.push(`${x} > nums[${j}]=${nums[j]}，弹出 ${j}，ans[${j}]=${x}。`);
+        }
+        st.push(i);
+        lines.push(`压入下标 ${i}，栈变为 ${stackText(st, nums)}。`);
+      });
+      lines.push(`剩余下标右侧没有更大值。答案：[${ans.join(", ")}]。`);
+      return lines;
+    }
+
+    function demoDaily(text) {
+      const nums = parseNums(text);
+      const ans = Array(nums.length).fill(0);
+      const st = [];
+      const lines = [`温度：${nums.join(", ")}。每日温度就是“下一个更大元素 + 下标差”。`];
+      nums.forEach((x, i) => {
+        while (st.length && x > nums[st[st.length - 1]]) {
+          const j = st.pop();
+          ans[j] = i - j;
+          lines.push(`第 ${i} 天 ${x}° 更高，弹出第 ${j} 天 ${nums[j]}°，等待 ${i - j} 天。`);
+        }
+        st.push(i);
+        lines.push(`第 ${i} 天入栈，栈=${stackText(st, nums)}。`);
+      });
+      lines.push(`答案：[${ans.join(", ")}]。手撕重点：弹出时结算被弹下标的等待天数。`);
+      return lines;
+    }
+
+    function demoWindow(text) {
+      const [left, right] = text.split("|");
+      const nums = parseNums(left || "");
+      const k = Number((right || "3").trim()) || 3;
+      const q = [];
+      const ans = [];
+      const lines = [`数组：${nums.join(", ")}，k=${k}。队列存下标，队头永远是当前窗口最大值。`];
+      nums.forEach((x, i) => {
+        while (q.length && nums[q[q.length - 1]] <= x) {
+          const j = q.pop();
+          lines.push(`队尾 ${j}:${nums[j]} <= 当前 ${i}:${x}，以后不可能当最大值，弹队尾。`);
+        }
+        q.push(i);
+        if (q[0] <= i - k) {
+          const old = q.shift();
+          lines.push(`队头 ${old}:${nums[old]} 已滑出窗口 [${i - k + 1},${i}]，弹队头。`);
+        }
+        if (i >= k - 1) {
+          ans.push(nums[q[0]]);
+          lines.push(`窗口 [${i - k + 1},${i}] 形成，队列=${stackText(q, nums)}，最大值=${nums[q[0]]}。`);
+        } else {
+          lines.push(`窗口尚未形成，队列=${stackText(q, nums)}。`);
+        }
+      });
+      lines.push(`答案：[${ans.join(", ")}]。手撕重点：队尾清弱者，队头清过期，队头给答案。`);
+      return lines;
+    }
+
+    function demoHistogram(text) {
+      const h = parseNums(text);
+      const st = [];
+      let ans = 0;
+      const lines = [`高度：${h.join(", ")}。维护递增栈，遇到更矮柱子时结算被弹柱子的最大矩形。`];
+      for (let i = 0; i <= h.length; i++) {
+        const cur = i === h.length ? 0 : h[i];
+        lines.push(`i=${i}, cur=${cur}${i === h.length ? "（哨兵）" : ""}，栈=${stackText(st, h)}。`);
+        while (st.length && cur < h[st[st.length - 1]]) {
+          const top = st.pop();
+          const left = st.length ? st[st.length - 1] : -1;
+          const width = i - left - 1;
+          const area = h[top] * width;
+          ans = Math.max(ans, area);
+          lines.push(`弹出 ${top}:${h[top]}，左边界=${left}，右边界=${i}，宽度=${width}，面积=${area}，ans=${ans}。`);
+        }
+        st.push(i);
+      }
+      lines.push(`最大面积：${ans}。手撕重点：柱子出栈时，左右第一个更矮都确定。`);
+      return lines;
+    }
+
+    byId("runDemo").addEventListener("click", () => {
+      const type = byId("demoType").value;
+      const text = byId("demoInput").value.trim();
+      const demos = { next: demoNext, daily: demoDaily, window: demoWindow, histogram: demoHistogram };
+      renderTrace(demos[type](text));
+    });
+
+    byId("demoType").addEventListener("change", (event) => {
+      const samples = {
+        next: "2,1,2,4,3",
+        daily: "73,74,75,71,69,72,76,73",
+        window: "1,3,-1,-3,5,3,6,7 | 3",
+        histogram: "2,1,5,6,2,3"
+      };
+      byId("demoInput").value = samples[event.target.value];
+    });
+
+    byId("resetQuiz").addEventListener("click", renderQuiz);
+
+    renderNav();
+    renderTopics();
+    renderQuiz();
+  </script>
+</body>
+</html>

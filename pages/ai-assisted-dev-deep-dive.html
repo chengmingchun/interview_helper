@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI / Agent 辅助研发项目深挖</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    button, select { font: inherit; }
+    html { font-size: clamp(14px, 0.28vw + 13px, 16px); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    .layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+    aside { position: sticky; top: 0; height: 100vh; padding: 22px; border-right: 1px solid var(--line); background: rgba(244, 239, 230, 0.82); overflow: auto; }
+    .brand { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+    .back { display: inline-flex; margin-top: 12px; color: var(--accent-2); text-decoration: none; font-weight: 800; font-size: 13px; }
+    nav { display: grid; gap: 8px; }
+    nav a { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: rgba(255, 250, 240, 0.68); text-decoration: none; }
+    nav a:hover { color: var(--accent-2); border-color: rgba(216, 101, 42, 0.45); background: var(--accent-soft); }
+
+    main { width: min(1180px, 100%); padding: 34px 36px 56px; }
+    .hero, .card { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
+    .hero { padding: 30px; margin-bottom: 28px; }
+    .eyebrow { display: inline-flex; margin-bottom: 18px; padding: 5px 10px; border-radius: 999px; color: var(--accent-2); background: var(--accent-soft); font-size: 13px; font-weight: 700; }
+    h1 { max-width: 1020px; margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5.8vw, 62px); line-height: 1; letter-spacing: 0; }
+    .hero p, .section-head p, .card p { margin: 0; color: var(--muted); }
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+    .section-head h2 { margin: 0 0 6px; font-family: Georgia, "Times New Roman", serif; font-size: 34px; line-height: 1; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .card { padding: 24px 26px; overflow: hidden; }
+    .card h3 { margin: 0 0 8px; font-size: 25px; line-height: 1.2; }
+    .card h4 { margin: 0 0 8px; font-size: 16px; }
+    .badge { display: inline-flex; margin-bottom: 12px; padding: 3px 10px; border-radius: 999px; color: var(--accent-2); background: var(--accent-soft); font-size: 12px; font-weight: 800; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    .triple { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
+    .box { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.7); }
+    .box p, .box li { color: var(--muted); }
+    .box p { margin: 0 0 10px; }
+    .box li { margin: 6px 0; }
+    .full { grid-column: 1 / -1; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code { padding: 2px 5px; border-radius: 6px; color: var(--accent-2); background: var(--accent-soft); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .script { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--muted); }
+    .question { color: var(--ink); font-weight: 800; }
+    .answer { color: var(--muted); }
+    .flow { display: grid; grid-template-columns: repeat(7, minmax(110px, 1fr)); gap: 10px; margin-top: 14px; }
+    .flow-step { position: relative; min-height: 118px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.72); transition: transform .25s ease, background .25s ease, border-color .25s ease; }
+    .flow-step b { display: block; margin-bottom: 6px; }
+    .flow-step.active { transform: translateY(-5px); border-color: rgba(216, 101, 42, 0.6); background: var(--accent-soft); box-shadow: 0 12px 30px rgba(216, 101, 42, 0.14); }
+    .flow-step.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 9px; height: 3px; border-radius: 999px; background: var(--accent); animation: pulse 1.1s infinite; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .controls button, .lab button, .quiz button, .lab select {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+    }
+    .controls button, .lab button, .quiz button { cursor: pointer; }
+    .controls button.active, .quiz button.correct { border-color: #3e7b4f; background: rgba(62, 123, 79, 0.12); }
+    .quiz button.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+    .lab { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 16px; }
+    .lab select { width: 100%; margin-top: 8px; }
+    .output {
+      min-height: 270px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+    .quiz-card { padding: 16px; margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.7); }
+    .quiz-card h3 { margin: 0 0 10px; font-size: 17px; }
+    .quiz button { display: block; width: 100%; margin: 8px 0; text-align: left; }
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+    @keyframes pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+
+    @media (max-width: 1080px) {
+      .triple { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .cols, .lab { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .full { grid-column: auto; }
+    }
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      main { padding: 14px; }
+      .hero, .card { padding: 20px; }
+      .flow { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Agent Project Drill</b>
+        <span>严格面试 · Agent 工程化 · 防追问</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav>
+        <a href="#position">项目定位</a>
+        <a href="#strict">严格面试官会怎么问</a>
+        <a href="#architecture">Agent 架构</a>
+        <a href="#flow">闭环推演</a>
+        <a href="#loop">Agent Loop</a>
+        <a href="#components">每个环节做什么</a>
+        <a href="#agent-vs">Agent / Workflow / Function Call / ReAct</a>
+        <a href="#tools">Tool / MCP / Skill</a>
+        <a href="#rag-memory">RAG 与 Memory</a>
+        <a href="#subagent">SubAgent</a>
+        <a href="#eval">评估与观测</a>
+        <a href="#migration">迁移模式</a>
+        <a href="#bottleneck">瓶颈与下一步</a>
+        <a href="#pressure">压力诊断</a>
+        <a href="#quiz">自测</a>
+        <a href="#script">最终话术</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">Agent Engineering / Tool Use · MCP · RAG · Memory · Eval · Guardrails</span>
+        <h1>严格面试官不会问“你用没用 AI”，而会问“你到底做没做出可控的 Agent 工程闭环”。</h1>
+        <p>这页用来把 AI 辅助研发项目讲成 Agent 工程化项目：Agent 怎么规划、怎么拿上下文、怎么选工具、怎么调用工具、怎么观察结果、怎么纠错、怎么评估、怎么迁移，以及为什么现在仍然有瓶颈。</p>
+      </section>
+
+      <section class="section" id="position">
+        <div class="section-head">
+          <h2>项目定位：不是 AI 写代码，而是 Agent 化研发助手</h2>
+          <p>开场要先把项目从“我会用 ChatGPT”拉到“我做过研发流程的 Agent 化改造”。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Project Positioning</span>
+          <h3>推荐开场</h3>
+          <p class="script">这个项目是我近半年参与的 AI 辅助研发与智能交付探索。我不是把它理解成“让大模型直接写代码”，而是把研发流程拆成需求理解、上下文检索、任务规划、工具调用、代码生成、测试验证、人工 Review 和转测交付几个可验证环节。Agent 在其中负责规划、选择工具、调用工具、读取观察结果并迭代；人负责需求判断、风险控制和最终验收。试点里我们完成了从 0 到 1 的穿刺验证，累计生成约 3k 行代码，并提前 2 天转测。</p>
+          <div class="cols">
+            <div class="box">
+              <h4>要强调的核心</h4>
+              <ul>
+                <li>不是单次 Prompt，而是多步骤 Agent loop。</li>
+                <li>不是只生成代码，而是围绕研发流程输出中间产物。</li>
+                <li>不是完全自动驾驶，而是人机协同、可审查、可回滚。</li>
+                <li>不是一个工具，而是 RAG、Tool、MCP、Skill、SubAgent、测试评估组合。</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h4>严格面试官想确认什么</h4>
+              <ul>
+                <li>你是否分得清 Agent、Workflow、Function Calling 和 ReAct。</li>
+                <li>你是否知道工具调用为什么会失败、怎么兜底。</li>
+                <li>你是否有评估指标，而不是只说“体感提效”。</li>
+                <li>你是否知道 Agent 的边界和安全风险。</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="strict">
+        <div class="section-head">
+          <h2>严格面试官会怎么问</h2>
+          <p>这部分就是防守地图。你要提前知道对方会把你从“项目描述”追到“工程细节”。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Interviewer Pressure Test</span>
+          <h3>高频追问路线</h3>
+          <div class="triple">
+            <div class="box"><h4>第一层：是不是套壳？</h4><ul><li>你这个和普通聊天机器人有什么区别？</li><li>为什么叫 Agent，不叫 Workflow？</li><li>Agent 自主决策体现在哪里？</li><li>哪些环节是确定流程，哪些环节由模型决策？</li></ul></div>
+            <div class="box"><h4>第二层：工具怎么用？</h4><ul><li>工具列表怎么召回？</li><li>工具太多会怎样？</li><li>模型选错工具怎么办？</li><li>MCP/Skill 的输入输出怎么约束？</li></ul></div>
+            <div class="box"><h4>第三层：怎么证明有效？</h4><ul><li>生成 3k 行代码有什么意义？</li><li>如何评估质量和提效？</li><li>怎么观测 Agent 每一步？</li><li>线上或真实交付中最大的瓶颈是什么？</li></ul></div>
+          </div>
+          <p class="script">回答策略：不要抢着讲概念。先把项目闭环讲清楚，再承认边界。严格面试官其实更相信“我知道哪些地方不能自动化”，而不是“AI 什么都能做”。</p>
+        </article>
+      </section>
+
+      <section class="section" id="architecture">
+        <div class="section-head">
+          <h2>Agent 架构：你要能画出组件</h2>
+          <p>Agent 不是一个 LLM，而是 LLM 外围的一套状态、工具、记忆、规划、执行和观测机制。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Agent Architecture</span>
+          <h3>我会这样拆</h3>
+          <pre>用户目标 / 研发任务
+  -> Orchestrator 调度器
+  -> Context Builder 上下文构造
+      -> RAG 检索项目知识
+      -> Memory 读取会话/偏好/历史决策
+  -> Planner 任务规划
+  -> Tool Router 工具选择
+      -> Skill / MCP / 脚本 / 代码仓库 / Wiki / CI
+  -> Executor 执行工具或生成代码
+  -> Observer 读取工具结果和日志
+  -> Critic / Reviewer 自检与人工 Review
+  -> Final Output 输出代码、文档、测试、转测说明</pre>
+          <div class="cols">
+            <div class="box"><h4>每个组件的作用</h4><ul><li><b>Orchestrator：</b>控制流程，不让模型无边界乱跑。</li><li><b>Context Builder：</b>把需求、代码、文档、历史决策拼成可用上下文。</li><li><b>Planner：</b>把目标拆成步骤，决定先做什么后做什么。</li><li><b>Tool Router：</b>选择工具，并构造结构化参数。</li><li><b>Observer：</b>把工具返回转成模型可理解的观察结果。</li><li><b>Reviewer：</b>检查输出是否满足规格、测试和风险约束。</li></ul></div>
+            <div class="box"><h4>面试回答重点</h4><p>我不会把 Agent 等同于“大模型接口”。大模型只是推理和生成核心，真正工程化的是外层的上下文管理、工具调用、状态跟踪、错误处理、评估和人工确认机制。</p></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="flow">
+        <div class="section-head">
+          <h2>Agent 研发闭环动画推演</h2>
+          <p>把“AI 辅助研发”讲成一条可观测、可验证、可人工接管的工程链路。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Animated Agent Flow</span>
+          <h3>一次需求从输入到转测怎么流动</h3>
+          <div class="flow" id="agentFlow">
+            <div class="flow-step active"><b>1. 需求输入</b>用户目标、业务背景、验收标准。</div>
+            <div class="flow-step"><b>2. 上下文构造</b>RAG 召回代码、文档、历史决策。</div>
+            <div class="flow-step"><b>3. 任务规划</b>拆步骤、定边界、生成待确认问题。</div>
+            <div class="flow-step"><b>4. 工具调用</b>MCP/Skill/脚本/仓库检索。</div>
+            <div class="flow-step"><b>5. 代码与测试</b>生成 diff、单测、Mock、迁移说明。</div>
+            <div class="flow-step"><b>6. Review 评估</b>自检、人工 Review、测试结果。</div>
+            <div class="flow-step"><b>7. 转测交付</b>风险清单、回滚方案、交付说明。</div>
+          </div>
+          <div class="controls" id="flowControls"></div>
+          <p class="script" id="flowExplain">当前重点：需求输入不是一句话 Prompt，要提取目标、边界、角色、验收标准和未知问题。</p>
+        </article>
+      </section>
+
+      <section class="section" id="loop">
+        <div class="section-head">
+          <h2>Agent Loop：每一轮到底发生什么</h2>
+          <p>Agent 热门问题里最容易被追：循环如何终止、如何避免无限调用工具、如何处理失败。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Agent Loop</span>
+          <h3>Observe → Think/Plan → Act → Observe → Verify</h3>
+          <pre>while not done and step < max_steps:
+    observe: 读取用户目标、上下文、历史状态、工具结果
+    plan:    选择下一步动作，判断是否需要工具
+    act:     调用工具 / 生成代码 / 请求澄清 / 产出文档
+    observe: 解析工具返回、错误、日志、diff、测试结果
+    verify:  检查是否满足验收标准，必要时重试或降级
+return final_answer / diff / test_report / handoff_note</pre>
+          <div class="cols">
+            <div class="box"><h4>为什么要有循环</h4><p>研发任务不是一次生成就结束。模型可能需要先检索代码，再生成方案，再调用工具，再根据测试结果修正。Agent loop 让它可以根据观察结果迭代，而不是一次性输出。</p></div>
+            <div class="box"><h4>怎么防止循环失控</h4><ul><li>限制最大步数和最大工具调用次数。</li><li>工具调用必须有结构化参数校验。</li><li>连续失败要停止并输出失败原因。</li><li>写操作、部署操作需要人工确认。</li><li>每轮保存 trace，便于复盘。</li></ul></div>
+            <div class="box full"><h4>严格面试官追问：什么时候不需要 Agent loop？</h4><p class="script">如果任务是固定流程、规则明确、输入输出稳定，比如固定格式转换或固定流水线执行，用 Workflow 更稳定、更便宜。Agent loop 适合目标明确但路径不完全确定、需要动态选择工具或根据观察结果调整步骤的任务。</p></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="components">
+        <div class="section-head">
+          <h2>每个环节做了什么、输出什么、为什么这样输出</h2>
+          <p>严格面试官会问“你说流程，那每一步的产物是什么？”</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <span class="badge">Step 1</span>
+            <h3>需求理解与澄清</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>输入原始需求、会议记录、Wiki、历史缺陷和业务上下文，让 Agent 抽取业务目标、角色、边界条件、影响模块和验收标准。</p></div>
+              <div class="box"><h4>输出什么</h4><p>需求摘要、待确认问题、影响范围、风险点、验收标准草案。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>因为研发里最大的返工不是代码慢，而是需求理解错。先让 Agent 输出澄清问题和验收标准，可以把模糊需求变成可开发任务。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 2</span>
+            <h3>规格生成 / SDD</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>让 Agent 把需求转成规格：接口变化、状态变化、数据结构、异常分支、兼容性、灰度和回滚要求。</p></div>
+              <div class="box"><h4>输出什么</h4><p>OpenSpec / 规格说明、接口草案、状态流转、数据模型、异常处理清单、验收用例。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>规格是代码生成的边界。没有规格就生成代码，模型容易自己补业务假设；有规格后，代码、测试、Review 都能围绕同一份约束展开。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 3</span>
+            <h3>上下文构造 / RAG</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>从 Wiki、历史方案、接口文档、代码片段、会话总结中召回相关上下文，并对上下文做去重、排序和摘要。</p></div>
+              <div class="box"><h4>输出什么</h4><p>相关文档片段、关联模块、历史实现参考、接口约束、风险提示。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>Agent 没有项目上下文就容易生成“通用正确、项目错误”的方案。RAG 不是替代模型推理，而是把项目事实放到模型面前。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 4</span>
+            <h3>任务规划 / SubAgent 分工</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>把复杂研发任务拆成需求分析、方案设计、代码实现、测试验证、Review 审查等角色，每个角色只负责一种产物。</p></div>
+              <div class="box"><h4>输出什么</h4><p>任务拆解表、模块修改清单、执行顺序、风险清单、测试计划。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>一个 Agent 一次性做完整复杂任务容易遗漏。角色化后目标更窄，产物更稳定，也更适合人工逐段审查。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 5</span>
+            <h3>工具调用 / MCP / Skill</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>把知识检索、代码搜索、脚本执行、热部署、会话总结、测试执行等高频操作封装为受控工具，让 Agent 通过结构化参数调用。</p></div>
+              <div class="box"><h4>输出什么</h4><p>工具调用参数、执行结果、错误信息、日志摘要、下一步建议。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>模型擅长理解和生成，不擅长可靠执行。工具化把“想做什么”和“怎么执行”分开，降低幻觉执行和手工操作成本。</p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Step 6</span>
+            <h3>代码生成、测试与转测</h3>
+            <div class="cols">
+              <div class="box"><h4>做了什么</h4><p>基于规格和上下文生成代码 diff、配置变更、单测、Mock 数据和变更说明，再通过人工 Review、测试执行和转测清单收口。</p></div>
+              <div class="box"><h4>输出什么</h4><p>代码 diff、文件变更清单、单测结果、Review 清单、转测说明、风险说明。</p></div>
+              <div class="box full"><h4>为什么这样输出</h4><p>代码只是交付物之一。严格面试官会更关注“能不能验收”。所以必须把测试结果、风险说明和转测说明一起输出。</p></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="agent-vs">
+        <div class="section-head">
+          <h2>Agent / Workflow / Function Call / ReAct 怎么区分</h2>
+          <p>这是 Agent 热门面试高频题。一定要用工程语言答，不要只背定义。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Concept Defense</span>
+          <h3>四者关系</h3>
+          <div class="cols">
+            <div class="box"><h4>Workflow</h4><p>流程预先固定，节点怎么走基本由代码决定。适合稳定流水线，比如固定 CI、固定审批、固定报表生成。</p></div>
+            <div class="box"><h4>Function Call</h4><p>模型根据语义选择某个函数并填参数，本质是工具调用接口。它解决“怎么让模型调用外部能力”。</p></div>
+            <div class="box"><h4>ReAct</h4><p>一种 Agent 推理模式：模型在推理、行动、观察之间循环，用工具观察结果继续推理。它更强调过程中的思考与行动交替。</p></div>
+            <div class="box"><h4>Agent</h4><p>Agent 是更完整的系统形态：目标、状态、记忆、规划、工具、观察、评估、纠错、终止条件。Function Call 和 ReAct 都可以是 Agent 的组成部分。</p></div>
+          </div>
+          <p class="script">推荐回答：Function Call 解决工具调用接口，ReAct 解决推理和行动交替，Workflow 解决固定流程编排，Agent 则是在目标驱动下动态规划、调用工具、观察结果并迭代的系统。我的项目里固定流程部分会用 Workflow，路径不确定、需要动态选择工具的部分才用 Agent。</p>
+        </article>
+      </section>
+
+      <section class="section" id="tools">
+        <div class="section-head">
+          <h2>Tool / MCP / Skill：工具不是越多越好</h2>
+          <p>严格面试官会追问：工具列表怎么组织？召回后会不会变更工具列表？有什么风险？</p>
+        </div>
+        <article class="card">
+          <span class="badge">Tool Engineering</span>
+          <h3>工具体系怎么讲</h3>
+          <div class="cols">
+            <div class="box"><h4>为什么要工具召回</h4><p>工具太多会增加模型选择成本和误调用概率。先根据任务意图召回候选工具，只暴露当前任务需要的工具子集，可以减少干扰、降低 token 成本，也让权限边界更清晰。</p></div>
+            <div class="box"><h4>召回后变更 tool list 的风险</h4><p>风险是模型前后上下文不一致、同名工具语义冲突、参数 schema 变化、工具消失导致计划失效。所以工具列表变化要有版本、命名空间和失败兜底。</p></div>
+            <div class="box"><h4>MCP / Skill 怎么定位</h4><p>MCP 更像工具接入协议或上下文桥梁，Skill 更像某类高频能力的封装。面试里不用纠结名字，重点说清：输入 schema、权限、执行结果、错误处理和审计。</p></div>
+            <div class="box"><h4>工具调用失败怎么办</h4><p>参数校验失败就让模型修正参数；工具执行失败就返回结构化错误；连续失败就停止，输出原因和人工接管建议。写操作需要确认，不让模型无限重试。</p></div>
+          </div>
+          <pre>工具定义要包含：
+- name / namespace：避免同名冲突
+- description：模型何时该用
+- input_schema：参数类型和约束
+- output_schema：返回结构
+- permission：只读 / 写入 / 高危
+- timeout / retry：超时和重试策略
+- error_code：失败原因可被 Agent 理解
+- audit_log：记录调用人、参数、结果</pre>
+          <div class="cols">
+            <div class="box"><h4>追问：为什么不能把所有工具都塞给模型？</h4><p>工具太多会让模型误选工具，也会放大权限风险。工程上更合理的是按任务意图、权限和上下文做工具召回，只给最小可用工具集。</p></div>
+            <div class="box"><h4>追问：工具 schema 设计不好会怎样？</h4><p>模型会填错参数、漏填关键字段，或者把自然语言塞进结构化字段。schema 要尽量明确、枚举化、带示例，并且工具侧必须二次校验。</p></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="rag-memory">
+        <div class="section-head">
+          <h2>RAG 与 Memory：上下文不是越多越好</h2>
+          <p>Agent 项目很容易被问：为什么需要 RAG？记忆怎么做？冲突怎么办？</p>
+        </div>
+        <article class="card">
+          <span class="badge">Context & Memory</span>
+          <h3>RAG 和 Memory 的分工</h3>
+          <div class="cols">
+            <div class="box"><h4>RAG 解决什么</h4><p>解决项目知识上下文缺失。比如接口文档、Wiki、历史方案、代码片段、故障复盘。它偏事实和知识。</p></div>
+            <div class="box"><h4>Memory 解决什么</h4><p>解决长期偏好、历史决策、用户习惯、项目约定。它偏个性化和连续性。</p></div>
+            <div class="box"><h4>为什么不直接塞全部上下文</h4><p>上下文窗口有限，塞太多会增加成本、噪声和注意力稀释。RAG 要召回少量高相关内容，并保留来源、时间和置信度。</p></div>
+            <div class="box"><h4>冲突怎么处理</h4><p>优先级通常是：当前用户明确指令 > 当前任务规格 > 最新项目文档 > 历史记忆 > 模型常识。冲突时不能悄悄合并，要暴露出来让人确认。</p></div>
+          </div>
+          <p class="script">推荐回答：RAG 不等于“搜出来塞进去”，而是上下文工程。要关注 chunk 质量、召回准确率、元信息、去重、时间有效性和引用来源。Memory 也不是无脑记住一切，而是要区分稳定偏好、历史决策和临时上下文。</p>
+        </article>
+      </section>
+
+      <section class="section" id="subagent">
+        <div class="section-head">
+          <h2>SubAgent：不是多开几个模型，而是角色化降低复杂度</h2>
+          <p>严格面试官会问：多 Agent 会不会更乱？怎么防止互相甩锅？</p>
+        </div>
+        <article class="card">
+          <span class="badge">SubAgent</span>
+          <h3>我的理解</h3>
+          <div class="cols">
+            <div class="box"><h4>为什么要 SubAgent</h4><p>复杂研发任务包含需求、设计、编码、测试、Review 多种认知任务。一个 Agent 一次性做所有事情，容易遗漏。SubAgent 把目标拆窄，产物更稳定。</p></div>
+            <div class="box"><h4>SubAgent 怎么分</h4><ul><li>需求分析 Agent：输出澄清问题和验收标准。</li><li>方案设计 Agent：输出架构和接口变更。</li><li>编码 Agent：输出 diff 和说明。</li><li>测试 Agent：输出用例和测试数据。</li><li>Review Agent：输出风险清单。</li></ul></div>
+            <div class="box"><h4>多 Agent 风险</h4><p>上下文不一致、重复劳动、输出冲突、成本上升、链路变长。需要由 Orchestrator 汇总，定义产物格式和冲突解决规则。</p></div>
+            <div class="box"><h4>怎么收口</h4><p>每个 SubAgent 产物都要进入统一的任务状态表，最后由主 Agent 或人工做一致性检查，避免多个 Agent 各说各话。</p></div>
+          </div>
+          <p class="script">推荐回答：我不会把 SubAgent 当成“模型越多越智能”。它的价值是角色边界清晰、输出可审查。多 Agent 的核心难点反而是调度、一致性和成本控制。</p>
+        </article>
+      </section>
+
+      <section class="section" id="eval">
+        <div class="section-head">
+          <h2>评估与观测：没有 Eval 的 Agent 不能上线</h2>
+          <p>面试官会问你如何证明它有效，以及出了问题怎么定位。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Eval & Observability</span>
+          <h3>指标怎么设计</h3>
+          <div class="triple">
+            <div class="box"><h4>效果指标</h4><ul><li>任务完成率</li><li>需求到转测耗时</li><li>人工修改比例</li><li>Review 问题数</li><li>测试通过率</li><li>缺陷逃逸率</li></ul></div>
+            <div class="box"><h4>Agent 指标</h4><ul><li>工具选择准确率</li><li>工具调用成功率</li><li>平均步骤数</li><li>重试次数</li><li>人工接管率</li><li>幻觉/无依据输出比例</li></ul></div>
+            <div class="box"><h4>工程指标</h4><ul><li>端到端延迟</li><li>Token / 成本</li><li>上下文召回命中率</li><li>失败错误码分布</li><li>工具超时率</li><li>安全拦截次数</li></ul></div>
+          </div>
+          <pre>每次运行建议记录 trace：
+- user_goal：用户目标
+- retrieved_context：召回了哪些文档
+- plan：Agent 计划
+- tool_calls：调用了哪些工具和参数
+- observations：工具返回和错误
+- output：最终代码/文档/测试
+- human_review：人工修改点
+- metrics：耗时、成本、成功/失败原因</pre>
+          <div class="cols">
+            <div class="box"><h4>追问：生成行数是不是指标？</h4><p>不是核心指标。生成 3k 行只能说明有真实产物，更关键的是这些代码是否通过测试、是否减少返工、是否提前转测、是否降低 Review 成本。</p></div>
+            <div class="box"><h4>追问：怎么做回归评估？</h4><p>可以维护典型需求集和故障集，固定输入跑 Agent，看是否能召回正确上下文、生成合理方案、通过测试，并比较不同版本 Agent 的表现。</p></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="migration">
+        <div class="section-head">
+          <h2>迁移模式：可迁移的是 Agent 工程闭环，不是某个 Prompt</h2>
+          <p>回答迁移能力时，要说清什么场景适合 Agent，什么场景不适合。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Migration</span>
+          <h3>适合迁移的场景</h3>
+          <div class="cols">
+            <div class="box"><h4>订单 / 业务研发</h4><p>需求澄清、状态机设计、接口草案、幂等方案、代码 diff、单测和转测说明。</p></div>
+            <div class="box"><h4>运维自动化</h4><p>自然语言意图、参数校验、MCP 工具执行、日志回传、失败诊断、人工确认。</p></div>
+            <div class="box"><h4>SQL / 性能排障</h4><p>日志收集、SQL 解析、EXPLAIN 解读、优化建议、回归验证清单。</p></div>
+            <div class="box"><h4>知识库 / 新人助手</h4><p>文档召回、方案总结、历史决策解释、项目 FAQ、故障复盘。</p></div>
+            <div class="box"><h4>测试生成</h4><p>根据规格生成单测、边界用例、Mock 数据、回归用例和测试报告。</p></div>
+            <div class="box"><h4>代码 Review</h4><p>检查幂等、状态机、异常处理、缓存一致性、SQL 风险、日志和监控。</p></div>
+          </div>
+          <p class="script">适合 Agent 的场景：目标明确，但路径需要动态判断；有工具可调用；有可验证结果；有高频重复价值。不适合的场景：规则固定到可以写死流程、结果无法验证、风险极高且没有人工确认。</p>
+        </article>
+      </section>
+
+      <section class="section" id="bottleneck">
+        <div class="section-head">
+          <h2>当前瓶颈：要敢讲不足，才像真的做过</h2>
+          <p>严格面试官更相信你讲得出边界，而不是把 Agent 吹成万能。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Bottlenecks</span>
+          <h3>我会讲 8 个瓶颈</h3>
+          <div class="cols">
+            <div class="box"><h4>1. 上下文质量</h4><p>文档过期、chunk 切分差、召回噪声高，会让 Agent 基于错误上下文决策。</p></div>
+            <div class="box"><h4>2. 工具稳定性</h4><p>工具 schema 不清、超时、权限不足、错误码不可理解，会导致 Agent 无法恢复。</p></div>
+            <div class="box"><h4>3. 多步误差累积</h4><p>Agent loop 越长，前面一步的小错误越可能放大到最终结果。</p></div>
+            <div class="box"><h4>4. 多文件一致性</h4><p>AI 写局部代码较强，但跨接口、配置、测试、文档的一致性仍需人工审查。</p></div>
+            <div class="box"><h4>5. Eval 难做</h4><p>研发任务开放性强，不能只用对错评估，需要任务集、人工标注、测试和线上指标结合。</p></div>
+            <div class="box"><h4>6. 成本和延迟</h4><p>多轮规划、RAG、工具调用、SubAgent 都会增加成本和等待时间，需要按场景取舍。</p></div>
+            <div class="box"><h4>7. 安全与权限</h4><p>写文件、执行脚本、热部署等工具必须有沙箱、白名单、审批和审计。</p></div>
+            <div class="box"><h4>8. 人机责任边界</h4><p>AI 可以生成候选方案，但架构取舍、上线风险、数据安全和最终合并必须由工程师负责。</p></div>
+          </div>
+          <p class="script">下一步方向：把“能跑通”推进到“可复制、可度量、可治理”。重点做工具稳定性、测试自动化、trace 观测、任务集评估、权限边界和人工审核流程。</p>
+        </article>
+      </section>
+
+      <section class="section" id="pressure">
+        <div class="section-head">
+          <h2>压力诊断台：严格面试官追问怎么接</h2>
+          <p>选择一个尖锐问题，练习用“承认边界 + 解释机制 + 工程兜底 + 指标验证”回答。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Pressure Test</span>
+          <h3>选择追问</h3>
+          <div class="lab">
+            <div class="box">
+              <h4>严格问题</h4>
+              <select id="pressureType">
+                <option value="wrapper">你这是不是 ChatGPT 套壳？</option>
+                <option value="toolWrong">Agent 选错工具怎么办？</option>
+                <option value="evalWeak">生成 3k 行代码怎么证明有效？</option>
+                <option value="ragNoise">RAG 召回错上下文怎么办？</option>
+                <option value="multiAgent">SubAgent 会不会越多越乱？</option>
+                <option value="security">让 Agent 执行工具安全吗？</option>
+              </select>
+              <div class="controls"><button id="runPressure">生成回答骨架</button></div>
+            </div>
+            <div class="output" id="pressureOutput">等待选择追问。</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>Agent 项目自测</h2>
+          <p>检查你有没有把 Agent、RAG、工具、评估和安全边界真正串起来。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Quiz</span>
+          <div class="quiz" id="quizList"></div>
+          <div class="controls"><button id="resetQuiz">重做自测</button></div>
+        </article>
+      </section>
+
+      <section class="section" id="script">
+        <div class="section-head">
+          <h2>最终可背的话术</h2>
+          <p>用这段开场，然后根据面试官兴趣展开 Agent loop、工具、RAG、评估或瓶颈。</p>
+        </div>
+        <article class="card">
+          <span class="badge">90 Seconds</span>
+          <h3>Agent 项目 90 秒版本</h3>
+          <p class="script">我近半年参与了 AI 辅助研发与智能交付探索。我不会把它理解成简单的 AI 写代码，而是把它做成一个研发场景下的 Agent 化闭环：用户输入需求后，系统先做需求理解和澄清，再通过 RAG 和历史记忆补项目上下文，然后由 Agent 做任务规划，按需调用 Skill、MCP、代码检索、脚本执行等工具，读取观察结果后继续修正，最后输出代码 diff、测试用例、Review 清单和转测说明。这个过程中我实践过 Skill、MCP、SubAgent、RAG、SDD/TDD 等方式，在试点中完成从 0 到 1 的穿刺验证，累计生成约 3k 行代码，并提前 2 天转测。我沉淀出的模式是：先规格后代码，中间产物可审查，复杂任务角色化，高频动作工具化，人负责判断，AI 负责提高吞吐。现在的瓶颈主要在上下文质量、工具稳定性、多步误差累积、评估体系、安全权限和人机责任边界上。所以我认为 Agent 工程化的关键不是让模型更会聊天，而是把上下文、工具、状态、评估和人工审核都纳入可治理的工程流程。</p>
+        </article>
+        <article class="card">
+          <span class="badge">30 Seconds</span>
+          <h3>Agent 项目 30 秒版本</h3>
+          <p class="script">我做的 AI 辅助研发探索，本质是研发场景的 Agent 工程化。它不是一次性生成代码，而是需求理解、RAG 补上下文、任务规划、工具调用、代码生成、测试验证和人工 Review 的闭环。试点里累计生成约 3k 行代码并提前 2 天转测。我的核心收获是：Agent 的价值不在于替代工程师，而在于把研发流程拆成可审查、可调用工具、可验证结果的多个节点，提升吞吐，同时保留人工判断和风险控制。</p>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script>
+    const flowLabels = ["需求输入", "上下文构造", "任务规划", "工具调用", "代码与测试", "Review 评估", "转测交付"];
+    const flowDetails = [
+      "当前重点：需求输入不是一句话 Prompt，要提取目标、边界、角色、验收标准和未知问题。",
+      "当前重点：RAG 不是塞越多越好，要召回代码、接口、历史方案，并保留来源、时间和置信度。",
+      "当前重点：Planner 要把任务拆成可验证步骤，产出待确认问题，而不是直接开始写代码。",
+      "当前重点：工具调用要有 schema、权限、超时、错误码和观察结果，方便 Agent 恢复。",
+      "当前重点：代码生成必须绑定测试、Mock、迁移说明和风险点，否则很难验收。",
+      "当前重点：Review 不只是人工看代码，也包括自动测试、静态检查、规则校验和 trace 复盘。",
+      "当前重点：交付必须输出转测说明、影响范围、回滚方案和未解决风险。"
+    ];
+    const flowControls = document.getElementById("flowControls");
+    flowLabels.forEach((label, index) => {
+      const button = document.createElement("button");
+      button.textContent = `${index + 1}. ${label}`;
+      button.className = index === 0 ? "active" : "";
+      button.addEventListener("click", () => setFlow(index));
+      flowControls.appendChild(button);
+    });
+    function setFlow(index) {
+      document.querySelectorAll(".flow-step").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.getElementById("flowExplain").textContent = flowDetails[index];
+    }
+
+    const pressureAnswers = {
+      wrapper: [
+        "先承认：如果只是把需求丢给模型生成代码，那确实只是套壳。",
+        "区分点：我的项目重点是研发流程闭环，包括上下文构造、任务规划、工具调用、测试验证、人工 Review 和 trace 观测。",
+        "工程机制：需求、检索、计划、工具调用、观察结果和最终输出都有结构化记录，而不是一次性聊天。",
+        "验证方式：看任务完成率、测试通过率、人工修改比例、转测耗时和缺陷逃逸率。"
+      ],
+      toolWrong: [
+        "风险：工具选错会导致错误数据、无效操作或安全风险。",
+        "机制：工具要有明确 schema、描述、权限范围、参数校验和 dry-run 能力。",
+        "兜底：调用失败后让 Agent 读取错误码重新规划；高风险工具必须人工确认。",
+        "观测：记录 tool_calls、参数、返回、耗时和失败原因，用于优化工具描述和路由策略。"
+      ],
+      evalWeak: [
+        "先承认：代码行数不是质量指标，只能说明有真实产物。",
+        "有效性指标：需求到转测耗时、测试通过率、Review 修改比例、缺陷逃逸率、人工接管率。",
+        "评估方法：固定典型需求集和故障集，比较不同版本 Agent 的完成率和错误分布。",
+        "面试话术：提效必须用交付质量和返工成本证明，而不是只看生成量。"
+      ],
+      ragNoise: [
+        "风险：召回错误上下文会让 Agent 生成项目不适配的方案。",
+        "机制：chunk 要保留标题路径、来源、更新时间、权限和版本。",
+        "优化：混合检索、重排、去重、上下文压缩和引用校验。",
+        "兜底：关键结论必须带来源，低置信召回要触发澄清或人工确认。"
+      ],
+      multiAgent: [
+        "先承认：SubAgent 不是越多越好，多了会带来成本、延迟和一致性问题。",
+        "边界：只有复杂任务才拆角色，比如需求、方案、编码、测试、Review。",
+        "收口：所有 SubAgent 产物进入统一任务状态表，由主 Agent 或人工做一致性检查。",
+        "评估：看角色拆分是否降低错误率和人工修改比例，而不是看模型数量。"
+      ],
+      security: [
+        "风险：Agent 执行工具可能读写文件、调用接口、泄露数据或误操作环境。",
+        "机制：工具白名单、最小权限、沙箱、参数校验、危险操作人工确认。",
+        "审计：记录每次工具调用、输入输出、操作者、时间和结果。",
+        "边界：高风险动作只给建议或 dry-run，最终执行必须人确认。"
+      ]
+    };
+    document.getElementById("runPressure").addEventListener("click", () => {
+      const lines = pressureAnswers[document.getElementById("pressureType").value];
+      document.getElementById("pressureOutput").textContent = lines.map((line, index) => `Step ${index + 1}：${line}`).join("\n");
+    });
+
+    const quizzes = [
+      ["Agent 和普通 Function Call 最大区别是什么？", ["Agent 有目标、状态、观察和多步迭代", "Function Call 一定不用模型", "Agent 只能写代码"], 0, "Agent 是更完整的闭环系统。"],
+      ["RAG 在 Agent 研发助手里主要解决什么？", ["补项目上下文", "替代所有测试", "自动上线"], 0, "RAG 让模型获得项目事实和历史决策。"],
+      ["工具调用工程化最重要的约束是什么？", ["schema、权限、超时、错误处理", "工具越多越好", "不需要日志"], 0, "工具必须可控、可观测、可恢复。"],
+      ["生成代码行数是不是核心效果指标？", ["不是", "是唯一指标", "越多越好"], 0, "核心看质量、测试、返工和交付效率。"],
+      ["高风险工具执行前应该怎么做？", ["人工确认或 dry-run", "直接自动执行", "隐藏日志"], 0, "安全边界比自动化程度更重要。"]
+    ];
+    function renderQuiz() {
+      const list = document.getElementById("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([question, options, answer, hint], index) => {
+        const card = document.createElement("div");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${question}</h3>${options.map((option, i) => `<button data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("click", () => {
+            card.querySelectorAll("button").forEach((node) => node.disabled = true);
+            const picked = Number(button.dataset.i);
+            button.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll("button")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+    document.getElementById("resetQuiz").addEventListener("click", renderQuiz);
+    renderQuiz();
+  </script>
+</body>
+</html>

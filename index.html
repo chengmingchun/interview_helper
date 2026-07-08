@@ -7,11 +7,10 @@
   <style>
     :root {
       --paper: #f4efe6;
-      --paper-deep: #e8dece;
       --ink: #201a14;
       --muted: #776b5d;
       --line: rgba(32, 26, 20, 0.14);
-      --panel: rgba(255, 252, 245, 0.86);
+      --panel: rgba(255, 252, 245, 0.88);
       --accent: #d8652a;
       --accent-soft: rgba(216, 101, 42, 0.12);
       --accent-2: #9f4d28;
@@ -21,6 +20,12 @@
     }
 
     * { box-sizing: border-box; }
+
+    html {
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
 
     body {
       margin: 0;
@@ -33,6 +38,11 @@
         linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
         var(--paper);
       line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div {
+      min-width: 0;
     }
 
     main {
@@ -71,7 +81,8 @@
 
     h1 {
       margin: 0 0 14px;
-      font-size: clamp(38px, 7vw, 68px);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(34px, 5.6vw, 64px);
       line-height: 1;
       letter-spacing: 0;
     }
@@ -114,13 +125,13 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
       gap: 16px;
     }
 
     .card {
       display: grid;
-      min-height: 310px;
+      min-height: 330px;
       padding: 22px;
     }
 
@@ -133,6 +144,7 @@
     .card p {
       margin: 0 0 16px;
       color: var(--muted);
+      overflow-wrap: anywhere;
     }
 
     .tags {
@@ -170,6 +182,12 @@
       .hero, .grid { grid-template-columns: 1fr; }
       main { padding: 24px 0; }
     }
+
+    @media (max-width: 520px) {
+      main { width: min(100% - 20px, 1120px); }
+      .hero-copy, .card { padding: 18px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
   </style>
 </head>
 <body>
@@ -178,7 +196,7 @@
       <div class="panel hero-copy">
         <span class="eyebrow">Interview Review Hub</span>
         <h1>选择今天要复习的专题</h1>
-        <p>每个专题都是独立 HTML。今天的主线是 Spring：从 IoC、Bean 生命周期、AOP、事务、自动配置，到实战案例和设计模式。</p>
+        <p>每个专题都是独立 HTML。入口页只负责路由，旧专题不会被新内容覆盖；新增复习内容会继续挂在这里。</p>
       </div>
       <div class="panel terminal" aria-label="复习终端">
         <div class="terminal-bar">
@@ -186,10 +204,24 @@
           <span>review-router</span>
         </div>
         <div class="terminal-body">
-          <p><span class="prompt">$</span> <span class="cmd">today --focus</span></p>
-          <p>Spring: IoC, Bean lifecycle, AOP, transaction</p>
-          <p>Practice: order, payment strategy, event, idempotency</p>
-          <p><span class="prompt">$</span> <span class="cmd">open pages/spring-masterclass.html</span></p>
+          <p><span class="prompt">$</span> <span class="cmd">ls pages</span></p>
+          <p>spring-masterclass.html</p>
+          <p>java-concurrency.html</p>
+          <p>python-core-interview.html</p>
+          <p>java-algorithm-core.html</p>
+          <p>spring-core.html</p>
+          <p>senior-java-spring-architecture.html</p>
+          <p>mysql-innodb-sql-optimization.html</p>
+          <p>greedy-algorithm.html</p>
+          <p>monotonic-stack-queue.html</p>
+          <p>resume-order-deep-dive.html</p>
+          <p>ai-assisted-dev-deep-dive.html</p>
+          <p>sql-optimization-cases.html</p>
+          <p>java-fullgc-jvm.html</p>
+          <p>data-agent-ai-coding.html</p>
+          <p>rag-masterclass.html</p>
+          <p>mq-architecture-rag.html</p>
+          <p>one-interview-gap.html</p>
         </div>
       </div>
     </section>
@@ -220,32 +252,233 @@
       </article>
 
       <article class="panel card">
+        <h2>Python 八股速成</h2>
+        <p>快速掌握 Python 高频面试点：对象模型、装饰器、生成器、GIL、内存管理、并发、拷贝、异常、性能和 Web/数据常问点。</p>
+        <div class="tags">
+          <span class="tag">Python</span>
+          <span class="tag">GIL</span>
+          <span class="tag">装饰器</span>
+          <span class="tag">并发</span>
+        </div>
+        <a class="button" href="./pages/python-core-interview.html">进入专题学习</a>
+      </article>
+
+      <article class="panel card">
+        <h2>Java / 算法 / DB 核心题</h2>
+        <p>线程安全单例、手撕算法、二叉树、LRU、JVM、索引失效、Explain 和 Redis 缓存一致性。</p>
+        <div class="tags">
+          <span class="tag">Java</span>
+          <span class="tag">算法</span>
+          <span class="tag">JVM</span>
+          <span class="tag">MySQL/Redis</span>
+        </div>
+        <a class="button" href="./pages/java-algorithm-core.html">进入专题学习</a>
+      </article>
+
+      <article class="panel card">
+        <h2>Java 并发 / 线程池 / 锁机制</h2>
+        <p>系统梳理线程池七参数、拒绝策略、参数估算、JMM、volatile、synchronized、ReentrantLock、AQS、ThreadLocal 和并发排障。</p>
+        <div class="tags">
+          <span class="tag">Java 并发</span>
+          <span class="tag">线程池</span>
+          <span class="tag">锁机制</span>
+          <span class="tag">JUC</span>
+        </div>
+        <a class="button" href="./pages/java-concurrency-threadpool.html">进入并发专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>Spring 核心专题</h2>
+        <p>按请求链路理解 Spring：IoC 容器、Bean 生命周期、循环依赖、AOP 代理、事务失效、Spring MVC 和 Boot 自动配置。</p>
+        <div class="tags">
+          <span class="tag">Spring</span>
+          <span class="tag">IoC/AOP</span>
+          <span class="tag">事务</span>
+          <span class="tag">Boot</span>
+        </div>
+        <a class="button" href="./pages/spring-core.html">进入 Spring 专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>Java / Spring 中高级冲刺</h2>
+        <p>覆盖高阶自我介绍、设计模式、Spring 扩展、事务传播、Nacos、在线峰值系统、大流量兜底、架构取舍和二分手撕。</p>
+        <div class="tags">
+          <span class="tag">中高级</span>
+          <span class="tag">Spring</span>
+          <span class="tag">架构设计</span>
+          <span class="tag">手撕算法</span>
+        </div>
+        <a class="button" href="./pages/senior-java-spring-architecture.html">进入冲刺专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>MySQL / InnoDB / SQL 优化</h2>
+        <p>覆盖聚簇索引、二级索引、回表、MVCC、RR 幻读、间隙锁/临键锁、死锁、联合索引、覆盖索引、Explain 和千万级表优化。</p>
+        <div class="tags">
+          <span class="tag">MySQL</span>
+          <span class="tag">InnoDB</span>
+          <span class="tag">索引</span>
+          <span class="tag">SQL 优化</span>
+        </div>
+        <a class="button" href="./pages/mysql-innodb-sql-optimization.html">进入 MySQL 专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>贪心算法专题</h2>
+        <p>系统练习贪心算法：证明套路、区间贪心、覆盖范围、股票收益、资源匹配、加油站和常见反例。</p>
+        <div class="tags">
+          <span class="tag">Greedy</span>
+          <span class="tag">区间</span>
+          <span class="tag">证明</span>
+          <span class="tag">Java</span>
+        </div>
+        <a class="button" href="./pages/greedy-algorithm.html">进入贪心专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>二分法专题</h2>
+        <p>快速掌握二分边界：精确查找、lower_bound、右边界、二分答案、旋转数组、峰值和手撕时最容易错的返回值。</p>
+        <div class="tags">
+          <span class="tag">二分</span>
+          <span class="tag">边界</span>
+          <span class="tag">答案二分</span>
+          <span class="tag">手撕</span>
+        </div>
+        <a class="button" href="./pages/binary-search.html">进入二分专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>链表手撕专题</h2>
+        <p>集中练链表指针题：反转链表、删除倒数节点、合并有序链表、环入口、区间反转、相交链表和中点。</p>
+        <div class="tags">
+          <span class="tag">链表</span>
+          <span class="tag">指针</span>
+          <span class="tag">快慢指针</span>
+          <span class="tag">dummy</span>
+        </div>
+        <a class="button" href="./pages/linked-list.html">进入链表专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>动态规划专题</h2>
+        <p>用五步法学会 DP：状态定义、转移方程、初始化、遍历顺序、空间优化，覆盖背包、LIS、LCS、路径类高频题。</p>
+        <div class="tags">
+          <span class="tag">DP</span>
+          <span class="tag">背包</span>
+          <span class="tag">子序列</span>
+          <span class="tag">状态转移</span>
+        </div>
+        <a class="button" href="./pages/dynamic-programming.html">进入 DP 专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>单调栈 / 单调队列</h2>
+        <p>彻底区分单调栈和单调队列：邻近更大更小、窗口最大最小、每日温度、柱状图最大矩形、滑动窗口最大值和前缀和队列。</p>
+        <div class="tags">
+          <span class="tag">单调栈</span>
+          <span class="tag">单调队列</span>
+          <span class="tag">窗口</span>
+          <span class="tag">Java/Rust</span>
+        </div>
+        <a class="button" href="./pages/monotonic-stack-queue.html">进入单调专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>订单项目深挖</h2>
+        <p>围绕订单模块项目经历深挖：高并发提交、幂等、重复入库、缓存一致性、状态机、异步下发、慢 SQL 和面试话术。</p>
+        <div class="tags">
+          <span class="tag">订单</span>
+          <span class="tag">幂等</span>
+          <span class="tag">缓存一致性</span>
+          <span class="tag">SQL 优化</span>
+        </div>
+        <a class="button" href="./pages/resume-order-deep-dive.html">进入订单深挖</a>
+      </article>
+
+      <article class="panel card">
+        <h2>MQ 落地与可靠性</h2>
+        <p>围绕异步下发和可靠消息，按生产端、Broker、消费端、幂等、顺序、积压和补偿闭环拆解 MQ 落地实践。</p>
+        <div class="tags">
+          <span class="tag">MQ</span>
+          <span class="tag">可靠消息</span>
+          <span class="tag">幂等</span>
+          <span class="tag">补偿</span>
+        </div>
+        <a class="button" href="./pages/mq-reliability-practice.html">进入 MQ 专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>AI 辅助研发深挖</h2>
+        <p>深挖 AI 增强研发项目：需求理解、规格生成、SubAgent 拆解、RAG 补上下文、AI Coding、Skill/MCP 工具化、迁移模式和当前瓶颈。</p>
+        <div class="tags">
+          <span class="tag">AI Coding</span>
+          <span class="tag">SDD/TDD</span>
+          <span class="tag">RAG</span>
+          <span class="tag">MCP</span>
+        </div>
+        <a class="button" href="./pages/ai-assisted-dev-deep-dive.html">进入 AI 项目深挖</a>
+      </article>
+
+      <article class="panel card">
+        <h2>SQL 优化案例复盘</h2>
+        <p>把三个经验贴案例重新讲明白：左模糊索引失效、WHERE/ORDER BY 索引选择误判、OFFSET 深分页回表与延迟关联。</p>
+        <div class="tags">
+          <span class="tag">SQL</span>
+          <span class="tag">索引</span>
+          <span class="tag">执行计划</span>
+          <span class="tag">深分页</span>
+        </div>
+        <a class="button" href="./pages/sql-optimization-cases.html">进入 SQL 案例</a>
+      </article>
+
+      <article class="panel card">
+        <h2>Redis 高可用与分片集群</h2>
+        <p>系统梳理 Redis 主从复制、哨兵模式、Cluster 分片、MOVED/ASK、热点 Key、脑裂和缓存一致性。</p>
+        <div class="tags">
+          <span class="tag">Redis</span>
+          <span class="tag">Sentinel</span>
+          <span class="tag">Cluster</span>
+          <span class="tag">一致性</span>
+        </div>
+        <a class="button" href="./pages/redis-cluster-sentinel.html">进入 Redis 专题</a>
+      </article>
+
+      <article class="panel card">
+        <h2>Java Full GC / JVM</h2>
+        <p>把 JVM 内存区域、GC Roots、Full GC 触发原因、日志解读、线上排查命令和 60 秒面试模板串成一条链路。</p>
+        <div class="tags">
+          <span class="tag">Full GC</span>
+          <span class="tag">JVM</span>
+          <span class="tag">线上排障</span>
+        </div>
+        <a class="button" href="./pages/java-fullgc-jvm.html">进入 JVM 专题</a>
+      </article>
+
+      <article class="panel card">
         <h2>Data Agent / AI Coding</h2>
-        <p>今天专题：Data Agent 架构、Text-to-SQL、语义层、数据评估，以及 AI Coding 面试实战打法。</p>
+        <p>Data Agent 架构、Text-to-SQL、语义层、数据评估，以及 AI Coding 面试实战打法。</p>
         <div class="tags">
           <span class="tag">Data Agent</span>
           <span class="tag">Text-to-SQL</span>
           <span class="tag">AI Coding</span>
-          <span class="tag">面试实战</span>
         </div>
         <a class="button" href="./pages/data-agent-ai-coding.html">进入专题学习</a>
       </article>
 
       <article class="panel card">
         <h2>RAG 完全掌握</h2>
-        <p>今天只学 RAG：工具选型、技术点、工程步骤、评估指标、生产问题和前沿增强型 RAG。</p>
+        <p>工具选型、技术点、工程步骤、评估指标、生产问题和前沿增强型 RAG。</p>
         <div class="tags">
           <span class="tag">LangChain</span>
           <span class="tag">LlamaIndex</span>
           <span class="tag">GraphRAG</span>
-          <span class="tag">RAGAS</span>
         </div>
         <a class="button" href="./pages/rag-masterclass.html">进入 RAG 学习</a>
       </article>
 
       <article class="panel card">
         <h2>MQ / 架构 / RAG</h2>
-        <p>原有综合专题，适合复习消息队列、架构设计和企业知识库 RAG 场景题。</p>
+        <p>综合专题：消息队列、系统架构设计和企业知识库 RAG 场景题。</p>
         <div class="tags">
           <span class="tag">MQ</span>
           <span class="tag">架构设计</span>

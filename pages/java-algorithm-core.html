@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Java 手撕算法速成</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --soft: rgba(255, 250, 240, 0.72);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --green: #3e7b4f;
+      --blue: #386a91;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    button, select, textarea { font: inherit; }
+    main, section, article, div, aside { min-width: 0; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.84);
+      overflow: auto;
+    }
+
+    .brand {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+
+    nav { display: grid; gap: 8px; }
+
+    nav a,
+    button,
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.68);
+    }
+
+    nav a {
+      padding: 10px 12px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    nav a:hover,
+    .chip.active {
+      color: var(--accent-2);
+      border-color: rgba(216, 101, 42, 0.45);
+      background: var(--accent-soft);
+    }
+
+    main {
+      width: min(1220px, 100%);
+      padding: 34px 36px 56px;
+    }
+
+    .hero,
+    .card,
+    .lab,
+    .compact {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 18px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 980px;
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(34px, 5.8vw, 64px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-head p,
+    .card-head p,
+    .muted {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .section { margin: 34px 0; }
+
+    .section-head { margin-bottom: 14px; }
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .method {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+
+    .method b { display: block; margin-bottom: 4px; }
+    .method span { color: var(--muted); font-size: 14px; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 120px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      transition: transform .25s ease, border-color .25s ease, background .25s ease;
+    }
+
+    .flow-step b { display: block; margin-bottom: 6px; }
+
+    .flow-step.active {
+      transform: translateY(-5px);
+      border-color: rgba(216, 101, 42, 0.58);
+      background: var(--accent-soft);
+      box-shadow: 0 12px 30px rgba(216, 101, 42, 0.14);
+    }
+
+    .flow-step.active::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 9px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      animation: pulse 1.1s infinite;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .controls button {
+      padding: 9px 12px;
+      cursor: pointer;
+    }
+
+    .controls button.active {
+      border-color: var(--green);
+      background: rgba(62, 123, 79, 0.12);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .45; }
+      50% { opacity: 1; }
+    }
+
+    .grid { display: grid; gap: 20px; }
+
+    .card { overflow: hidden; }
+
+    .card-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      padding: 24px 26px 18px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .card-head h3 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      line-height: 1.18;
+    }
+
+    .source {
+      display: grid;
+      gap: 6px;
+      justify-items: end;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 28px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 26px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .chip {
+      padding: 8px 11px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 20px;
+      padding: 22px 26px 26px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel p { margin: 0 0 13px; }
+    .panel li { margin: 8px 0; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .side { display: grid; gap: 12px; align-self: start; }
+
+    .box {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+
+    .box h4 { margin: 0 0 8px; font-size: 16px; }
+    .box p { margin: 0; color: var(--muted); }
+
+    .answer {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent-soft);
+    }
+
+    .answer.show { display: block; }
+
+    .answer-toggle,
+    .primary {
+      padding: 9px 11px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .primary {
+      color: var(--code);
+      background: var(--dark);
+    }
+
+    .lab {
+      padding: 22px;
+    }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .control {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.76);
+      color: var(--ink);
+    }
+
+    .visual {
+      min-height: 260px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .compact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .compact {
+      padding: 18px;
+      box-shadow: none;
+    }
+
+    .compact h3 { margin: 0 0 8px; }
+    .compact p { margin: 0; color: var(--muted); }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .card-body { grid-template-columns: 1fr; }
+      main { padding: 28px 24px 48px; }
+      .method-grid, .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lab-grid { grid-template-columns: 1fr; }
+      .compact-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      main { padding: 14px; }
+      .hero, .lab { padding: 20px; }
+      .card-head { display: block; }
+      .source { justify-items: start; margin-top: 10px; white-space: normal; }
+      .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      nav, .method-grid, .flow { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Algorithm Drill</b>
+        <span>题源 + 手撕步骤 + 交互推演</span>
+      </div>
+      <nav>
+        <a href="#top">Start</a>
+        <a href="#flow">面试闭环</a>
+        <a href="#method">手撕五步</a>
+        <a href="#max-subarray">最大子数组和</a>
+        <a href="#reverse-list">反转链表</a>
+        <a href="#tree">二叉树三题</a>
+        <a href="#lru">LRU</a>
+        <a href="#playground">交互推演</a>
+        <a href="#extras">八股补充</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">Java 手撕算法速成 / LeetCode 高频题源</span>
+        <h1>不是背答案，而是学会一类题怎么拆。</h1>
+        <p>本页把原来含糊的算法卡片重做成“题源、题意、可视化推演、手撕模板、复杂度、变体迁移”。目标是：你看到同类题时知道先定义什么、维护什么、何时更新答案。</p>
+      </section>
+
+      <section class="section" id="flow">
+        <div class="section-head">
+          <h2>算法面试闭环推演</h2>
+          <p>算法题真正的节奏是：先把题读对，再选模型，再手推状态，最后写代码和复杂度。</p>
+        </div>
+        <article class="lab">
+          <span class="badge">Animated Interview Flow</span>
+          <h3>从看到题到写出可讲代码</h3>
+          <div class="flow" id="algoFlow">
+            <div class="flow-step active"><b>1. 读题信号</b>连续、原地、有序、树、缓存、O(1)。</div>
+            <div class="flow-step"><b>2. 选模型</b>DP、双指针、递归、BFS、Map+链表。</div>
+            <div class="flow-step"><b>3. 定状态</b>cur/prev/queue/cache 表示什么。</div>
+            <div class="flow-step"><b>4. 手推样例</b>用最小输入跑一轮，暴露边界。</div>
+            <div class="flow-step"><b>5. 写模板</b>先骨架，再填转移和指针变化。</div>
+            <div class="flow-step"><b>6. 复盘迁移</b>复杂度、边界、变体和反例。</div>
+          </div>
+          <div class="controls" id="flowControls"></div>
+          <p class="box" id="flowExplain" style="margin-top:14px">当前重点：读题时先抓信号词。比如“连续”通常提示子数组状态，“O(1)”常提示哈希表或指针结构。</p>
+        </article>
+      </section>
+
+      <section class="section" id="method">
+        <div class="section-head">
+          <h2>手撕算法五步</h2>
+          <p>面试时别一上来写代码，先用这五步稳住节奏。</p>
+        </div>
+        <div class="method-grid">
+          <div class="method"><b>1. 复述题意</b><span>确认输入、输出、是否连续、是否原地、边界是什么。</span></div>
+          <div class="method"><b>2. 找状态/指针</b><span>数组题找状态，链表题找指针，树题找递归语义。</span></div>
+          <div class="method"><b>3. 跑样例</b><span>拿最小例子手推一轮，验证状态怎么变。</span></div>
+          <div class="method"><b>4. 写模板</b><span>先写骨架，再填转移/指针变化，避免边写边想。</span></div>
+          <div class="method"><b>5. 补复杂度</b><span>主动说时间、空间、边界和变体，给面试官安全感。</span></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>四类必会手撕题</h2>
+          <p>每题都有出处和迁移方向，按“理解一类题”的方式学。</p>
+        </div>
+        <div class="grid" id="problemGrid"></div>
+      </section>
+
+      <section class="section" id="playground">
+        <div class="section-head">
+          <h2>交互推演</h2>
+          <p>用可视化过程把“状态为什么这么转移”打进脑子里。</p>
+        </div>
+        <div class="lab">
+          <div class="lab-grid">
+            <div class="control">
+              <label>选择题目
+                <select id="demoType">
+                  <option value="max">最大子数组和</option>
+                  <option value="list">反转链表</option>
+                  <option value="tree">二叉树层序</option>
+                  <option value="lru">LRU 缓存</option>
+                </select>
+              </label>
+              <label>输入数据
+                <textarea id="demoInput" rows="6">-2,1,-3,4,-1,2,1,-5,4</textarea>
+              </label>
+              <button class="primary" id="runDemo">运行推演</button>
+            </div>
+            <div class="visual" id="demoOutput">选择题目并运行。输入示例：
+最大子数组和：-2,1,-3,4,-1,2,1,-5,4
+反转链表：1,2,3,4,5
+二叉树层序：3,9,20,null,null,15,7
+LRU：cap=2; put 1 1; put 2 2; get 1; put 3 3; get 2</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="diagnosis">
+        <div class="section-head">
+          <h2>题型诊断台</h2>
+          <p>不会下手时，先按题目信号判断该套哪类模型。</p>
+        </div>
+        <div class="lab">
+          <div class="lab-grid">
+            <div class="control">
+              <label>题目信号
+                <select id="diagnosisType">
+                  <option value="continuous">连续子数组 / 最大最小</option>
+                  <option value="linked">链表原地修改 / 删除 / 反转</option>
+                  <option value="treeRec">二叉树镜像 / 深度 / 路径</option>
+                  <option value="treeLevel">按层输出 / 最短层数 / 右视图</option>
+                  <option value="o1">要求 get/put O(1)</option>
+                  <option value="state">状态只能合法流转</option>
+                </select>
+              </label>
+              <button class="primary" id="runDiagnosis">生成解题路线</button>
+            </div>
+            <div class="visual" id="diagnosisOutput">选择题目信号，生成“模型 → 状态 → 模板 → 边界”的路线。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="extras">
+        <div class="section-head">
+          <h2>八股补充速记</h2>
+          <p>这些不是算法题，但仍然是 Java 后端面试高频追问。</p>
+        </div>
+        <div class="compact-grid">
+          <article class="compact">
+            <h3>线程安全单例</h3>
+            <p>DCL 必须 `volatile` 防止指令重排；静态内部类靠类加载保证线程安全；枚举单例最稳，能防反射和反序列化破坏。</p>
+          </article>
+          <article class="compact">
+            <h3>JVM 内存区域 + GC Roots</h3>
+            <p>线程私有：程序计数器、虚拟机栈、本地方法栈。线程共享：堆、方法区。GC Roots 常见有栈中引用、静态属性、常量、JNI 引用、活跃线程等。</p>
+          </article>
+          <article class="compact">
+            <h3>索引失效 + Explain</h3>
+            <p>失效常见：函数、隐式转换、左模糊、最左前缀不满足、低区分度。Explain 重点看 type、key、rows、Extra。</p>
+          </article>
+          <article class="compact">
+            <h3>Redis 缓存一致性</h3>
+            <p>常用 Cache Aside：读缓存，未命中查 DB 回填；写先更新 DB，再删除缓存。删除失败要重试，并发旧值回填可用延迟双删/TTL/版本兜底。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const problems = [
+      {
+        id: "max-subarray",
+        title: "最大子数组和",
+        source: "LeetCode 53 / 剑指 Offer 42",
+        tag: "动态规划 / Kadane",
+        intro: "给定整数数组，找一个连续子数组，使其和最大。关键词是“连续”。",
+        tabs: {
+          "题意": `<p><b>输入：</b>整数数组 nums，可能有正数、负数、0。</p><p><b>输出：</b>连续子数组的最大和。</p><p><b>边界：</b>数组全负数时，答案是最大的那个负数；不能默认空数组和为 0。</p><pre>nums = [-2,1,-3,4,-1,2,1,-5,4]
+answer = 6  // [4,-1,2,1]</pre>`,
+          "领悟": `<p><b>关键状态：</b>cur 表示“必须以当前位置结尾”的最大子数组和。</p><ul><li>如果前面的 cur 是负数，接上它只会拖累当前数。</li><li>所以当前位置只有两个选择：自己开头，或接上前面。</li><li>全局答案 ans 每轮拿 cur 更新。</li></ul><pre>cur = max(nums[i], cur + nums[i])
+ans = max(ans, cur)</pre>`,
+          "手撕": `<pre>public int maxSubArray(int[] nums) {
+    int cur = nums[0];
+    int ans = nums[0];
+    for (int i = 1; i < nums.length; i++) {
+        cur = Math.max(nums[i], cur + nums[i]);
+        ans = Math.max(ans, cur);
+    }
+    return ans;
+}</pre><p><b>复杂度：</b>时间 O(n)，空间 O(1)。</p>`,
+          "迁移": `<ul><li><b>返回区间：</b>cur 重新从 nums[i] 开始时记录 start，ans 更新时记录 bestStart/bestEnd。</li><li><b>环形数组最大和：</b>max(普通最大和, 总和 - 最小子数组和)。</li><li><b>乘积最大子数组：</b>同时维护 max/min，因为负数会翻转。</li><li><b>二维最大子矩阵：</b>枚举上下边界，把列压缩成一维最大子数组和。</li></ul>`
+        },
+        hook: "只要看到“连续 + 最大和”，先想：以 i 结尾的最好结果是什么。",
+        question: "为什么 cur 小于 0 时可以丢掉前缀？",
+        answer: "因为后续任何子数组接上负前缀都会变小，不如从当前位置重新开始。"
+      },
+      {
+        id: "reverse-list",
+        title: "反转链表",
+        source: "LeetCode 206",
+        tag: "链表指针",
+        intro: "反转单链表，返回新的头节点。重点是避免断链。",
+        tabs: {
+          "题意": `<p><b>输入：</b>链表头节点 head。</p><p><b>输出：</b>反转后的新头。</p><p><b>边界：</b>空链表、单节点链表、两节点链表。</p><pre>1 -> 2 -> 3 -> 4 -> 5
+5 -> 4 -> 3 -> 2 -> 1</pre>`,
+          "领悟": `<p><b>三指针语义：</b></p><ul><li>prev：已经反转好的部分。</li><li>cur：当前正在处理的节点。</li><li>next：暂存剩余链表入口，防止断链。</li></ul><p>每一轮只做一件事：把 cur.next 指回 prev。</p>`,
+          "手撕": `<pre>public ListNode reverseList(ListNode head) {
+    ListNode prev = null;
+    ListNode cur = head;
+    while (cur != null) {
+        ListNode next = cur.next;
+        cur.next = prev;
+        prev = cur;
+        cur = next;
+    }
+    return prev;
+}</pre><p><b>复杂度：</b>时间 O(n)，空间 O(1)。</p>`,
+          "迁移": `<ul><li><b>反转链表 II：</b>先定位 left 前驱，再局部头插。</li><li><b>K 个一组反转：</b>先检查够不够 K 个，再局部反转。</li><li><b>回文链表：</b>快慢指针找中点，反转后半段，再比较。</li><li><b>递归反转：</b>先反转子链，再让 head.next.next = head。</li></ul>`
+        },
+        hook: "链表题先画 prev/cur/next，永远先保存 next 再改指针。",
+        question: "反转链表最容易写错哪一步？",
+        answer: "忘记先保存 next。cur.next 一旦改成 prev，原来的后继就丢了，后半段链表无法继续遍历。"
+      },
+      {
+        id: "tree",
+        title: "二叉树对称 / 反转 / 层序",
+        source: "LeetCode 101 / 226 / 102",
+        tag: "DFS + BFS",
+        intro: "三题覆盖二叉树最核心两种思路：递归语义和队列层序。",
+        tabs: {
+          "题意": `<ul><li><b>对称二叉树 LC101：</b>判断左右子树是否互为镜像。</li><li><b>反转二叉树 LC226：</b>交换每个节点左右孩子。</li><li><b>层序遍历 LC102：</b>按层从左到右返回节点值。</li></ul><p>树题第一步不是写代码，而是定义“当前函数负责什么”。</p>`,
+          "领悟": `<ul><li><b>对称：</b>比较两个节点 a/b：值相等，a.left 对 b.right，a.right 对 b.left。</li><li><b>反转：</b>当前节点左右交换，然后递归处理子树。</li><li><b>层序：</b>队列 BFS，每轮记录 size，确保一层一层出队。</li></ul>`,
+          "手撕": `<pre>boolean mirror(TreeNode a, TreeNode b) {
+    if (a == null || b == null) return a == b;
+    return a.val == b.val
+        && mirror(a.left, b.right)
+        && mirror(a.right, b.left);
+}
+
+TreeNode invertTree(TreeNode root) {
+    if (root == null) return null;
+    TreeNode left = invertTree(root.left);
+    TreeNode right = invertTree(root.right);
+    root.left = right;
+    root.right = left;
+    return root;
+}
+
+List&lt;List&lt;Integer&gt;&gt; levelOrder(TreeNode root) {
+    List&lt;List&lt;Integer&gt;&gt; ans = new ArrayList&lt;&gt;();
+    if (root == null) return ans;
+    Queue&lt;TreeNode&gt; q = new ArrayDeque&lt;&gt;();
+    q.offer(root);
+    while (!q.isEmpty()) {
+        int size = q.size();
+        List&lt;Integer&gt; level = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; size; i++) {
+            TreeNode node = q.poll();
+            level.add(node.val);
+            if (node.left != null) q.offer(node.left);
+            if (node.right != null) q.offer(node.right);
+        }
+        ans.add(level);
+    }
+    return ans;
+}</pre>`,
+          "迁移": `<ul><li><b>递归类：</b>最大深度、平衡二叉树、路径和，核心是函数语义。</li><li><b>BFS 类：</b>锯齿层序、右视图、最小深度，核心是队列和层大小。</li><li><b>树构造：</b>前中序建树，核心是根节点和左右区间。</li></ul>`
+        },
+        hook: "树题先说函数语义：我这个函数对当前节点/两个节点负责什么。",
+        question: "层序遍历为什么要先记录 size？",
+        answer: "因为遍历当前层时会把下一层节点加入队列。先固定 size，才能确保这一轮只处理当前层。"
+      },
+      {
+        id: "lru",
+        title: "LRU 缓存",
+        source: "LeetCode 146",
+        tag: "HashMap + 双向链表",
+        intro: "要求 get/put 都 O(1)。这题考的是数据结构组合，而不是背 API。",
+        tabs: {
+          "题意": `<p><b>实现 LRUCache：</b>get(key) 查值，put(key,value) 写值；容量满时淘汰最近最少使用的 key。</p><p><b>关键要求：</b>get 和 put 平均 O(1)。</p><pre>cap=2
+put(1,1), put(2,2), get(1), put(3,3)
+淘汰 key=2，因为 2 最久没用</pre>`,
+          "领悟": `<ul><li><b>HashMap：</b>key -> Node，负责 O(1) 定位。</li><li><b>双向链表：</b>维护新旧顺序，头部最新，尾部最旧。</li><li><b>命中 get：</b>节点移动到头部。</li><li><b>put 新 key：</b>插头部；超容量删尾部。</li></ul><p>为什么不是单链表？因为删除任意节点需要 O(1) 找前驱，双链表天然有 prev。</p>`,
+          "手撕": `<pre>class LRUCache {
+    class Node {
+        int key, val;
+        Node prev, next;
+        Node(int k, int v) { key = k; val = v; }
+    }
+    private final int cap;
+    private final Map&lt;Integer, Node&gt; map = new HashMap&lt;&gt;();
+    private final Node head = new Node(0, 0);
+    private final Node tail = new Node(0, 0);
+
+    public LRUCache(int capacity) {
+        cap = capacity;
+        head.next = tail;
+        tail.prev = head;
+    }
+
+    public int get(int key) {
+        Node node = map.get(key);
+        if (node == null) return -1;
+        moveToHead(node);
+        return node.val;
+    }
+
+    public void put(int key, int value) {
+        Node node = map.get(key);
+        if (node != null) {
+            node.val = value;
+            moveToHead(node);
+            return;
+        }
+        node = new Node(key, value);
+        map.put(key, node);
+        addFirst(node);
+        if (map.size() > cap) {
+            Node old = tail.prev;
+            remove(old);
+            map.remove(old.key);
+        }
+    }
+    private void moveToHead(Node node) { remove(node); addFirst(node); }
+    private void addFirst(Node node) {
+        node.next = head.next;
+        node.prev = head;
+        head.next.prev = node;
+        head.next = node;
+    }
+    private void remove(Node node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+    }
+}</pre>`,
+          "迁移": `<ul><li><b>LFU：</b>淘汰最低频率，需要 freq -> 双链表。</li><li><b>带过期时间缓存：</b>LRU + expireAt，生产更推荐 Caffeine。</li><li><b>线程安全：</b>手写版本不是线程安全，并发要加锁或用成熟缓存。</li></ul>`
+        },
+        hook: "O(1) 定位靠 Map，O(1) 调整顺序靠双链表。",
+        question: "为什么 LRU 需要同时用 HashMap 和双向链表？",
+        answer: "HashMap 只能快速找到节点，不能维护使用顺序；双链表能 O(1) 删除和插入节点，维护最近使用顺序。两者组合才能让 get/put 都 O(1)。"
+      }
+    ];
+
+    const flowLabels = ["读题信号", "选模型", "定状态", "手推样例", "写模板", "复盘迁移"];
+    const flowDetails = [
+      "当前重点：读题时先抓信号词。比如“连续”通常提示子数组状态，“O(1)”常提示哈希表或指针结构。",
+      "当前重点：不要直接背代码。先说模型：最大子数组是 DP/Kadane，反转链表是三指针，层序是 BFS。",
+      "当前重点：状态必须能用一句话解释。cur 是以 i 结尾的最大和，prev 是已反转链表头，queue 保存下一批节点。",
+      "当前重点：手推最小样例能发现边界。链表用 1->2，树用空树/单节点，LRU 用 cap=1。",
+      "当前重点：模板先保证骨架正确，再填核心转移。边写边想最容易漏空指针和更新顺序。",
+      "当前重点：收尾主动讲复杂度、全负数、空链表、重复访问、变体迁移，这就是面试加分点。"
+    ];
+
+    const diagnosis = {
+      continuous: ["模型：动态规划 / Kadane。", "状态：cur 表示必须以当前位置结尾的最优值。", "模板：cur = max(x, cur + x)，ans = max(ans, cur)。", "边界：全负数时不能返回 0；如果要区间，更新 ans 时记录左右端点。"],
+      linked: ["模型：指针模拟。", "状态：prev 是处理完的部分，cur 是当前节点，next 是剩余链表入口。", "模板：先保存 next，再改 cur.next，最后 prev/cur 前进。", "边界：空链表、单节点、两节点；局部反转要先找前驱。"],
+      treeRec: ["模型：DFS 递归。", "状态：先定义函数语义，例如 mirror(a,b) 判断两棵树是否镜像。", "模板：空节点边界 -> 当前节点处理 -> 递归左右子树。", "边界：空树、单节点、左右一边为空；注意对称题比较外侧和内侧。"],
+      treeLevel: ["模型：BFS 队列。", "状态：queue 保存下一批要访问的节点，size 固定当前层长度。", "模板：while 队列非空，先取 size，再 for 循环处理当前层。", "边界：空树直接返回；右视图取每层最后一个，最小深度遇到叶子返回。"],
+      o1: ["模型：哈希表 + 可 O(1) 调整顺序的数据结构。", "状态：map 负责定位，双向链表负责新旧顺序。", "模板：get 命中移动到头；put 新增到头，超容量删尾。", "边界：更新已有 key 不增加容量；手写版本默认不是线程安全。"],
+      state: ["模型：状态机 / 幂等。", "状态：当前状态和目标状态必须合法流转。", "模板：先查当前状态，再 CAS/乐观锁更新，失败重试或返回。", "边界：重复请求返回成功，旧消息不能覆盖新状态。"]
+    };
+
+    function renderProblems() {
+      const grid = document.getElementById("problemGrid");
+      grid.innerHTML = "";
+      problems.forEach((p) => {
+        const tabs = Object.keys(p.tabs);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.id = p.id;
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${p.title}</h3>
+              <p>${p.intro}</p>
+            </div>
+            <div class="source">
+              <span class="badge">${p.tag}</span>
+              <span>${p.source}</span>
+            </div>
+          </div>
+          <div class="tabs">${tabs.map((t, i) => `<button class="chip ${i === 0 ? "active" : ""}" data-tab="${t}">${t}</button>`).join("")}</div>
+          <div class="card-body">
+            <div>${tabs.map((t, i) => `<div class="panel ${i === 0 ? "active" : ""}" data-panel="${t}">${p.tabs[t]}</div>`).join("")}</div>
+            <aside class="side">
+              <div class="box"><h4>快速领悟</h4><p>${p.hook}</p></div>
+              <div class="box">
+                <h4>面试追问</h4>
+                <p>${p.question}</p>
+                <div class="answer">${p.answer}</div>
+                <button class="answer-toggle">显示答案</button>
+              </div>
+            </aside>
+          </div>`;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((x) => x.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach((x) => x.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelector(".answer-toggle").addEventListener("click", (e) => {
+          const answer = card.querySelector(".answer");
+          answer.classList.toggle("show");
+          e.currentTarget.textContent = answer.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderFlowControls() {
+      const box = document.getElementById("flowControls");
+      box.innerHTML = "";
+      flowLabels.forEach((label, index) => {
+        const button = document.createElement("button");
+        button.textContent = `${index + 1}. ${label}`;
+        button.className = index === 0 ? "active" : "";
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".flow-step").forEach((node, i) => node.classList.toggle("active", i === index));
+          document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+          document.getElementById("flowExplain").textContent = flowDetails[index];
+        });
+        box.appendChild(button);
+      });
+    }
+
+    function parseNums(text) {
+      return text.split(",").map((x) => x.trim()).filter(Boolean).map(Number);
+    }
+
+    function runMax(nums) {
+      let cur = nums[0], ans = nums[0];
+      const lines = [`nums = [${nums.join(", ")}]`, `i=0, cur=${cur}, ans=${ans}`];
+      for (let i = 1; i < nums.length; i++) {
+        const extend = cur + nums[i];
+        const restart = nums[i];
+        cur = Math.max(restart, extend);
+        ans = Math.max(ans, cur);
+        lines.push(`i=${i}, x=${nums[i]}, max(重开=${restart}, 接上=${extend}) => cur=${cur}, ans=${ans}`);
+      }
+      lines.push(`答案：${ans}`);
+      return lines.join("\n");
+    }
+
+    function runList(nums) {
+      let prev = "null";
+      const lines = [`链表：${nums.join(" -> ")}`, `目标：逐个把 cur.next 指向 prev`];
+      for (let i = 0; i < nums.length; i++) {
+        const cur = nums[i];
+        const next = i + 1 < nums.length ? nums[i + 1] : "null";
+        lines.push(`cur=${cur}, next=${next}, 执行 ${cur}.next = ${prev}`);
+        prev = cur;
+        lines.push(`已反转头 prev=${prev}`);
+      }
+      lines.push(`结果：${nums.slice().reverse().join(" -> ")}`);
+      return lines.join("\n");
+    }
+
+    function runTree(values) {
+      const arr = values.map((x) => x.trim()).filter(Boolean);
+      const lines = [`层序数组：[${arr.join(", ")}]`, `按队列逐层读取：`];
+      let level = 0, index = 0, width = 1;
+      while (index < arr.length) {
+        const current = arr.slice(index, index + width).filter((x) => x !== "null");
+        if (current.length) lines.push(`level ${level}: ${current.join(", ")}`);
+        index += width;
+        width *= 2;
+        level++;
+      }
+      lines.push(`手撕重点：每轮先 size=q.size()，for 循环只处理当前层。`);
+      return lines.join("\n");
+    }
+
+    function runLru(text) {
+      const parts = text.split(";").map((x) => x.trim()).filter(Boolean);
+      let cap = 2;
+      const cache = new Map();
+      const lines = [];
+      for (const part of parts) {
+        if (part.startsWith("cap=")) {
+          cap = Number(part.split("=")[1]);
+          lines.push(`容量 cap=${cap}`);
+          continue;
+        }
+        const seg = part.split(/\s+/);
+        if (seg[0] === "get") {
+          const key = seg[1];
+          if (cache.has(key)) {
+            const val = cache.get(key);
+            cache.delete(key);
+            cache.set(key, val);
+            lines.push(`get(${key}) => ${val}, 移到最新`);
+          } else {
+            lines.push(`get(${key}) => -1`);
+          }
+        }
+        if (seg[0] === "put") {
+          const [key, val] = [seg[1], seg[2]];
+          if (cache.has(key)) cache.delete(key);
+          cache.set(key, val);
+          lines.push(`put(${key},${val})，${key} 成为最新`);
+          if (cache.size > cap) {
+            const old = cache.keys().next().value;
+            cache.delete(old);
+            lines.push(`超容量，淘汰最旧 key=${old}`);
+          }
+        }
+        lines.push(`当前顺序：旧 [${Array.from(cache.keys()).join(" -> ")}] 新`);
+      }
+      return lines.join("\n");
+    }
+
+    document.getElementById("runDemo").addEventListener("click", () => {
+      const type = document.getElementById("demoType").value;
+      const input = document.getElementById("demoInput").value.trim();
+      let output = "";
+      if (type === "max") output = runMax(parseNums(input));
+      if (type === "list") output = runList(parseNums(input));
+      if (type === "tree") output = runTree(input.split(","));
+      if (type === "lru") output = runLru(input);
+      document.getElementById("demoOutput").textContent = output;
+    });
+
+    document.getElementById("runDiagnosis").addEventListener("click", () => {
+      const lines = diagnosis[document.getElementById("diagnosisType").value];
+      document.getElementById("diagnosisOutput").textContent = lines.map((line, index) => `Step ${index + 1}: ${line}`).join("\n");
+    });
+
+    document.getElementById("demoType").addEventListener("change", (e) => {
+      const sample = {
+        max: "-2,1,-3,4,-1,2,1,-5,4",
+        list: "1,2,3,4,5",
+        tree: "3,9,20,null,null,15,7",
+        lru: "cap=2; put 1 1; put 2 2; get 1; put 3 3; get 2"
+      };
+      document.getElementById("demoInput").value = sample[e.target.value];
+    });
+
+    renderFlowControls();
+    renderProblems();
+  </script>
+</body>
+</html>

@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Java Full GC / JVM 面试知识页</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --green: #3e7b4f;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div, aside { min-width: 0; }
+    button, textarea, select { font: inherit; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.82);
+      overflow: auto;
+    }
+
+    .brand {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand b {
+      display: block;
+      font-size: 18px;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .back {
+      display: inline-flex;
+      margin-top: 12px;
+      color: var(--accent-2);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    nav button,
+    .chip,
+    .ghost,
+    .answer-toggle {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.68);
+      cursor: pointer;
+    }
+
+    nav button {
+      padding: 10px 12px;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    nav button.active,
+    .chip.active {
+      color: var(--accent-2);
+      border-color: rgba(216, 101, 42, 0.45);
+      background: var(--accent-soft);
+    }
+
+    main {
+      width: min(1180px, 100%);
+      padding: 34px 36px 56px;
+    }
+
+    .hero,
+    .card,
+    .quiz-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      margin-bottom: 18px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      max-width: 920px;
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 5.8vw, 62px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-head p,
+    .card-head p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .card { overflow: hidden; }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 26px 18px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .card-head h3 {
+      margin: 0 0 6px;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .badge {
+      display: inline-flex;
+      height: 28px;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 26px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .chip {
+      padding: 8px 11px;
+      color: var(--muted);
+    }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      padding: 22px 26px 26px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel p { margin: 0 0 13px; }
+    .panel li { margin: 8px 0; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .side {
+      display: grid;
+      gap: 12px;
+      align-self: start;
+    }
+
+    .box {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.7);
+    }
+
+    .box h4 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .box p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .drill {
+      padding: 12px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+    }
+
+    .answer {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent-soft);
+    }
+
+    .answer.show { display: block; }
+
+    .answer-toggle,
+    .ghost {
+      padding: 9px 11px;
+      margin-top: 10px;
+    }
+
+    .practice {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    .output {
+      min-height: 160px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 122px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      transition: transform .25s ease, border-color .25s ease, background .25s ease;
+    }
+
+    .flow-step b {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .flow-step.active {
+      transform: translateY(-5px);
+      border-color: rgba(216, 101, 42, 0.58);
+      background: var(--accent-soft);
+      box-shadow: 0 12px 30px rgba(216, 101, 42, 0.14);
+    }
+
+    .flow-step.active::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 9px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      animation: pulse 1.1s infinite;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .controls button,
+    .lab button,
+    .lab select {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+    }
+
+    .controls button.active { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+
+    .lab {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .lab select {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .45; }
+      50% { opacity: 1; }
+    }
+
+    .quiz-card {
+      padding: 18px;
+      margin-bottom: 12px;
+      box-shadow: none;
+    }
+
+    .quiz-card h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .option {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option.correct { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+    .option.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+
+    .hint {
+      display: none;
+      color: var(--muted);
+    }
+
+    .hint.show { display: block; }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .card-body { grid-template-columns: minmax(0, 1fr) 300px; }
+      main { padding: 28px 24px 48px; }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .card-body, .practice, .lab { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      .card-head { display: block; }
+      main { padding: 14px; }
+      .hero { padding: 20px; }
+      .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      .flow { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Java Full GC Drill</b>
+        <span>JVM 体系 · Full GC 排查 · 面试表达</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">Java 专题 / JVM · Full GC · 线上排障</span>
+        <h1>把 JVM 和 Full GC 讲成一条排障链路。</h1>
+        <p>目标不是背名词，而是能在面试里从“现象 → 指标 → 日志 → dump → 根因 → 修复”完整说清楚，顺带覆盖 JVM 内存区域、GC Roots、分代、常用参数和命令。</p>
+      </section>
+
+      <section class="section" id="flow">
+        <div class="section-head">
+          <h2>Full GC 排障动画推演</h2>
+          <p>把一次线上 Full GC 从“报警出现”推到“引用链修复”，形成可复述的工程链路。</p>
+        </div>
+        <article class="card" style="padding: 22px 26px 26px">
+          <span class="badge">Animated GC Flow</span>
+          <h3>一次频繁 Full GC 应该怎么推进</h3>
+          <div class="flow" id="gcFlow">
+            <div class="flow-step active"><b>1. 现象</b>RT 抖动、P99 升高、错误率或 CPU 异常。</div>
+            <div class="flow-step"><b>2. 日志</b>看 cause、pause、before/after。</div>
+            <div class="flow-step"><b>3. 趋势</b>看 Old、Eden、Metaspace 是否持续上涨。</div>
+            <div class="flow-step"><b>4. 取证</b>jcmd、jstat、线程栈、heap dump。</div>
+            <div class="flow-step"><b>5. 归因</b>缓存、大对象、队列、ThreadLocal、元空间。</div>
+            <div class="flow-step"><b>6. 闭环</b>修复后对比 GC 频率、停顿和 P99。</div>
+          </div>
+          <div class="controls" id="flowControls"></div>
+          <p class="box" id="flowExplain" style="margin-top:14px">当前重点：先确认业务影响，不要一看到 Full GC 就直接调大堆。</p>
+        </article>
+      </section>
+
+      <section class="section" id="knowledge">
+        <div class="section-head">
+          <h2>知识卡片</h2>
+          <p>每张卡保留“结论、细节、面试追问”结构，适合直接口述。</p>
+        </div>
+        <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="diagnosis">
+        <div class="section-head">
+          <h2>GC 现象诊断台</h2>
+          <p>选择一个线上信号，练习从日志和指标推断排查方向。</p>
+        </div>
+        <div class="lab">
+          <div class="box">
+            <h4>选择现象</h4>
+            <select id="gcScene">
+              <option value="oldNotDown">Full GC 后 Old 几乎不下降</option>
+              <option value="meta">日志显示 Metadata GC Threshold</option>
+              <option value="humongous">G1 日志出现 Humongous Allocation</option>
+              <option value="systemgc">日志显示 System.gc()</option>
+              <option value="queue">业务高峰后 Full GC 变频繁</option>
+              <option value="rss">堆不高但进程 RSS 很高</option>
+            </select>
+            <button class="ghost" id="runDiagnosis">生成诊断路径</button>
+          </div>
+          <div class="output" id="diagnosisOutput">等待选择现象。</div>
+        </div>
+      </section>
+
+      <section class="section" id="practice">
+        <div class="section-head">
+          <h2>口述训练台</h2>
+          <p>输入一段 Full GC 或 JVM 回答，检查是否像排障工程师，而不是只背八股。</p>
+        </div>
+        <div class="practice">
+          <div class="box">
+            <h4>你的回答</h4>
+            <textarea id="answerText" placeholder="比如：线上频繁 Full GC，我会先看 GC 日志确认触发原因和停顿时间，再用 jstat 看老年代变化..."></textarea>
+            <button class="ghost" id="checkAnswer">生成检查清单</button>
+          </div>
+          <div class="output" id="answerOutput">等待你的回答。</div>
+        </div>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>自测纠错</h2>
+          <p>错题回到知识卡，重点练“为什么”和“怎么排查”。</p>
+        </div>
+        <div id="quizList"></div>
+        <button class="ghost" id="resetQuiz">重做自测</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: "jvm-memory",
+        title: "JVM 内存区域总览",
+        tag: "JVM 基础",
+        intro: "先把运行时数据区讲清楚，再谈 GC 和 OOM 才不会散。",
+        tabs: {
+          "结论": `<p><b>面试先分两类：</b>线程私有和线程共享。线程私有随线程创建销毁，线程共享才是 GC 和多数 OOM 的主战场。</p><ul><li><b>线程私有：</b>程序计数器、虚拟机栈、本地方法栈。</li><li><b>线程共享：</b>堆、方法区/元空间。</li><li><b>堆外：</b>直接内存不属于 JVM 运行时数据区，但会影响进程 RSS，也可能 OOM。</li></ul>`,
+          "细节": `<ul><li><b>堆：</b>对象实例主要分配区，通常按新生代、老年代或 region 管理。</li><li><b>虚拟机栈：</b>方法调用形成栈帧，包含局部变量表、操作数栈、动态链接、返回地址。</li><li><b>方法区/元空间：</b>类元信息、运行时常量池、方法元数据等；JDK 8 后主要落到本地内存。</li><li><b>程序计数器：</b>记录当前线程字节码执行位置，几乎不会 OOM。</li></ul>`,
+          "追问": `<ul><li><b>堆和栈区别？</b>堆线程共享、存对象、需要 GC；栈线程私有、存方法调用上下文，栈帧出栈即释放。</li><li><b>元空间为什么会 OOM？</b>动态生成类太多、ClassLoader 泄漏、框架热部署或代理类无限增长。</li><li><b>直接内存怎么排？</b>看 RSS、NMT、DirectBuffer 使用、Netty/堆外缓存配置。</li></ul>`
+        },
+        memory: "私有：计数器/虚拟机栈/本地方法栈；共享：堆/元空间；堆外也会把进程打爆。",
+        drill: ["为什么 JVM OOM 不一定是 Java heap space？", "因为除了堆，还有元空间、线程栈、直接内存、JNI、本地库等都会占用进程内存。错误信息和 RSS/堆占用要一起看。"]
+      },
+      {
+        id: "gc-roots",
+        title: "GC Roots 与对象存活",
+        tag: "可达性分析",
+        intro: "GC 的核心问题是判断对象是否还活着，Java 主流实现使用可达性分析。",
+        tabs: {
+          "结论": `<p><b>一句话：</b>从 GC Roots 出发，能沿引用链到达的对象是存活对象，不可达对象才可能被回收。</p><ul><li>虚拟机栈中局部变量引用的对象。</li><li>方法区/元空间中静态字段引用的对象。</li><li>常量引用的对象。</li><li>本地方法栈 JNI 引用对象。</li><li>活跃线程、Class 对象、被 synchronized 持有的对象等。</li></ul>`,
+          "细节": `<p>可达性分析解决了引用计数的循环引用问题。对象不可达也不是立刻死亡，还可能经历 finalize 相关流程，但面试里不要把 finalize 当常规方案。</p><pre>static List&lt;Object&gt; cache = new ArrayList&lt;&gt;();
+cache.add(bigObject); // 静态字段作为 GC Roots 链路的一部分，可能导致对象长期存活</pre>`,
+          "追问": `<ul><li><b>什么是内存泄漏？</b>对象已经业务无用，但仍被可达引用链挂住，GC 无法回收。</li><li><b>怎么找引用链？</b>heap dump 后用 MAT/IDEA Profiler 看 Dominator Tree 和 Path To GC Roots。</li><li><b>弱引用能解决什么？</b>适合缓存类场景，但必须理解被回收时机和引用队列。</li></ul>`
+        },
+        memory: "不是看对象有没有用，而是看能不能从 Roots 到达。泄漏就是无用但可达。",
+        drill: ["内存泄漏和内存溢出有什么区别？", "泄漏是无用对象仍被引用导致无法回收；溢出是内存申请失败的结果。持续泄漏通常会最终导致 OOM。"]
+      },
+      {
+        id: "generation",
+        title: "分代假说与回收类型",
+        tag: "GC 模型",
+        intro: "Full GC 前先讲清 Minor GC、Major GC、Mixed GC 和 Full GC 的边界。",
+        tabs: {
+          "结论": `<ul><li><b>Minor GC / Young GC：</b>主要回收新生代。</li><li><b>Major GC：</b>通常指老年代回收，但不同资料定义不完全统一。</li><li><b>Mixed GC：</b>G1 中回收全部年轻区和部分收益高的老年代 region。</li><li><b>Full GC：</b>通常是对整个堆甚至元空间做一次更彻底的 Stop-The-World 回收。</li></ul>`,
+          "分代逻辑": `<p><b>分代假说：</b>大多数对象朝生夕死，少数对象存活很久。所以新对象先在 Eden，经历多次 Young GC 还活着才进入老年代。</p><ul><li>Eden 满了触发 Young GC。</li><li>存活对象进入 Survivor 或晋升老年代。</li><li>大对象可能直接进老年代，G1 中可能进入 humongous region。</li></ul>`,
+          "追问": `<ul><li><b>为什么老年代满更危险？</b>老年代对象存活率高，回收成本高，容易触发长时间 STW。</li><li><b>晋升失败是什么？</b>Young GC 后存活对象要进老年代，但老年代空间不足。</li><li><b>G1 为什么有 Mixed GC？</b>按 region 选择回收收益高的老年代区域，减少一次性全堆回收压力。</li></ul>`
+        },
+        memory: "新生代频繁且快；老年代少但重；Full GC 是全局重锤，频繁出现要排查。",
+        drill: ["Full GC 和 Young GC 最大差别是什么？", "Young GC 主要处理新生代，通常停顿较短；Full GC 范围更大，可能包含老年代和元空间，停顿更长，对线上影响更明显。"]
+      },
+      {
+        id: "full-gc-trigger",
+        title: "Full GC 常见触发原因",
+        tag: "Full GC",
+        intro: "能说出触发条件，才知道下一步看什么指标。",
+        tabs: {
+          "核心原因": `<ul><li><b>老年代空间不足：</b>对象晋升或大对象分配失败。</li><li><b>元空间不足：</b>类元信息增长过快或 ClassLoader 泄漏。</li><li><b>显式调用：</b>System.gc() 或工具触发，除非禁用显式 GC。</li><li><b>G1 退化：</b>to-space exhausted、humongous 分配压力、并发标记跟不上。</li><li><b>CMS 场景：</b>concurrent mode failure、promotion failed。</li></ul>`,
+          "日志关键词": `<pre># 常见关注点，不同收集器日志格式不同
+Pause Full (Allocation Failure)
+Pause Full (Metadata GC Threshold)
+Pause Full (System.gc())
+To-space exhausted
+Humongous Allocation
+concurrent mode failure</pre>`,
+          "追问": `<ul><li><b>Full GC 一定是内存泄漏吗？</b>不一定，也可能是流量突增、大对象、参数太小、元空间不足或显式 GC。</li><li><b>只看次数够吗？</b>不够，还要看停顿时间、回收前后占用、触发原因、业务时间点。</li><li><b>为什么 Full GC 后老年代下降很少危险？</b>说明大部分对象仍可达，可能有泄漏或长期缓存。</li></ul>`
+        },
+        memory: "先看 cause：老年代、元空间、显式 GC、G1 退化、大对象。",
+        drill: ["Full GC 后堆占用几乎没下降说明什么？", "说明回收掉的对象很少，大量对象仍然存活。可能是内存泄漏、缓存无限增长、长生命周期集合持有引用，或业务确实需要这些对象。"]
+      },
+      {
+        id: "diagnosis-flow",
+        title: "线上 Full GC 排查流程",
+        tag: "排障链路",
+        intro: "面试最加分的是把排查顺序说得像真实做过。",
+        tabs: {
+          "六步链路": `<ol><li><b>确认现象：</b>接口耗时、CPU、RT、错误率、GC 暂停时间是否同时异常。</li><li><b>看 GC 日志：</b>确认触发原因、频率、暂停时长、回收前后内存。</li><li><b>看趋势：</b>jstat/监控看 Eden、Old、Metaspace 是否持续上涨。</li><li><b>抓现场：</b>必要时保存 heap dump、线程栈、类直方图。</li><li><b>定位引用：</b>MAT 看大对象、支配树、GC Roots 路径。</li><li><b>修复验证：</b>限流/扩容/改代码/调参数后，对比 GC 频率和 P99。</li></ol>`,
+          "常用命令": `<pre># 观察 GC 趋势
+jstat -gcutil &lt;pid&gt; 1000 10
+
+# 查看堆、类直方图、线程栈
+jcmd &lt;pid&gt; GC.heap_info
+jcmd &lt;pid&gt; GC.class_histogram
+jcmd &lt;pid&gt; Thread.print
+
+# 谨慎在低峰期 dump，文件可能很大
+jmap -dump:live,format=b,file=heap.hprof &lt;pid&gt;</pre>`,
+          "现场原则": `<ul><li>先保命：降流量、扩容、重启摘流，避免故障扩大。</li><li>再取证：日志、dump、线程栈、监控时间线。</li><li>最后根治：修引用链、限制缓存、拆大对象、调 GC 参数。</li><li>线上 dump 有风险，注意磁盘、停顿和敏感数据。</li></ul>`
+        },
+        memory: "现象 → GC 日志 → 趋势 → dump/线程栈 → 引用链 → 修复验证。",
+        drill: ["线上频繁 Full GC 你第一步做什么？", "先确认影响面和时间线，查看 GC 日志与监控，判断是否已经影响 RT/错误率；严重时先降级扩容保命，再抓日志、jstat、dump 做根因分析。"]
+      },
+      {
+        id: "gc-log",
+        title: "GC 日志怎么看",
+        tag: "日志解读",
+        intro: "日志不是背格式，而是看 cause、before/after、pause、user/sys/real。",
+        tabs: {
+          "四个关键": `<ul><li><b>Cause：</b>为什么触发，例如 Allocation Failure、System.gc、Metadata GC Threshold。</li><li><b>Before/After：</b>回收前后堆、老年代、元空间占用是否明显下降。</li><li><b>Pause：</b>STW 暂停时间，是否影响接口 P99。</li><li><b>User/Sys/Real：</b>CPU 时间和真实耗时，Real 高可能有系统调度或 IO 压力。</li></ul>`,
+          "JDK 9+ 参数": `<pre># 推荐统一日志
+-Xlog:gc*,safepoint:file=gc.log:time,uptime,level,tags:filecount=10,filesize=100m
+
+# JDK 8 常见写法
+-XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:gc.log</pre>`,
+          "表达模板": `<p>我会把 GC 日志按时间线和业务监控对齐，看 Full GC 是不是在流量峰值、发布后、定时任务、缓存刷新、大查询后出现。然后看 Full GC 后老年代是否明显下降：下降明显偏瞬时压力或参数问题；下降不明显偏泄漏或长期持有。</p>`
+        },
+        memory: "Cause 定方向，before/after 看效果，pause 看影响，时间线找业务诱因。",
+        drill: ["GC 日志里 Full GC 后内存下降明显和不明显分别说明什么？", "下降明显通常说明有大量临时对象被回收，偏瞬时压力或参数问题；下降不明显说明对象仍存活，偏泄漏、缓存或长期引用。"]
+      },
+      {
+        id: "root-causes",
+        title: "Full GC 根因模式库",
+        tag: "案例归因",
+        intro: "把常见根因装进脑子，面试追问时不会慌。",
+        tabs: {
+          "业务代码": `<ul><li><b>无界缓存：</b>Map、Guava Cache、Caffeine 未设置容量或过期。</li><li><b>大集合：</b>一次查全量数据、Excel 导出、报表聚合。</li><li><b>队列堆积：</b>线程池阻塞队列、MQ 消费慢。</li><li><b>ThreadLocal 泄漏：</b>线程复用但未 remove。</li><li><b>监听器/回调：</b>注册后不注销，长生命周期对象持有短生命周期对象。</li></ul>`,
+          "JVM/框架": `<ul><li><b>元空间增长：</b>动态代理、脚本引擎、热部署、ClassLoader 泄漏。</li><li><b>堆外内存：</b>DirectByteBuffer、Netty、NIO buffer 未正确释放。</li><li><b>显式 GC：</b>代码或中间件调用 System.gc。</li><li><b>参数不合理：</b>堆太小、新老比例不合理、G1 region/humongous 压力。</li></ul>`,
+          "修复思路": `<ul><li>缓存加最大容量、TTL、淘汰策略和监控。</li><li>大查询改分页、流式处理、异步导出。</li><li>队列加限流、拒绝策略、消费扩容。</li><li>ThreadLocal 使用 finally remove。</li><li>类加载泄漏看 ClassLoader 引用链，避免重复生成类。</li></ul>`
+        },
+        memory: "无界缓存、大集合、队列堆积、ThreadLocal、元空间、堆外、显式 GC。",
+        drill: ["为什么 ThreadLocal 可能导致内存泄漏？", "线程池线程长期存活，ThreadLocalMap 中的 value 可能持续被线程引用。如果用完不 remove，就可能让请求级对象长期无法回收。"]
+      },
+      {
+        id: "params",
+        title: "常用 JVM 参数与调优边界",
+        tag: "参数",
+        intro: "调参数不是玄学，先定位瓶颈，再小步验证。",
+        tabs: {
+          "基础参数": `<pre>-Xms2g -Xmx2g                 # 初始/最大堆，线上常设相等减少抖动
+-Xss512k                       # 单线程栈大小，影响可创建线程数
+-XX:MetaspaceSize=256m
+-XX:MaxMetaspaceSize=512m
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/data/dump</pre>`,
+          "G1 常见": `<pre>-XX:+UseG1GC
+-XX:MaxGCPauseMillis=200
+-XX:InitiatingHeapOccupancyPercent=45
+-XX:+ParallelRefProcEnabled</pre><p>G1 目标是可预测停顿，不是保证一定低于 MaxGCPauseMillis。这个值是目标，不是硬 SLA。</p>`,
+          "边界": `<ul><li>不要一上来就调参数，先看日志和对象分布。</li><li>堆不是越大越好，堆越大 Full GC 最坏停顿可能越长。</li><li>吞吐、延迟、内存占用是三角关系，需要结合业务目标。</li><li>低延迟场景可了解 ZGC/Shenandoah，但面试先讲清 G1 和排障。</li></ul>`
+        },
+        memory: "参数服务于证据：先日志和 dump，再调 Xmx、元空间、G1 阈值。",
+        drill: ["Xmx 是不是越大越好？", "不是。更大的堆能减少部分 GC 频率，但也可能增加最坏停顿和内存成本。要结合对象存活率、延迟目标和机器资源验证。"]
+      },
+      {
+        id: "answer-template",
+        title: "面试 60 秒回答模板",
+        tag: "表达",
+        intro: "把 JVM 八股变成有层次的工程回答。",
+        tabs: {
+          "Full GC 模板": `<p><b>如果线上频繁 Full GC，我会按影响面和证据链排查：</b>先看监控确认 RT、错误率、CPU 和 GC 暂停时间；再看 GC 日志确认触发原因、回收前后老年代/元空间变化；然后用 jstat 看趋势，必要时在低峰期抓 heap dump 和线程栈，用 MAT 看大对象和 GC Roots 引用链。根因常见是无界缓存、大对象、队列堆积、ThreadLocal、元空间或显式 GC。修复后用 GC 频率、停顿时间和 P99 回归验证。</p>`,
+          "JVM 模板": `<p><b>JVM 我会先按内存区域讲：</b>线程私有的是程序计数器、虚拟机栈、本地方法栈；线程共享的是堆和方法区/元空间。对象主要在堆中分配，GC 通过 GC Roots 可达性分析判断对象是否存活。频繁 GC 要结合分代、对象晋升、老年代占用和 GC 日志判断是瞬时压力、参数问题还是泄漏。</p>`,
+          "加分句": `<ul><li>我不会只看 Full GC 次数，还会看停顿时间和回收后老年代是否下降。</li><li>Full GC 后老年代不降，优先怀疑长期引用或泄漏。</li><li>线上先保命再取证，dump 要评估停顿、磁盘和敏感数据风险。</li><li>调参是最后一步，不是第一步。</li></ul>`
+        },
+        memory: "面试按证据链说：影响面、日志、趋势、dump、引用链、修复验证。",
+        drill: ["怎么把 Full GC 回答说得不像背书？", "加入真实排障顺序、命令、日志指标、根因模式和修复验证，不只罗列概念。"]
+      }
+    ];
+
+    const quizzes = [
+      ["JVM 线程私有的区域有哪些？", ["程序计数器、虚拟机栈、本地方法栈", "堆、方法区、直接内存", "Eden、Survivor、Old"], 0, "线程私有区域随线程创建销毁，堆和方法区/元空间是线程共享。"],
+      ["GC Roots 可达性分析的核心判断是什么？", ["对象能否从 Roots 沿引用链到达", "对象引用计数是否为 0", "对象年龄是否超过阈值"], 0, "Java 主流 GC 通过可达性分析判断对象存活。"],
+      ["Full GC 后老年代占用几乎不下降，优先怀疑什么？", ["对象仍被长期引用或内存泄漏", "Young GC 太频繁", "程序计数器太大"], 0, "回收不掉说明多数对象仍可达。"],
+      ["排查频繁 Full GC 的更合理顺序是？", ["看影响面和 GC 日志，再看趋势，必要时 dump", "直接调大 Xmx", "直接删除所有缓存"], 0, "调参和改代码都要建立在证据上。"],
+      ["jstat -gcutil 常用来观察什么？", ["各内存区使用率和 GC 次数/时间趋势", "SQL 执行计划", "网络连接状态"], 0, "jstat 适合快速观察 JVM GC 趋势。"],
+      ["元空间 OOM 常见原因是什么？", ["动态生成类太多或 ClassLoader 泄漏", "数组太大", "索引失效"], 0, "元空间主要存类元信息，动态代理和类加载器泄漏是高频原因。"],
+      ["G1 的 MaxGCPauseMillis 表示什么？", ["停顿目标，不是硬保证", "Full GC 固定不会超过该值", "老年代最大容量"], 0, "G1 会尽量朝目标优化，但不能保证每次停顿都低于该值。"]
+    ];
+
+    const flowLabels = ["现象", "日志", "趋势", "取证", "归因", "闭环"];
+    const flowDetails = [
+      "当前重点：先确认业务影响，不要一看到 Full GC 就直接调大堆。",
+      "当前重点：GC 日志先看 cause、pause、回收前后占用，cause 决定排查方向。",
+      "当前重点：jstat 和监控要看趋势。Old 持续上升且 Full GC 后不降，才更像泄漏。",
+      "当前重点：取证要注意线上风险。dump 可能很大，也可能造成停顿和磁盘压力。",
+      "当前重点：根因优先看无界缓存、大对象、队列堆积、ThreadLocal、元空间和堆外。",
+      "当前重点：修复后必须用 GC 频率、停顿时间、P99、错误率做前后对比。"
+    ];
+
+    const diagnosisAnswers = {
+      oldNotDown: [
+        "判断：Full GC 后 Old 几乎不下降，说明大部分老年代对象仍可达。",
+        "优先方向：内存泄漏、无界缓存、静态集合、队列堆积、ThreadLocal 未 remove。",
+        "证据：heap dump 后用 MAT 看 Dominator Tree 和 Path To GC Roots。",
+        "修复：限制缓存容量/TTL，分页处理大集合，清理 ThreadLocal，修复长生命周期引用。"
+      ],
+      meta: [
+        "判断：Metadata GC Threshold 指向元空间压力。",
+        "优先方向：动态代理类过多、脚本引擎生成类、热部署、ClassLoader 泄漏。",
+        "证据：jcmd VM.classloader_stats、GC.class_histogram、类加载数量趋势。",
+        "修复：控制动态类生成，修复 ClassLoader 引用链，合理设置 MaxMetaspaceSize。"
+      ],
+      humongous: [
+        "判断：G1 Humongous Allocation 表示有大对象直接占用连续 region。",
+        "优先方向：大数组、大字符串、大 JSON、一次性全量查询或导出。",
+        "证据：heap dump 看大对象类型和业务入口，对齐日志时间点。",
+        "修复：分页/流式处理，拆分大对象，避免一次性构建巨大集合。"
+      ],
+      systemgc: [
+        "判断：日志显示 System.gc()，说明代码、中间件或工具显式触发。",
+        "优先方向：搜索代码和依赖，检查 RMI、NIO direct buffer、监控工具。",
+        "证据：GC 日志 cause、调用链、发布变更记录。",
+        "修复：移除显式调用，或评估 -XX:+DisableExplicitGC，但先确认副作用。"
+      ],
+      queue: [
+        "判断：高峰后 Full GC 变频繁，可能是请求堆积或异步队列积压导致对象存活变长。",
+        "优先方向：线程池队列、MQ 消费、下游慢调用、批量任务。",
+        "证据：队列长度、线程池 active、慢 SQL/HTTP、对象年龄和晋升速率。",
+        "修复：限流降级、拆线程池、扩消费者、给队列设边界和拒绝策略。"
+      ],
+      rss: [
+        "判断：堆不高但 RSS 高，问题可能在堆外或本地内存。",
+        "优先方向：DirectByteBuffer、Netty、JNI、本地库、线程栈、mmap。",
+        "证据：NMT、pmap、jcmd VM.native_memory、线程数量、直接内存监控。",
+        "修复：限制直接内存，检查 buffer 释放，减少线程数，排查本地库泄漏。"
+      ]
+    };
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function renderNav() {
+      const nav = byId("nav");
+      nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        `<button data-jump="flow">排障推演</button>` +
+        topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
+        `<button data-jump="diagnosis">现象诊断</button><button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+      nav.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          byId(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function renderTopics() {
+      const grid = byId("topicGrid");
+      grid.innerHTML = "";
+      topics.forEach((topic) => {
+        const tabs = Object.keys(topic.tabs);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.id = topic.id;
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${topic.title}</h3>
+              <p>${topic.intro}</p>
+            </div>
+            <span class="badge">${topic.tag}</span>
+          </div>
+          <div class="tabs">
+            ${tabs.map((tab, index) => `<button class="chip ${index === 0 ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}
+          </div>
+          <div class="card-body">
+            <div>
+              ${tabs.map((tab, index) => `<div class="panel ${index === 0 ? "active" : ""}" data-panel="${tab}">${topic.tabs[tab]}</div>`).join("")}
+            </div>
+            <aside class="side">
+              <div class="box">
+                <h4>记忆钩子</h4>
+                <p>${topic.memory}</p>
+              </div>
+              <div class="box">
+                <h4>面试追问</h4>
+                <div class="drill">${topic.drill[0]}</div>
+                <div class="answer">${topic.drill[1]}</div>
+                <button class="answer-toggle">显示答案</button>
+              </div>
+            </aside>
+          </div>
+        `;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((item) => item.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach((item) => item.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelector(".answer-toggle").addEventListener("click", (event) => {
+          const answer = card.querySelector(".answer");
+          answer.classList.toggle("show");
+          event.currentTarget.textContent = answer.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderQuiz() {
+      const list = byId("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, options, answer, hint], index) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${q}</h3>${options.map((option, i) => `<button class="option" data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll(".option").forEach((option) => {
+          option.addEventListener("click", () => {
+            card.querySelectorAll(".option").forEach((node) => node.disabled = true);
+            const picked = Number(option.dataset.i);
+            option.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll(".option")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    function renderFlowControls() {
+      const box = byId("flowControls");
+      box.innerHTML = "";
+      flowLabels.forEach((label, index) => {
+        const button = document.createElement("button");
+        button.textContent = `${index + 1}. ${label}`;
+        button.className = index === 0 ? "active" : "";
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".flow-step").forEach((node, i) => node.classList.toggle("active", i === index));
+          document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+          byId("flowExplain").textContent = flowDetails[index];
+        });
+        box.appendChild(button);
+      });
+    }
+
+    byId("checkAnswer").addEventListener("click", () => {
+      const text = byId("answerText").value.trim();
+      if (!text) {
+        byId("answerOutput").textContent = "先写一段你的口述答案。";
+        return;
+      }
+      const checks = [
+        ["现象", "有没有先说业务影响：RT、错误率、CPU、暂停时间？"],
+        ["证据", "有没有提 GC 日志、jstat、监控时间线，而不是直接猜？"],
+        ["指标", "有没有看 cause、before/after、pause、Old/Metaspace 趋势？"],
+        ["工具", "有没有说 jcmd/jmap/MAT/线程栈等取证手段？"],
+        ["根因", "有没有覆盖缓存、大对象、队列、ThreadLocal、元空间、显式 GC？"],
+        ["闭环", "有没有说修复后用 GC 频率、停顿和 P99 验证？"]
+      ];
+      byId("answerOutput").textContent = checks.map(([name, desc]) => `- ${name}: ${desc}`).join("\n") + "\n\n你的答案长度：" + text.length + " 字。下一步：按‘现象→证据→根因→修复验证’重写一版 60 秒回答。";
+    });
+
+    byId("resetQuiz").addEventListener("click", renderQuiz);
+    byId("runDiagnosis").addEventListener("click", () => {
+      const lines = diagnosisAnswers[byId("gcScene").value];
+      byId("diagnosisOutput").textContent = lines.map((line, index) => `Step ${index + 1}: ${line}`).join("\n");
+    });
+
+    renderNav();
+    renderFlowControls();
+    renderTopics();
+    renderQuiz();
+  </script>
+</body>
+</html>

@@ -30,7 +30,12 @@
 
     * { box-sizing: border-box; }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
 
     body {
       margin: 0;
@@ -42,6 +47,11 @@
         linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
         var(--paper);
       line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div, aside {
+      min-width: 0;
     }
 
     a { color: var(--accent-2); }
@@ -118,7 +128,7 @@
     h1 {
       max-width: 920px;
       margin: 0 0 18px;
-      font-size: clamp(38px, 7vw, 72px);
+      font-size: clamp(32px, 5.8vw, 64px);
       line-height: 0.98;
       letter-spacing: 0;
     }
@@ -221,11 +231,32 @@
     }
 
     .step {
+      position: relative;
       min-height: 132px;
       padding: 14px;
       border: 1px solid rgba(216, 101, 42, 0.22);
       border-radius: 8px;
       background: linear-gradient(180deg, var(--panel-solid), rgba(244, 239, 230, 0.62));
+      transition: transform .25s ease, border-color .25s ease, background .25s ease;
+    }
+
+    .step.active {
+      transform: translateY(-5px);
+      border-color: rgba(216, 101, 42, 0.62);
+      background: rgba(216, 101, 42, 0.12);
+      box-shadow: 0 12px 30px rgba(216, 101, 42, 0.14);
+    }
+
+    .step.active::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 9px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      animation: pulse 1.1s infinite;
     }
 
     .step b {
@@ -277,6 +308,7 @@
 
     pre {
       overflow: auto;
+      max-width: 100%;
       padding: 16px;
       border-radius: 8px;
       color: var(--code);
@@ -313,6 +345,60 @@
       background: rgba(216, 101, 42, 0.1);
     }
 
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0 0;
+    }
+
+    .controls button,
+    .lab button,
+    .lab select {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-solid);
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .controls button.active {
+      border-color: rgba(66, 122, 80, 0.42);
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .lab {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .lab select {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .output {
+      min-height: 260px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .45; }
+      50% { opacity: 1; }
+    }
+
     .quiz button {
       display: inline-flex;
       margin: 4px 6px 4px 0;
@@ -342,6 +428,7 @@
       aside nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .pipeline { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .hero-grid, .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lab { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 720px) {
@@ -349,6 +436,7 @@
       .hero, section { padding: 18px; }
       aside nav, .grid-2, .grid-3, .hero-grid, .pipeline { grid-template-columns: 1fr; }
       table { display: block; overflow-x: auto; white-space: nowrap; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
     }
   </style>
 </head>
@@ -357,6 +445,7 @@
     <aside>
       <strong>Data Agent / AI Coding</strong>
       <nav>
+        <a href="#agent-flow">0. 查询闭环动画</a>
         <a href="#overview">1. 两条主线</a>
         <a href="#data-agent">2. Data Agent 是什么</a>
         <a href="#data-architecture">3. Data Agent 架构</a>
@@ -367,6 +456,7 @@
         <a href="#coding-workflow">8. 编码智能体工作流</a>
         <a href="#tool-selection">9. 工具选型</a>
         <a href="#interview">10. 面试回答模板</a>
+        <a href="#pressure">10.5 压力诊断</a>
         <a href="#quiz">11. 自测题</a>
         <a href="#sources">12. 资料来源</a>
       </nav>
@@ -384,6 +474,22 @@
           <div class="metric"><b>1 页</b><span>能背、能讲、能练</span></div>
         </div>
       </header>
+
+      <section id="agent-flow">
+        <h2>0. Data Agent 查询闭环动画</h2>
+        <p class="lead">先把全链路跑通：用户不是直接问数据库，而是经过意图、上下文、计划、工具、校验和解释。这个链路记住了，后面的 Text-to-SQL、语义层、权限和评估就都能串起来。</p>
+        <div class="pipeline" id="dataAgentFlow">
+          <div class="step active"><b>1. 理解问题</b><span>识别指标、维度、时间、过滤条件和缺失信息。</span></div>
+          <div class="step"><b>2. 构造上下文</b><span>召回权限内 schema、指标口径、样例 SQL、业务文档。</span></div>
+          <div class="step"><b>3. 制定计划</b><span>决定查语义层、写 SQL、跑 Python，还是先追问。</span></div>
+          <div class="step"><b>4. 安全执行</b><span>只读 SQL、成本限制、超时、敏感字段拦截。</span></div>
+          <div class="step"><b>5. 结果校验</b><span>检查 SQL、行数、异常值、口径、权限和置信度。</span></div>
+          <div class="step"><b>6. 可追溯输出</b><span>给结论、图表、SQL、数据来源、假设和下一步。</span></div>
+        </div>
+        <div class="controls" id="flowControls"></div>
+        <div class="note" id="flowExplain">当前重点：Data Agent 第一步不是写 SQL，而是识别用户到底问的是哪个指标、哪个时间、哪个业务实体。</div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
 
       <section id="overview">
         <h2>1. 两条主线先讲清楚</h2>
@@ -691,6 +797,27 @@
         <a class="toplink" href="#top">回到顶部</a>
       </section>
 
+      <section id="pressure">
+        <h2>10.5 AI Coding / Data Agent 压力诊断台</h2>
+        <p class="lead">面试官不会只听你讲架构，他会追问“错了怎么办、越权怎么办、AI 乱改怎么办”。这里练的是回答骨架。</p>
+        <div class="lab">
+          <div class="box">
+            <h3>选择追问</h3>
+            <select id="pressureType">
+              <option value="wrongNumber">Data Agent 返回错数怎么办？</option>
+              <option value="permission">自然语言问题怎么防越权？</option>
+              <option value="sqlCost">模型生成高成本 SQL 怎么拦？</option>
+              <option value="codingWrong">AI Coding 生成代码不对怎么办？</option>
+              <option value="repoSafety">让编码 Agent 读写仓库安全吗？</option>
+              <option value="eval">怎么证明 Agent 真有用？</option>
+            </select>
+            <button id="runPressure">生成回答骨架</button>
+          </div>
+          <div class="output" id="pressureOutput">等待选择追问。</div>
+        </div>
+        <a class="toplink" href="#top">回到顶部</a>
+      </section>
+
       <section id="quiz">
         <h2>11. 自测题</h2>
         <div class="quiz" data-answer="b">
@@ -740,6 +867,73 @@
   </div>
 
   <script>
+    const flowLabels = ["理解问题", "构造上下文", "制定计划", "安全执行", "结果校验", "可追溯输出"];
+    const flowDetails = [
+      "当前重点：Data Agent 第一步不是写 SQL，而是识别用户到底问的是哪个指标、哪个时间、哪个业务实体。",
+      "当前重点：上下文必须权限过滤，只召回用户能看的 schema、指标、样例 SQL 和业务口径。",
+      "当前重点：Planner 要决定走语义层、Text-to-SQL、Python 分析、RAG 解释，还是先向用户追问。",
+      "当前重点：执行层必须只读、限时、限扫描量，拦截敏感字段和高成本 SQL。",
+      "当前重点：SQL 能跑不代表数字对，要校验口径、行数、异常值、分区和结果置信度。",
+      "当前重点：输出必须可追溯，带 SQL、数据来源、假设、置信度和下一步建议。"
+    ];
+
+    const flowControls = document.getElementById("flowControls");
+    flowLabels.forEach((label, index) => {
+      const button = document.createElement("button");
+      button.textContent = `${index + 1}. ${label}`;
+      button.className = index === 0 ? "active" : "";
+      button.addEventListener("click", () => {
+        document.querySelectorAll("#dataAgentFlow .step").forEach((node, i) => node.classList.toggle("active", i === index));
+        document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+        document.getElementById("flowExplain").textContent = flowDetails[index];
+      });
+      flowControls.appendChild(button);
+    });
+
+    const pressureAnswers = {
+      wrongNumber: [
+        "先承认：Data Agent 最大风险就是静默返回错误数字，因为它看起来很合理。",
+        "机制：核心指标走语义层；SQL 生成后做语法、权限、成本、口径和结果 sanity check。",
+        "兜底：输出 SQL、数据来源、假设和置信度；低置信度时追问或拒答。",
+        "评估：用企业黄金集回归，比较执行结果、口径一致性和人工验收。"
+      ],
+      permission: [
+        "先承认：自然语言不能绕过权限系统。",
+        "机制：上下文构造前就按用户 ACL 过滤 schema、指标和样例；执行层再做二次权限校验。",
+        "兜底：敏感字段脱敏、行列级权限、审计日志、越权问题直接拒答。",
+        "面试话术：权限不是 prompt 约束，而是工具和数据层的硬边界。"
+      ],
+      sqlCost: [
+        "风险：模型可能生成全表扫、笛卡尔积、无分区查询，拖垮分析库甚至生产库。",
+        "机制：SQL lint、只读 parser、分区检查、limit、超时、成本估算和只读副本。",
+        "兜底：高成本查询要求用户缩小范围，或转异步任务。",
+        "观测：记录 SQL、耗时、扫描行数、失败原因，用于优化 schema linking 和样例 SQL。"
+      ],
+      codingWrong: [
+        "先承认：AI 生成代码错误是常态，不能直接提交。",
+        "机制：我会先自己定方案，让 AI 做局部实现或补测试，不让它一次性大范围改。",
+        "验证：跑样例、单测、边界、静态检查，并阅读 diff。",
+        "修复：把最小错误日志反馈给 AI，但由我决定修复方向和是否重构。"
+      ],
+      repoSafety: [
+        "风险：编码 Agent 可能误改文件、泄露代码、执行危险命令或越权调用工具。",
+        "机制：最小权限、工作区隔离、工具白名单、危险操作人工确认、可审计日志。",
+        "工程边界：先读代码和计划，再小步 patch；不允许无审查地提交或推送。",
+        "面试话术：Agent 可以自动化执行，但最终责任和边界控制在工程师手里。"
+      ],
+      eval: [
+        "Data Agent 指标：意图识别、SQL 执行准确率、结果一致性、越权率、P95 延迟、用户采纳率。",
+        "AI Coding 指标：任务完成率、测试通过率、人工修改比例、缺陷逃逸率、交付耗时。",
+        "评估方法：固定黄金任务集，记录 trace，比对不同版本和不同提示词。",
+        "结论：不要只看生成量，要看质量、返工和风险是否下降。"
+      ]
+    };
+
+    document.getElementById("runPressure").addEventListener("click", () => {
+      const lines = pressureAnswers[document.getElementById("pressureType").value];
+      document.getElementById("pressureOutput").textContent = lines.map((line, index) => `Step ${index + 1}: ${line}`).join("\n");
+    });
+
     document.querySelectorAll(".quiz").forEach((quiz) => {
       const answer = quiz.dataset.answer;
       quiz.querySelectorAll("button").forEach((button) => {

@@ -32,7 +32,12 @@
 
     * { box-sizing: border-box; }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
 
     body {
       margin: 0;
@@ -44,6 +49,11 @@
         linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
         var(--paper);
       line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div, aside {
+      min-width: 0;
     }
 
     a { color: var(--blue); }
@@ -117,7 +127,7 @@
     h1 {
       max-width: 880px;
       margin: 0 0 18px;
-      font-size: clamp(38px, 7vw, 72px);
+      font-size: clamp(32px, 5.8vw, 64px);
       line-height: 0.98;
       letter-spacing: 0;
     }
@@ -276,6 +286,7 @@
 
     pre {
       overflow: auto;
+      max-width: 100%;
       padding: 16px;
       border-radius: 8px;
       color: var(--code);
@@ -363,6 +374,7 @@
       .hero, section { padding: 18px; }
       aside nav, .grid-2, .grid-3, .flashcards, .hero-grid, .pipeline { grid-template-columns: 1fr; }
       table { display: block; overflow-x: auto; white-space: nowrap; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
     }
   </style>
 </head>

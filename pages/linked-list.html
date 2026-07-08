@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>链表手撕面试专题</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.92);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --green: #3e7b4f;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div, aside { min-width: 0; }
+    button, textarea, select { font: inherit; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .layout > aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.84);
+      overflow: auto;
+    }
+
+    .brand {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+
+    .back {
+      display: inline-flex;
+      margin-top: 12px;
+      color: var(--accent-2);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    nav { display: grid; gap: 8px; }
+
+    nav button,
+    .chip,
+    .ghost,
+    .answer-toggle {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.68);
+      cursor: pointer;
+    }
+
+    nav button {
+      padding: 10px 12px;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    nav button.active,
+    .chip.active {
+      color: var(--accent-2);
+      border-color: rgba(216, 101, 42, 0.45);
+      background: var(--accent-soft);
+    }
+
+    main {
+      width: min(1180px, 100%);
+      padding: 34px 36px 56px;
+    }
+
+    .hero,
+    .card,
+    .quiz-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero { padding: 30px; margin-bottom: 28px; }
+
+    .eyebrow,
+    .source {
+      display: inline-flex;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+
+    .eyebrow {
+      margin-bottom: 18px;
+      padding: 5px 10px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-size: 13px;
+    }
+
+    .source {
+      margin-top: 10px;
+      padding: 4px 9px;
+      color: var(--green);
+      background: rgba(62, 123, 79, 0.12);
+      font-size: 12px;
+    }
+
+    h1 {
+      max-width: 960px;
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 5.8vw, 62px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-head p,
+    .card-head p { margin: 0; color: var(--muted); }
+
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .card { overflow: hidden; }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 26px 18px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .card-head h3 { margin: 0 0 6px; font-size: 25px; line-height: 1.2; }
+
+    .badge {
+      display: inline-flex;
+      height: 28px;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 26px;
+      border-bottom: 1px solid rgba(32, 26, 20, 0.08);
+    }
+
+    .chip { padding: 8px 11px; color: var(--muted); }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      padding: 22px 26px 26px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel p { margin: 0 0 13px; }
+    .panel li { margin: 8px 0; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 6px;
+      color: var(--accent-2);
+      background: var(--accent-soft);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .side { display: grid; gap: 12px; align-self: start; }
+
+    .box,
+    .read-card div,
+    .trace-line {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.7);
+    }
+
+    .box h4 { margin: 0 0 8px; font-size: 16px; }
+    .box p { margin: 0; color: var(--muted); }
+
+    .read-card {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .read-card b,
+    .trace-line b { display: block; margin-bottom: 4px; }
+
+    .drill {
+      padding: 12px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+    }
+
+    .answer {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent-soft);
+    }
+
+    .answer.show { display: block; }
+    .answer-toggle, .ghost { padding: 9px 11px; margin-top: 10px; }
+
+    .practice,
+    .playground { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    select {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(255, 250, 240, 0.88);
+    }
+
+    .output {
+      min-height: 160px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+    }
+
+    .trace {
+      display: grid;
+      gap: 10px;
+      max-height: 520px;
+      overflow: auto;
+    }
+
+    .quiz-card { padding: 18px; margin-bottom: 12px; box-shadow: none; }
+    .quiz-card h3 { margin: 0 0 10px; font-size: 18px; }
+
+    .option {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option.correct { border-color: var(--green); background: rgba(62, 123, 79, 0.12); }
+    .option.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 220px minmax(0, 1fr); }
+      .card-body { grid-template-columns: minmax(0, 1fr) 300px; }
+      main { padding: 28px 24px 48px; }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .layout > aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .card-body, .practice, .playground, .read-card { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      .card-head { display: block; }
+      main { padding: 14px; }
+      .hero { padding: 20px; }
+      .card-head, .tabs, .card-body { padding-left: 16px; padding-right: 16px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Linked List Drill</b>
+        <span>反转 · 虚拟头 · 快慢指针 · 环</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">算法专题 / Linked List · Java · 指针手撕</span>
+        <h1>链表题不是难在代码长，而是难在每一步都不能断链。</h1>
+        <p>链表面试的核心是指针语义：先保存后继，再改指向；涉及头节点变化就用 dummy；涉及倒数、环、中点就用快慢指针。本页把经典题拆成题源、读题信号、手撕模板和交互推演。</p>
+      </section>
+
+      <section class="section" id="knowledge">
+        <div class="section-head">
+          <h2>知识与经典题</h2>
+          <p>每张卡都标明题源、读题信号、最容易断在哪里，以及面试追问。</p>
+        </div>
+        <div class="grid" id="topicGrid"></div>
+      </section>
+
+      <section class="section" id="playground">
+        <div class="section-head">
+          <h2>交互推演台</h2>
+          <p>一步步观察指针怎么走。链表要快速学会，就要把“保存 next、移动 prev/cur、dummy 接回去”看成肌肉记忆。</p>
+        </div>
+        <div class="playground">
+          <div class="box">
+            <h4>选择题型</h4>
+            <select id="demoType">
+              <option value="reverse">反转链表</option>
+              <option value="removeNth">删除倒数第 N 个节点</option>
+              <option value="merge">合并两个有序链表</option>
+              <option value="cycle">环形链表检测</option>
+              <option value="middle">寻找中点</option>
+            </select>
+            <textarea id="demoInput">1,2,3,4,5</textarea>
+            <button class="ghost" id="runDemo">运行推演</button>
+          </div>
+          <div class="trace" id="demoOutput">
+            <div class="trace-line"><b>怎么用</b>反转/中点输入链表；删除倒数输入 nums | n；合并输入 list1 | list2；环检测输入 nums | pos，pos 是尾节点连回的位置。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="practice">
+        <div class="section-head">
+          <h2>口述训练台</h2>
+          <p>写你的链表手撕思路，检查是否说清了 dummy、指针语义、断链风险和返回值。</p>
+        </div>
+        <div class="practice">
+          <div class="box">
+            <h4>你的回答</h4>
+            <textarea id="answerText" placeholder="比如：反转链表我用 prev/cur/next 三指针。每轮先保存 next=cur.next，再把 cur.next 指向 prev，然后 prev=cur，cur=next。最后 prev 是新头节点..."></textarea>
+            <button class="ghost" id="checkAnswer">生成检查清单</button>
+          </div>
+          <div class="output" id="answerOutput">等待你的回答。</div>
+        </div>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>自测纠错</h2>
+          <p>错了就回到对应卡片，尤其关注“先保存 next”和“dummy 防止头节点变化”。</p>
+        </div>
+        <div id="quizList"></div>
+        <button class="ghost" id="resetQuiz">重做自测</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        id: "model",
+        title: "链表题的通用模型",
+        tag: "总纲",
+        intro: "链表题先别急着写代码，先给每个指针命名。",
+        source: "方法论：Linked List 总纲",
+        problem: "面试官常用链表考察指针操作、边界意识和代码稳定性。",
+        signal: "题目出现头节点可能变化、删除节点、倒数第 N 个、反转一段、环、中点、合并。",
+        pitfall: "最常见错误是改 cur.next 前没有保存 next，导致后半段链表丢失。",
+        tabs: {
+          "核心": `<ul><li><b>dummy：</b>只要可能删除/插入头节点，就创建虚拟头。</li><li><b>prev/cur/next：</b>反转类题永远先保存 next。</li><li><b>fast/slow：</b>倒数、中点、环检测都是快慢指针。</li><li><b>tail：</b>合并类题用 tail 维护结果链表尾部。</li></ul>`,
+          "手撕口令": `<pre>1. 先判断头节点会不会变化，会就 dummy。
+2. 给指针命名：prev / cur / next / fast / slow / tail。
+3. 每次改 next 前，先保存后继。
+4. 循环结束后，确认返回 head、dummy.next、prev 还是 slow。
+5. 主动检查空链表、单节点、删除头节点、偶数长度。</pre>`,
+          "防错": `<ul><li>删除节点要找待删节点的前一个节点。</li><li>反转链表返回 <code>prev</code>，不是原来的 <code>head</code>。</li><li>快慢指针循环条件取决于你要上中点还是下中点。</li><li>环检测相遇后，把一个指针放回 head，再同步走找入口。</li></ul>`
+        },
+        memory: "链表题先保护头节点，再保护后继节点。",
+        drill: ["链表题最重要的安全动作是什么？", "改 cur.next 前先保存 next。否则指针一改，原来的后继节点就可能丢掉，后半段链表无法继续遍历。"]
+      },
+      {
+        id: "reverse",
+        title: "反转链表",
+        tag: "三指针",
+        intro: "最基础也最能暴露指针功底的题。",
+        source: "LeetCode 206. Reverse Linked List",
+        problem: "给单链表头节点 head，反转整个链表，返回新的头节点。",
+        signal: "关键词：反转链表、返回新头、原地修改。",
+        pitfall: "先写 cur.next = prev 会断掉 cur 后面的链，必须先保存 next。",
+        tabs: {
+          "思路": `<p>维护 <code>prev</code> 表示已经反转好的头，<code>cur</code> 表示当前待处理节点，<code>next</code> 临时保存后继。每轮把 cur 接到 prev 前面。</p>`,
+          "Java": `<pre>ListNode reverseList(ListNode head) {
+    ListNode prev = null, cur = head;
+    while (cur != null) {
+        ListNode next = cur.next;
+        cur.next = prev;
+        prev = cur;
+        cur = next;
+    }
+    return prev;
+}</pre>`,
+          "迁移": `<ul><li><b>递归反转：</b>先反转后半段，再把 head 接到尾部。</li><li><b>两两交换：</b>本质是局部反转两个节点。</li><li><b>K 个一组反转：</b>先检查够不够 K 个，再反转区间。</li></ul>`
+        },
+        memory: "保存 next，反指针，prev/cur 同步前进。",
+        drill: ["反转链表最后为什么返回 prev？", "循环结束时 cur 已经走到 null，prev 指向反转后链表的头节点，所以返回 prev。"]
+      },
+      {
+        id: "remove-nth",
+        title: "删除倒数第 N 个节点",
+        tag: "快慢指针",
+        intro: "删除题的关键不是找到节点，而是找到它的前一个节点。",
+        source: "LeetCode 19. Remove Nth Node From End of List",
+        problem: "给链表头节点和 n，删除倒数第 n 个节点并返回头节点。",
+        signal: "关键词：倒数第 N 个、删除、一次遍历。用 fast 先走 n+1 步，让 slow 停在待删前驱。",
+        pitfall: "删除头节点时没有前驱，所以必须用 dummy。",
+        tabs: {
+          "思路": `<ul><li>创建 <code>dummy.next = head</code>。</li><li><code>fast</code> 从 dummy 先走 n+1 步。</li><li>fast 和 slow 同步走，直到 fast 到 null。</li><li>此时 slow 正好在待删节点前一个位置。</li></ul>`,
+          "Java": `<pre>ListNode removeNthFromEnd(ListNode head, int n) {
+    ListNode dummy = new ListNode(0, head);
+    ListNode fast = dummy, slow = dummy;
+    for (int i = 0; i <= n; i++) fast = fast.next;
+    while (fast != null) {
+        fast = fast.next;
+        slow = slow.next;
+    }
+    slow.next = slow.next.next;
+    return dummy.next;
+}</pre>`,
+          "边界": `<ul><li>链表长度等于 n：删除头节点，dummy 保底。</li><li>n=1：删除尾节点。</li><li>面试时可说：我让 slow 停在待删节点前驱，这样删除只需改 slow.next。</li></ul>`
+        },
+        memory: "删除节点先找前驱；头节点可能变就 dummy。",
+        drill: ["为什么 fast 要从 dummy 先走 n+1 步？", "因为 slow 需要停在待删节点的前一个位置。fast 和 slow 间隔 n+1，fast 到 null 时 slow 正好是前驱。"]
+      },
+      {
+        id: "merge",
+        title: "合并两个有序链表",
+        tag: "tail 指针",
+        intro: "合并题体现的是 tail 语义：结果链表的尾巴在哪里。",
+        source: "LeetCode 21. Merge Two Sorted Lists",
+        problem: "给两个升序链表，合并成一个新的升序链表并返回头节点。",
+        signal: "关键词：两个有序链表、合并、升序。dummy + tail 最稳。",
+        pitfall: "tail 接上节点后，别忘了 tail = tail.next；循环结束要接上剩余链表。",
+        tabs: {
+          "思路": `<p>用 dummy 作为结果链表虚拟头，tail 指向当前结果链表尾部。每次比较 l1/l2 较小节点，接到 tail 后面，再移动对应链表和 tail。</p>`,
+          "Java": `<pre>ListNode mergeTwoLists(ListNode a, ListNode b) {
+    ListNode dummy = new ListNode(0);
+    ListNode tail = dummy;
+    while (a != null && b != null) {
+        if (a.val <= b.val) {
+            tail.next = a;
+            a = a.next;
+        } else {
+            tail.next = b;
+            b = b.next;
+        }
+        tail = tail.next;
+    }
+    tail.next = a != null ? a : b;
+    return dummy.next;
+}</pre>`,
+          "迁移": `<ul><li><b>合并 K 个链表：</b>优先队列或分治。</li><li><b>链表排序：</b>归并排序，先快慢指针找中点，再 merge。</li><li><b>相交链表：</b>不是 merge，但同样考指针同步。</li></ul>`
+        },
+        memory: "dummy 定头，tail 定尾，剩余链表一次接上。",
+        drill: ["为什么合并链表适合用 dummy？", "因为结果链表的头节点一开始未知。dummy 让我们统一使用 tail.next 接节点，最后返回 dummy.next。"]
+      },
+      {
+        id: "cycle",
+        title: "环形链表与入口",
+        tag: "快慢指针",
+        intro: "环检测不是靠 Set 背答案，快慢指针能 O(1) 空间解决。",
+        source: "LeetCode 141 / 142. Linked List Cycle I & II",
+        problem: "判断链表是否有环；如果有环，返回环的入口节点。",
+        signal: "关键词：是否有环、环入口、O(1) 空间。fast 每次两步，slow 每次一步。",
+        pitfall: "找到相遇点不等于入口；要把一个指针放回 head，再同步走。",
+        tabs: {
+          "思路": `<ul><li>fast 每次走两步，slow 每次走一步。</li><li>如果 fast 到 null，说明无环。</li><li>如果 fast == slow，说明有环。</li><li>找入口：一个指针回到 head，另一个留在相遇点，同步一步一步走，再次相遇就是入口。</li></ul>`,
+          "Java": `<pre>ListNode detectCycle(ListNode head) {
+    ListNode slow = head, fast = head;
+    while (fast != null && fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+        if (slow == fast) {
+            ListNode p = head;
+            while (p != slow) {
+                p = p.next;
+                slow = slow.next;
+            }
+            return p;
+        }
+    }
+    return null;
+}</pre>`,
+          "证明": `<p>设头到入口距离为 a，入口到相遇点距离为 b，环剩余距离为 c。快指针路程是慢指针两倍，可推出 a = k(b+c) - b，所以从 head 和相遇点同步走，会在入口相遇。</p>`
+        },
+        memory: "先相遇判环，再 head + meet 同步走找入口。",
+        drill: ["为什么相遇点不是环入口？", "相遇只说明 fast 追上 slow，位置取决于环长和入环距离。要根据距离关系让一个指针回 head，同步走才能定位入口。"]
+      },
+      {
+        id: "reverse-between",
+        title: "反转链表 II / K 个一组",
+        tag: "区间反转",
+        intro: "进阶反转题的关键是保存区间前驱和区间后继。",
+        source: "LeetCode 92 / 25. Reverse Linked List II / Reverse Nodes in k-Group",
+        problem: "反转链表中指定区间，或每 K 个节点一组反转，不足 K 个保持原样。",
+        signal: "关键词：反转 m 到 n、K 个一组、局部反转、接回原链表。",
+        pitfall: "只反转内部不够，还要把反转后的头尾和外部链表接回去。",
+        tabs: {
+          "思路": `<ul><li>dummy 处理头部区间被反转。</li><li>pre 找到反转区间前一个节点。</li><li>cur 指向区间第一个节点，使用头插法把后续节点不断插到 pre 后面。</li><li>K 组反转前先检查是否够 K 个。</li></ul>`,
+          "Java": `<pre>ListNode reverseBetween(ListNode head, int left, int right) {
+    ListNode dummy = new ListNode(0, head);
+    ListNode pre = dummy;
+    for (int i = 1; i < left; i++) pre = pre.next;
+    ListNode cur = pre.next;
+    for (int i = 0; i < right - left; i++) {
+        ListNode next = cur.next;
+        cur.next = next.next;
+        next.next = pre.next;
+        pre.next = next;
+    }
+    return dummy.next;
+}</pre>`,
+          "领悟": `<p>这段代码是“头插法”：cur 一直是反转区间的尾巴，每轮把 cur 后面的 next 摘下来，插到 pre 后面。这样不用单独找区间后继，连接关系始终完整。</p>`
+        },
+        memory: "区间反转先定 pre，再用头插法搬节点。",
+        drill: ["反转区间为什么要用 dummy？", "因为 left 可能等于 1，反转会改变头节点。dummy 可以统一处理头部变化，最后返回 dummy.next。"]
+      },
+      {
+        id: "intersection-middle",
+        title: "相交链表与中点",
+        tag: "同步指针",
+        intro: "这类题考的是让两个指针走过相同总路程。",
+        source: "LeetCode 160 / 876. Intersection of Two Linked Lists / Middle of the Linked List",
+        problem: "判断两个链表是否相交并返回交点；或返回链表中间节点。",
+        signal: "关键词：两个链表相交、公共节点、中间节点。相交用双指针换头，中点用快慢指针。",
+        pitfall: "相交比较的是节点引用，不是节点值；值相同不代表相交。",
+        tabs: {
+          "相交": `<pre>ListNode getIntersectionNode(ListNode a, ListNode b) {
+    ListNode p = a, q = b;
+    while (p != q) {
+        p = p == null ? b : p.next;
+        q = q == null ? a : q.next;
+    }
+    return p;
+}</pre><p>两个指针分别走 A+B 和 B+A，总路程相同。相交会在交点相遇，不相交会同时到 null。</p>`,
+          "中点": `<pre>ListNode middleNode(ListNode head) {
+    ListNode slow = head, fast = head;
+    while (fast != null && fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+    }
+    return slow;
+}</pre><p>这个写法偶数长度返回第二个中点；如果要第一个中点，循环条件需要调整。</p>`,
+          "迁移": `<ul><li><b>回文链表：</b>找中点，反转后半段，再比较。</li><li><b>链表排序：</b>找中点切开，再归并。</li><li><b>倒数第 N：</b>快慢指针制造固定距离。</li></ul>`
+        },
+        memory: "相交换头走同路程；中点快二慢一。",
+        drill: ["相交链表为什么不能比较值？", "因为题目说相交是共享同一个节点对象。两个节点值相等但内存对象不同，不算相交。"]
+      }
+    ];
+
+    const quizzes = [
+      ["反转链表改 cur.next 前必须先做什么？", ["保存 next", "删除 head", "排序链表"], 0, "不保存 next，后半段链表可能丢失。"],
+      ["删除倒数第 N 个节点为什么常用 dummy？", ["可能删除头节点", "为了让链表有序", "为了减少空间到 O(n)"], 0, "dummy 统一处理头节点变化。"],
+      ["合并两个有序链表 tail 表示什么？", ["结果链表尾部", "原链表头部", "环入口"], 0, "tail.next 用来接下一个较小节点。"],
+      ["环形链表找入口时，相遇后应该怎么做？", ["一个指针回 head，同步走", "直接返回相遇点", "把链表反转"], 0, "相遇点不一定是入口。"],
+      ["反转区间 left=1 时最容易出什么问题？", ["头节点变化", "值会变小", "必须用二分"], 0, "反转从头开始会改变返回头，dummy 最稳。"],
+      ["相交链表比较的是什么？", ["节点引用", "节点值", "链表长度"], 0, "相交表示共享同一个节点对象。"],
+      ["快慢指针找中点，fast 每次走几步？", ["两步", "一步", "三步且必须递归"], 0, "fast 两步，slow 一步。"]
+    ];
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function renderNav() {
+      const nav = byId("nav");
+      nav.innerHTML = `<button data-jump="top" class="active">Start</button>` +
+        topics.map((topic) => `<button data-jump="${topic.id}">${topic.title}</button>`).join("") +
+        `<button data-jump="playground">交互推演</button><button data-jump="practice">口述训练</button><button data-jump="quiz">自测</button>`;
+      nav.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          byId(button.dataset.jump).scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function renderTopics() {
+      const grid = byId("topicGrid");
+      grid.innerHTML = "";
+      topics.forEach((topic) => {
+        const reading = {
+          "题源与读题": `
+            <p><b>题源：</b>${topic.source}</p>
+            <div class="read-card">
+              <div><b>题目到底问什么</b>${topic.problem}</div>
+              <div><b>读题信号</b>${topic.signal}</div>
+              <div><b>手撕第一句话</b>我先判断头节点是否会变化，再定义每个指针的语义，避免断链。</div>
+              <div><b>最容易掉的坑</b>${topic.pitfall}</div>
+            </div>
+          `
+        };
+        const panels = Object.assign(reading, topic.tabs);
+        const tabs = Object.keys(panels);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.id = topic.id;
+        card.innerHTML = `
+          <div class="card-head">
+            <div>
+              <h3>${topic.title}</h3>
+              <p>${topic.intro}</p>
+              <span class="source">${topic.source}</span>
+            </div>
+            <span class="badge">${topic.tag}</span>
+          </div>
+          <div class="tabs">
+            ${tabs.map((tab, index) => `<button class="chip ${index === 0 ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}
+          </div>
+          <div class="card-body">
+            <div>
+              ${tabs.map((tab, index) => `<div class="panel ${index === 0 ? "active" : ""}" data-panel="${tab}">${panels[tab]}</div>`).join("")}
+            </div>
+            <aside class="side">
+              <div class="box">
+                <h4>记忆钩子</h4>
+                <p>${topic.memory}</p>
+              </div>
+              <div class="box">
+                <h4>面试追问</h4>
+                <div class="drill">${topic.drill[0]}</div>
+                <div class="answer">${topic.drill[1]}</div>
+                <button class="answer-toggle">显示答案</button>
+              </div>
+            </aside>
+          </div>
+        `;
+        card.querySelectorAll(".chip").forEach((chip) => {
+          chip.addEventListener("click", () => {
+            card.querySelectorAll(".chip").forEach((item) => item.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach((item) => item.classList.remove("active"));
+            chip.classList.add("active");
+            card.querySelector(`[data-panel="${chip.dataset.tab}"]`).classList.add("active");
+          });
+        });
+        card.querySelector(".answer-toggle").addEventListener("click", (event) => {
+          const answer = card.querySelector(".answer");
+          answer.classList.toggle("show");
+          event.currentTarget.textContent = answer.classList.contains("show") ? "隐藏答案" : "显示答案";
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function renderQuiz() {
+      const list = byId("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([q, options, answer, hint], index) => {
+        const card = document.createElement("article");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${q}</h3>${options.map((option, i) => `<button class="option" data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll(".option").forEach((option) => {
+          option.addEventListener("click", () => {
+            card.querySelectorAll(".option").forEach((node) => node.disabled = true);
+            const picked = Number(option.dataset.i);
+            option.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll(".option")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+
+    function parseNums(text) {
+      return text.split(/[,，\s]+/).map((x) => x.trim()).filter(Boolean).map(Number).filter((x) => Number.isFinite(x));
+    }
+
+    function listText(arr) {
+      return arr.length ? arr.join(" -> ") : "null";
+    }
+
+    function splitInput(text) {
+      return text.split("|").map((part) => part.trim());
+    }
+
+    function renderTrace(lines) {
+      byId("demoOutput").innerHTML = lines.map((line, index) => `<div class="trace-line"><b>Step ${index + 1}</b>${line}</div>`).join("");
+    }
+
+    function demoReverse(text) {
+      const nums = parseNums(text);
+      const reversed = [];
+      const lines = [`原链表：${listText(nums)}。prev=null，cur=head。`];
+      nums.forEach((x, i) => {
+        const next = i + 1 < nums.length ? nums[i + 1] : "null";
+        lines.push(`cur=${x}，先保存 next=${next}，否则改 cur.next 后会丢后继。`);
+        lines.push(`执行 ${x}.next = ${reversed[0] ?? "null"}，把当前节点接到已反转链表前面。`);
+        reversed.unshift(x);
+        lines.push(`prev=${x}，cur=${next}。当前已反转：${listText(reversed)}。`);
+      });
+      lines.push(`cur=null，循环结束，返回 prev，也就是新头：${reversed[0] ?? "null"}。结果：${listText(reversed)}。`);
+      return lines;
+    }
+
+    function demoRemoveNth(text) {
+      const [left, right] = splitInput(text);
+      const nums = parseNums(left);
+      const n = Number(right || 2);
+      const idx = nums.length - n;
+      const lines = [`链表：dummy -> ${listText(nums)}，n=${n}。目标是删除下标 ${idx} 的节点 ${nums[idx]}。`];
+      lines.push(`fast 从 dummy 先走 n+1=${n + 1} 步，让 slow 最终停在待删节点前驱。`);
+      for (let i = 0; i <= n; i++) lines.push(`fast 预先移动第 ${i + 1} 步。`);
+      lines.push(`随后 fast/slow 同步前进，直到 fast=null。此时 slow 在 ${idx - 1 < 0 ? "dummy" : nums[idx - 1]}。`);
+      const result = nums.slice(0, idx).concat(nums.slice(idx + 1));
+      lines.push(`执行 slow.next = slow.next.next，删除 ${nums[idx]}。返回 dummy.next：${listText(result)}。`);
+      return lines;
+    }
+
+    function demoMerge(text) {
+      const [aText, bText] = splitInput(text);
+      const a = parseNums(aText);
+      const b = parseNums(bText || "1,3,4");
+      let i = 0, j = 0;
+      const result = [];
+      const lines = [`list1=${listText(a)}，list2=${listText(b)}。dummy 定头，tail 指向结果尾部。`];
+      while (i < a.length && j < b.length) {
+        if (a[i] <= b[j]) {
+          lines.push(`${a[i]} <= ${b[j]}，tail.next 接 list1 节点 ${a[i]}，a 前进。`);
+          result.push(a[i++]);
+        } else {
+          lines.push(`${b[j]} < ${a[i]}，tail.next 接 list2 节点 ${b[j]}，b 前进。`);
+          result.push(b[j++]);
+        }
+        lines.push(`tail 前进。当前结果：${listText(result)}。`);
+      }
+      const rest = i < a.length ? a.slice(i) : b.slice(j);
+      lines.push(`一条链表耗尽，直接接上剩余部分：${listText(rest)}。`);
+      lines.push(`返回 dummy.next：${listText(result.concat(rest))}。`);
+      return lines;
+    }
+
+    function demoCycle(text) {
+      const [left, right] = splitInput(text);
+      const nums = parseNums(left);
+      const pos = Number(right ?? 1);
+      const lines = [`链表值：${listText(nums)}，尾节点连回 pos=${pos}（${pos >= 0 ? nums[pos] : "无环"}）。`];
+      if (pos < 0 || pos >= nums.length) {
+        lines.push(`pos 无效或为 -1，没有环。fast 最终会走到 null，返回 false。`);
+        return lines;
+      }
+      let slow = 0, fast = 0;
+      const next = (i) => i + 1 < nums.length ? i + 1 : pos;
+      for (let step = 1; step <= nums.length * 2 + 2; step++) {
+        slow = next(slow);
+        fast = next(next(fast));
+        lines.push(`第 ${step} 轮：slow=${slow}:${nums[slow]}，fast=${fast}:${nums[fast]}。`);
+        if (slow === fast) {
+          lines.push(`slow 与 fast 相遇，说明有环。找入口时让 p=head，slow 留在相遇点，同步走。`);
+          let p = 0;
+          while (p !== slow) {
+            p = next(p);
+            slow = next(slow);
+            lines.push(`p=${p}:${nums[p]}，slow=${slow}:${nums[slow]}。`);
+          }
+          lines.push(`再次相遇处就是环入口：pos=${p}，值=${nums[p]}。`);
+          return lines;
+        }
+      }
+      lines.push(`未相遇，返回 false。`);
+      return lines;
+    }
+
+    function demoMiddle(text) {
+      const nums = parseNums(text);
+      let slow = 0, fast = 0;
+      const lines = [`链表：${listText(nums)}。slow 每次一步，fast 每次两步。`];
+      while (fast < nums.length && fast + 1 < nums.length) {
+        slow += 1;
+        fast += 2;
+        lines.push(`slow -> ${slow}:${nums[slow]}，fast -> ${fast < nums.length ? `${fast}:${nums[fast]}` : "null"}。`);
+      }
+      lines.push(`循环结束，slow 指向中点。当前写法偶数长度返回第二个中点：${slow}:${nums[slow]}。`);
+      return lines;
+    }
+
+    byId("runDemo").addEventListener("click", () => {
+      const demos = { reverse: demoReverse, removeNth: demoRemoveNth, merge: demoMerge, cycle: demoCycle, middle: demoMiddle };
+      renderTrace(demos[byId("demoType").value](byId("demoInput").value.trim()));
+    });
+
+    byId("demoType").addEventListener("change", (event) => {
+      const samples = {
+        reverse: "1,2,3,4,5",
+        removeNth: "1,2,3,4,5 | 2",
+        merge: "1,2,4 | 1,3,4",
+        cycle: "3,2,0,-4 | 1",
+        middle: "1,2,3,4,5,6"
+      };
+      byId("demoInput").value = samples[event.target.value];
+    });
+
+    byId("checkAnswer").addEventListener("click", () => {
+      const text = byId("answerText").value.trim();
+      if (!text) {
+        byId("answerOutput").textContent = "先写一段你的口述答案。";
+        return;
+      }
+      const checks = [
+        ["头节点", "有没有判断头节点是否可能变化，并说明是否需要 dummy？"],
+        ["指针语义", "有没有明确 prev/cur/next、fast/slow、tail 分别代表什么？"],
+        ["断链风险", "有没有强调改 next 前先保存后继？"],
+        ["循环条件", "有没有说清 while 条件，尤其 fast 和 fast.next？"],
+        ["返回值", "最终返回 dummy.next、prev、slow、head 还是 null？"],
+        ["边界", "有没有覆盖空链表、单节点、删除头节点、偶数长度、有环/无环？"]
+      ];
+      byId("answerOutput").textContent = checks.map(([name, desc]) => `- ${name}: ${desc}`).join("\n") + "\n\n你的答案长度：" + text.length + " 字。下一步：补一版‘是否 dummy→指针语义→循环动作→接回链表→返回值’的回答。";
+    });
+
+    byId("resetQuiz").addEventListener("click", renderQuiz);
+
+    renderNav();
+    renderTopics();
+    renderQuiz();
+  </script>
+</body>
+</html>

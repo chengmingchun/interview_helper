@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Java / Spring 中高级面试冲刺专题</title>
+  <style>
+    :root{--paper:#f4efe6;--ink:#201a14;--muted:#776b5d;--line:rgba(32,26,20,.14);--panel:rgba(255,252,245,.92);--soft:rgba(216,101,42,.12);--accent:#d8652a;--accent2:#9f4d28;--dark:#171511;--code:#e8d9bd;--green:#3e7b4f;--blue:#386a91;--red:#a84236;--shadow:0 18px 58px rgba(60,42,24,.12)}
+    *{box-sizing:border-box}html{font-size:clamp(14px,.28vw + 13px,16px);scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 18% 8%,rgba(216,101,42,.12),transparent 30%),linear-gradient(120deg,rgba(255,255,255,.42) 0 1px,transparent 1px 48px),linear-gradient(0deg,rgba(255,255,255,.3) 0 1px,transparent 1px 48px),var(--paper);line-height:1.68;overflow-x:hidden}
+    a{color:inherit}main,section,article,div,aside{min-width:0}.layout{display:grid;grid-template-columns:286px minmax(0,1fr);min-height:100vh}.layout>aside{position:sticky;top:0;height:100vh;padding:22px;border-right:1px solid var(--line);background:rgba(244,239,230,.86);overflow:auto}.brand{margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}.brand b{display:block;font-size:18px}.brand span{color:var(--muted);font-size:13px}.back{display:inline-flex;margin-top:12px;color:var(--accent2);text-decoration:none;font-weight:800;font-size:13px}nav{display:grid;gap:8px}nav a{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.72);color:var(--muted);text-decoration:none;font-size:14px}nav a:hover{color:var(--accent2);border-color:rgba(216,101,42,.45);background:var(--soft)}
+    main{width:min(1220px,100%);padding:34px 36px 56px}.hero,.box,.note,.panel,.answer{border:1px solid var(--line);border-radius:8px;background:var(--panel);box-shadow:var(--shadow)}.hero{padding:34px;margin-bottom:28px}.eyebrow{display:inline-flex;margin-bottom:18px;padding:5px 10px;border-radius:999px;color:var(--accent2);background:var(--soft);font-size:13px;font-weight:800}h1{max-width:1060px;margin:0 0 14px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,5.5vw,66px);line-height:1;letter-spacing:0}.lead,.hero p{margin:0;color:var(--muted)}section{margin:36px 0}h2{margin:0 0 10px;font-family:Georgia,"Times New Roman",serif;font-size:34px;line-height:1.05}h3{margin:18px 0 8px}.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.box,.note,.answer{padding:18px}.box p{margin:0;color:var(--muted)}.tag{display:inline-flex;margin:8px 6px 0 0;padding:4px 9px;border-radius:999px;background:var(--soft);color:var(--accent2);font-size:12px;font-weight:800}.tag.ok{color:var(--green);background:rgba(62,123,79,.12)}.tag.info{color:var(--blue);background:rgba(56,106,145,.12)}.tag.warn{color:var(--red);background:rgba(168,66,54,.12)}
+    table{width:100%;border-collapse:collapse;margin:12px 0;border:1px solid var(--line);background:rgba(255,250,240,.66);border-radius:8px;overflow:hidden}th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:rgba(216,101,42,.1);color:var(--accent2)}pre{margin:12px 0 0;padding:14px;border-radius:8px;color:var(--code);background:var(--dark);overflow:auto;max-width:100%;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.55}code{padding:2px 5px;border-radius:6px;color:var(--accent2);background:var(--soft);font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.kbd{display:inline-flex;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:rgba(255,250,240,.86);font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.toplink{display:inline-flex;margin-top:12px;color:var(--accent2);font-weight:800;text-decoration:none}.timeline{display:grid;gap:10px;margin-top:12px}.step{position:relative;padding:14px 14px 14px 44px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.72)}.step::before{content:attr(data-no);position:absolute;left:12px;top:13px;width:22px;height:22px;border-radius:999px;background:var(--dark);color:var(--code);display:grid;place-items:center;font-size:12px;font-weight:800}.answer{margin:12px 0;background:rgba(255,250,240,.7)}.answer b{color:var(--accent2)}.bad{border-left:4px solid var(--red)}.good{border-left:4px solid var(--green)}.tocline{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.tocline a{text-decoration:none}.script{white-space:pre-wrap}.divider{height:1px;background:var(--line);margin:18px 0}.flow{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:10px;margin-top:12px}.flow div{padding:12px;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,240,.76)}.question{margin:14px 0;padding:14px;border:1px dashed rgba(216,101,42,.45);border-radius:8px;background:rgba(216,101,42,.07)}
+    @media(max-width:1080px){.layout{grid-template-columns:1fr}.layout>aside{position:static;height:auto}nav{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-2,.grid-3{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:22px}}@media(max-width:560px){nav,.flow{grid-template-columns:1fr}main{padding:14px}.hero{padding:20px}h1{font-size:clamp(30px,10vw,42px)}}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>Senior Java Sprint</b>
+        <span>Spring · 设计模式 · 事务 · 架构 · 算法</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav>
+        <a href="#top">Start</a>
+        <a href="#self-intro">1. 高阶自我介绍</a>
+        <a href="#patterns">2. 设计模式 + Spring</a>
+        <a href="#business-patterns">3. 策略/工厂/观察者</a>
+        <a href="#bean-life">4. Bean 生命周期扩展</a>
+        <a href="#transaction">5. 事务传播底层</a>
+        <a href="#nacos">6. 注册发现/Nacos</a>
+        <a href="#online-system">7. 在线时长系统</a>
+        <a href="#traffic">8. 限流熔断降级</a>
+        <a href="#architecture">9. 架构取舍</a>
+        <a href="#binary">10. 旋转数组</a>
+        <a href="#scripts">口述模板</a>
+      </nav>
+    </aside>
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">Java 后端中高级面试 / 急救加强版</span>
+        <h1>把零散八股串成“技术思考、架构优化、问题攻坚、业务落地”的一条线。</h1>
+        <p>这页专门覆盖你这次要补的 10 个点：高阶自我介绍、设计模式、Spring 源码扩展、事务传播、Nacos、在线统计系统、大流量兜底、架构取舍和二分手撕。目标不是死背，而是让你在面试里能像一个稳定的中高级工程师一样组织答案。</p>
+        <div class="tocline">
+          <a class="tag" href="#self-intro">自我介绍</a><a class="tag" href="#patterns">设计模式</a><a class="tag" href="#bean-life">Spring 扩展</a><a class="tag" href="#transaction">事务</a><a class="tag" href="#online-system">系统设计</a><a class="tag" href="#traffic">高并发</a><a class="tag" href="#binary">算法</a>
+        </div>
+      </section>
+
+      <section id="self-intro">
+        <h2>1. 高阶自我介绍：突出技术思考、架构优化、问题攻坚、差异化优势</h2>
+        <p class="lead">中高级自我介绍不要堆技术名词，要让面试官听出：你遇到过复杂问题、能拆链路、能做取舍、能沉淀方法。</p>
+        <div class="grid-2">
+          <div class="answer bad">
+            <b>普通版本的问题</b>
+            <p>“我主要做 Java 后端，做过订单、租户、云平台，也会 Redis、MySQL、Spring Boot。” 这类介绍太像简历目录，听不出你的思考深度。</p>
+          </div>
+          <div class="answer good">
+            <b>高级版本的结构</b>
+            <p>业务场景 → 复杂性 → 你负责的核心模块 → 技术方案 → 结果 → 方法论。把自己从“写接口的人”升级成“能解决复杂链路的人”。</p>
+          </div>
+        </div>
+        <div class="note script"><b>可直接背的自我介绍：</b>
+您好，我目前主要从事 Java 后端开发，项目经验集中在云资源编排、订单流转、租户管理、性能优化和自动化工具建设方向。
+
+我比较核心的经验有三块。第一是复杂业务链路建模，比如在云资源订单下发场景里，外部资源创建耗时长、状态不确定、失败分支多，我参与过异步订单流转、状态机、幂等、防重、失败重试和补偿机制的设计。第二是性能优化和问题攻坚，我曾经针对复杂 SQL 超时问题，从接口耗时、Nginx 日志、执行计划、索引选择、回表成本和排序代价逐层排查，最终把几十秒级查询优化到秒级以内。第三是工程效率建设，我平时会用 Python、Go 和 AI 工具沉淀自动化脚本、排查工具和研发辅助流程，减少重复操作，提高定位效率。
+
+我自己的技术特点是，不只关注需求是否做完，还会关注系统的状态流转是否清晰、异常分支是否闭环、接口是否幂等、日志链路是否能支撑排障、后续扩展是否会破坏主流程。后续我希望继续在更复杂的业务系统、高并发、高可用和工程效率方向深入。</div>
+        <h3>面试官可能追问</h3>
+        <table>
+          <tr><th>追问</th><th>你要怎么接</th></tr>
+          <tr><td>你说状态机，具体怎么设计？</td><td>讲状态枚举、状态转移表、合法流转校验、失败状态、重试状态、终态不可逆、审计日志。</td></tr>
+          <tr><td>你说幂等，怎么保证？</td><td>讲业务唯一键、幂等表、Redis NX、数据库唯一索引、请求号、重复请求直接返回已有结果。</td></tr>
+          <tr><td>你说性能优化，怎么证明是你做的？</td><td>讲排查路径、执行计划变化、索引命中、慢 SQL 对比、上线后指标。</td></tr>
+          <tr><td>你的差异化是什么？</td><td>能把业务链路、异常闭环、工程效率、AI 辅助研发结合起来，而不是只写 CRUD。</td></tr>
+        </table>
+      </section>
+
+      <section id="patterns">
+        <h2>2. 常用设计模式详解，结合 Spring 源码举例，手写线程安全单例</h2>
+        <p class="lead">设计模式不是为了炫技，而是为了控制变化。面试重点是“这个模式解决了什么变化点”。</p>
+        <table>
+          <tr><th>模式</th><th>解决的问题</th><th>Spring 中的影子</th><th>面试表达</th></tr>
+          <tr><td>单例模式</td><td>一个类只需要一个实例，避免重复创建和状态分裂。</td><td>Spring 默认 singleton Bean。</td><td>单例强调对象唯一，Spring 单例强调容器内唯一。</td></tr>
+          <tr><td>工厂模式</td><td>把对象创建和使用解耦。</td><td>BeanFactory、FactoryBean。</td><td>使用方不关心怎么 new，只关心拿到什么能力。</td></tr>
+          <tr><td>代理模式</td><td>不改目标类，为方法增加增强逻辑。</td><td>AOP、事务代理。</td><td>事务、日志、权限都适合代理增强。</td></tr>
+          <tr><td>模板方法</td><td>固定主流程，把变化步骤交给子类或回调。</td><td>JdbcTemplate、RestTemplate、TransactionTemplate。</td><td>资源获取、异常处理、释放资源由框架统一做。</td></tr>
+          <tr><td>观察者模式</td><td>事件发生后通知多个订阅者。</td><td>ApplicationEvent、ApplicationListener、@EventListener。</td><td>主流程和后置动作解耦。</td></tr>
+          <tr><td>适配器模式</td><td>把不同接口统一成框架认识的调用方式。</td><td>HandlerAdapter。</td><td>Controller 写法很多，Spring MVC 用适配器统一调用。</td></tr>
+          <tr><td>责任链模式</td><td>请求经过一串处理器，每个处理器只负责一部分。</td><td>FilterChain、Interceptor、Spring Security FilterChain。</td><td>鉴权、日志、限流、灰度都可以链式处理。</td></tr>
+          <tr><td>策略模式</td><td>同一个业务点有多种算法/规则可替换。</td><td>多个 Handler Bean 自动注入 List/Map。</td><td>消灭 if-else，让新增规则变成新增类。</td></tr>
+        </table>
+
+        <h3>线程安全单例 1：饿汉式</h3>
+        <pre><code>public class Singleton {
+    private static final Singleton INSTANCE = new Singleton();
+    private Singleton() {}
+    public static Singleton getInstance() {
+        return INSTANCE;
+    }
+}</code></pre>
+        <p>类加载时创建，天然线程安全。缺点是不能懒加载，如果对象很重或者未必会用，就会提前占资源。</p>
+
+        <h3>线程安全单例 2：synchronized 懒汉式</h3>
+        <pre><code>public class Singleton {
+    private static Singleton instance;
+    private Singleton() {}
+    public static synchronized Singleton getInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+}</code></pre>
+        <p>懒加载、线程安全，但每次获取都加锁，性能一般。</p>
+
+        <h3>线程安全单例 3：双重检查锁 DCL</h3>
+        <pre><code>public class Singleton {
+    private static volatile Singleton instance;
+    private Singleton() {}
+    public static Singleton getInstance() {
+        if (instance == null) {
+            synchronized (Singleton.class) {
+                if (instance == null) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}</code></pre>
+        <div class="note"><b>为什么必须 volatile？</b> <code>new Singleton()</code> 不是原子操作，可能分为分配内存、初始化对象、引用指向内存。没有 volatile，指令重排可能导致其他线程看到一个“引用非空但对象未初始化完成”的实例。</div>
+
+        <h3>线程安全单例 4：静态内部类</h3>
+        <pre><code>public class Singleton {
+    private Singleton() {}
+    private static class Holder {
+        private static final Singleton INSTANCE = new Singleton();
+    }
+    public static Singleton getInstance() {
+        return Holder.INSTANCE;
+    }
+}</code></pre>
+        <p>推荐口径：懒加载、线程安全、实现简单。外部类加载时不会初始化 Holder，第一次调用 getInstance 才触发 Holder 类加载。</p>
+
+        <h3>线程安全单例 5：枚举</h3>
+        <pre><code>public enum Singleton {
+    INSTANCE;
+    public void execute() {
+        System.out.println("do something");
+    }
+}</code></pre>
+        <p>枚举单例能天然防反射和反序列化破坏，是 Java 层面最稳的单例写法。实际业务里如果需要继承、延迟初始化或 Spring 管理，仍然会用普通 Bean。</p>
+      </section>
+
+      <section id="business-patterns">
+        <h2>3. 策略、工厂、观察者在业务中的落地，如何用设计模式解耦代码？</h2>
+        <p class="lead">最好用“支付方式 / 订单处理 / 优惠计算 / 风控规则”举例，因为面试官非常容易理解。</p>
+        <h3>反例：所有业务堆在 if-else</h3>
+        <pre><code>public void pay(Order order) {
+    if ("ALI".equals(order.getPayType())) {
+        // 支付宝逻辑
+    } else if ("WECHAT".equals(order.getPayType())) {
+        // 微信逻辑
+    } else if ("BANK".equals(order.getPayType())) {
+        // 银行卡逻辑
+    }
+}</code></pre>
+        <p>问题：新增一种支付方式就修改老代码，主流程越来越胖，测试范围变大，违反开闭原则。</p>
+
+        <h3>策略模式：每种支付一种策略</h3>
+        <pre><code>public interface PayStrategy {
+    String type();
+    PayResult pay(Order order);
+}
+
+@Component
+public class AliPayStrategy implements PayStrategy {
+    public String type() { return "ALI"; }
+    public PayResult pay(Order order) {
+        // 支付宝支付逻辑
+        return PayResult.success();
+    }
+}</code></pre>
+
+        <h3>工厂模式：自动收集策略 Bean</h3>
+        <pre><code>@Component
+public class PayStrategyFactory {
+    private final Map&lt;String, PayStrategy&gt; strategyMap = new ConcurrentHashMap&lt;&gt;();
+
+    public PayStrategyFactory(List&lt;PayStrategy&gt; strategies) {
+        for (PayStrategy strategy : strategies) {
+            strategyMap.put(strategy.type(), strategy);
+        }
+    }
+
+    public PayStrategy get(String type) {
+        PayStrategy strategy = strategyMap.get(type);
+        if (strategy == null) {
+            throw new IllegalArgumentException("unsupported pay type: " + type);
+        }
+        return strategy;
+    }
+}</code></pre>
+
+        <h3>观察者模式：支付成功后的动作解耦</h3>
+        <pre><code>public record PaySuccessEvent(Long orderId, Long userId) {}
+
+@Service
+public class PayService {
+    private final ApplicationEventPublisher publisher;
+    public void pay(Order order) {
+        // 1. 支付主流程
+        // 2. 更新订单状态
+        publisher.publishEvent(new PaySuccessEvent(order.getId(), order.getUserId()));
+    }
+}
+
+@Component
+public class CouponListener {
+    @EventListener
+    public void onPaySuccess(PaySuccessEvent event) {
+        // 发优惠券
+    }
+}</code></pre>
+        <div class="note"><b>高级补充：</b>如果后置动作必须等事务提交后再执行，可以使用 <code>@TransactionalEventListener(phase = AFTER_COMMIT)</code>。否则主事务回滚了，监听器却发了券或发了消息，就会产生业务不一致。</div>
+        <div class="answer"><b>面试总结：</b>策略模式解决“多种处理方式”的扩展问题；工厂模式解决“怎么选择策略”的问题；观察者模式解决“主流程和后置动作解耦”的问题。落地到 Spring 时，可以利用 Bean 自动注入 List/Map、ApplicationEvent 和 AOP，把新增业务变成新增类，而不是不断修改主流程。</div>
+      </section>
+
+      <section id="bean-life">
+        <h2>4. Spring Bean 完整生命周期、后置处理器扩展机制，项目中如何自定义扩展 Spring？</h2>
+        <p class="lead">Spring 扩展的本质：框架把启动、实例化、初始化、代理、销毁这些关键节点开放给你。</p>
+        <div class="flow">
+          <div><b>1. 扫描</b><br>解析 XML、注解、配置类。</div>
+          <div><b>2. BeanDefinition</b><br>记录 class、scope、依赖、初始化方法。</div>
+          <div><b>3. 实例化</b><br>构造方法创建原始对象。</div>
+          <div><b>4. 属性填充</b><br>@Autowired、@Value 注入。</div>
+          <div><b>5. Aware</b><br>回调 BeanName、BeanFactory、ApplicationContext。</div>
+          <div><b>6. BPP before</b><br>初始化前置处理。</div>
+          <div><b>7. init</b><br>@PostConstruct、afterPropertiesSet、init-method。</div>
+          <div><b>8. BPP after</b><br>初始化后处理，AOP 代理常在这里生成。</div>
+          <div><b>9. 使用</b><br>容器返回最终 Bean，可能是代理。</div>
+          <div><b>10. 销毁</b><br>@PreDestroy、DisposableBean、destroy-method。</div>
+        </div>
+        <h3>BeanPostProcessor：修改 Bean 实例</h3>
+        <pre><code>@Component
+public class HandlerRegistryPostProcessor implements BeanPostProcessor {
+    private final Map&lt;String, BizHandler&gt; handlers = new ConcurrentHashMap&lt;&gt;();
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
+        if (bean instanceof BizHandler handler) {
+            handlers.put(handler.type(), handler);
+        }
+        return bean;
+    }
+
+    public BizHandler get(String type) {
+        return handlers.get(type);
+    }
+}</code></pre>
+        <p>适合场景：自动收集策略、启动期校验注解、为特定 Bean 包代理、注册插件、做通用能力增强。</p>
+
+        <h3>BeanFactoryPostProcessor：修改 BeanDefinition</h3>
+        <pre><code>@Component
+public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+        BeanDefinition bd = beanFactory.getBeanDefinition("orderService");
+        bd.setLazyInit(true);
+    }
+}</code></pre>
+        <p>它发生在 Bean 实例化之前，处理的是 BeanDefinition，不是 Bean 实例。</p>
+
+        <h3>自定义 Spring 扩展落地案例</h3>
+        <table>
+          <tr><th>扩展点</th><th>项目落地</th><th>说明</th></tr>
+          <tr><td>AOP + 自定义注解</td><td>幂等、操作日志、接口耗时、权限校验。</td><td>方法级增强，不侵入业务方法。</td></tr>
+          <tr><td>BeanPostProcessor</td><td>启动时自动收集 Handler/Strategy。</td><td>消除手工注册 Map。</td></tr>
+          <tr><td>ApplicationListener</td><td>订单成功后发消息、发通知、写审计。</td><td>主流程与后置动作解耦。</td></tr>
+          <tr><td>FactoryBean</td><td>封装复杂客户端，如 RPC client、规则引擎 client。</td><td>容器里看到的是产品对象，不是工厂本身。</td></tr>
+          <tr><td>AutoConfiguration</td><td>封装公司内部 starter。</td><td>通过条件装配把通用能力一键接入业务系统。</td></tr>
+        </table>
+        <div class="answer"><b>60 秒回答：</b>Spring Bean 生命周期从 BeanDefinition 注册开始，经过实例化、属性填充、Aware 回调、BeanPostProcessor 前置处理、初始化方法、BeanPostProcessor 后置处理，最后进入使用和销毁阶段。AOP 代理通常在后置处理器阶段生成。项目中如果要扩展 Spring，可以用 AOP 做方法增强，用 BeanPostProcessor 收集或替换 Bean，用 BeanFactoryPostProcessor 修改 BeanDefinition，用事件机制解耦后置动作，也可以把通用能力封装成 starter，通过自动配置和条件装配复用。</div>
+      </section>
+
+      <section id="transaction">
+        <h2>5. Spring 事务传播机制：嵌套事务、挂起事务底层逻辑与实战踩坑</h2>
+        <p class="lead">事务传播回答的核心：当一个事务方法调用另一个事务方法时，内层方法如何处理当前已经存在的事务。</p>
+        <table>
+          <tr><th>传播行为</th><th>含义</th><th>典型场景</th></tr>
+          <tr><td>REQUIRED</td><td>有事务加入，没有事务新建。默认。</td><td>普通业务主流程。</td></tr>
+          <tr><td>REQUIRES_NEW</td><td>挂起当前事务，新开一个独立事务。</td><td>操作日志、审计记录、失败记录。</td></tr>
+          <tr><td>NESTED</td><td>同一个物理事务内创建 savepoint。</td><td>局部失败可回滚，不一定影响外层。</td></tr>
+          <tr><td>SUPPORTS</td><td>有事务就加入，没有就非事务执行。</td><td>可有可无的读操作。</td></tr>
+          <tr><td>NOT_SUPPORTED</td><td>以非事务方式执行，有事务则挂起。</td><td>不希望占事务的慢查询、外部调用。</td></tr>
+          <tr><td>MANDATORY</td><td>必须存在事务，否则报错。</td><td>强制被主流程包裹。</td></tr>
+          <tr><td>NEVER</td><td>必须没有事务，否则报错。</td><td>明确禁止事务的操作。</td></tr>
+        </table>
+        <h3>底层拦截主线</h3>
+        <div class="timeline">
+          <div class="step" data-no="1"><b>代理对象拦截</b>外部调用进入事务代理，TransactionInterceptor 开始工作。</div>
+          <div class="step" data-no="2"><b>获取事务属性</b>读取 @Transactional 的传播行为、隔离级别、超时、rollbackFor。</div>
+          <div class="step" data-no="3"><b>判断当前线程是否已有事务</b>通过 TransactionSynchronizationManager 绑定的连接、同步器判断。</div>
+          <div class="step" data-no="4"><b>根据传播行为处理</b>REQUIRED 加入；REQUIRES_NEW 挂起旧事务并申请新连接；NESTED 创建 savepoint。</div>
+          <div class="step" data-no="5"><b>执行业务方法</b>正常返回则提交，异常则按 rollback 规则回滚。</div>
+          <div class="step" data-no="6"><b>恢复现场</b>如果之前挂起了外层事务，内层结束后恢复外层事务上下文。</div>
+        </div>
+
+        <h3>REQUIRES_NEW：挂起外层，新开内层</h3>
+        <pre><code>@Transactional
+public void createOrder() {
+    orderMapper.insert(order);       // T1
+    auditService.saveAuditLog(order); // T2, REQUIRES_NEW
+    throw new RuntimeException();     // T1 rollback, T2 committed
+}
+
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+public void saveAuditLog(Order order) {
+    auditMapper.insert(order.toAuditLog());
+}</code></pre>
+        <p>执行逻辑：外层 T1 开启后，调用内层时 T1 被挂起；内层申请新连接开启 T2；T2 提交后恢复 T1；T1 后续异常只回滚 T1，不影响已经提交的 T2。</p>
+        <div class="question"><b>连接池坑：</b>REQUIRES_NEW 需要额外数据库连接。如果大量请求外层事务持有连接，同时内层事务又申请新连接，连接池可能耗尽。高并发场景要谨慎。</div>
+
+        <h3>NESTED：同一物理事务里的 savepoint</h3>
+        <pre><code>@Transactional
+public void createOrder() {
+    orderMapper.insert(order);
+    try {
+        stockService.deduct(order); // NESTED
+    } catch (Exception e) {
+        // 内层回滚到保存点，外层可以继续
+    }
+    orderMapper.updateStatus(order.getId(), "PARTIAL_SUCCESS");
+}
+
+@Transactional(propagation = Propagation.NESTED)
+public void deduct(Order order) {
+    stockMapper.deduct(order.getSkuId());
+    throw new RuntimeException();
+}</code></pre>
+        <p>NESTED 不一定新开物理事务，而是在当前事务中创建保存点。内层失败可以回滚到 savepoint，外层决定继续提交还是整体回滚。</p>
+
+        <h3>事务失效经典坑</h3>
+        <table>
+          <tr><th>坑</th><th>为什么</th><th>解决</th></tr>
+          <tr><td>同类内部调用</td><td><code>this.inner()</code> 绕过代理。</td><td>拆到另一个 Service，或注入代理对象。</td></tr>
+          <tr><td>异常被 catch</td><td>代理感知不到异常。</td><td>重新抛出，或 setRollbackOnly。</td></tr>
+          <tr><td>默认只回滚 RuntimeException</td><td>受检异常默认不回滚。</td><td><code>@Transactional(rollbackFor = Exception.class)</code></td></tr>
+          <tr><td>方法不是 public</td><td>代理无法按预期增强。</td><td>事务方法保持 public。</td></tr>
+          <tr><td>数据库引擎不支持事务</td><td>比如 MyISAM。</td><td>使用 InnoDB。</td></tr>
+          <tr><td>异步线程里使用事务上下文</td><td>事务资源绑定在线程本地变量。</td><td>异步方法单独开事务，别假设继承外层事务。</td></tr>
+        </table>
+      </section>
+
+      <section id="nacos">
+        <h2>6. 微服务服务注册与发现完整流程，Nacos 核心原理与心跳机制</h2>
+        <p class="lead">回答注册中心要说完整闭环：注册、心跳、健康检查、服务发现、本地缓存、变更推送、故障摘除。</p>
+        <div class="grid-2">
+          <div class="box">
+            <h3>服务注册流程</h3>
+            <ol>
+              <li>服务启动，读取服务名、IP、端口、集群、权重、元数据。</li>
+              <li>Nacos Client 向 Nacos Server 注册实例。</li>
+              <li>Nacos Server 保存服务与实例映射。</li>
+              <li>临时实例定期心跳，续约存活状态。</li>
+              <li>服务停止或心跳过期，实例被标记不健康或剔除。</li>
+            </ol>
+          </div>
+          <div class="box">
+            <h3>服务发现流程</h3>
+            <ol>
+              <li>消费者根据服务名拉取实例列表。</li>
+              <li>客户端本地缓存可用实例。</li>
+              <li>结合健康状态、权重、同集群优先进行负载均衡。</li>
+              <li>服务列表变化时，Nacos 推送或客户端轮询更新。</li>
+              <li>调用失败时结合重试、熔断、摘除做兜底。</li>
+            </ol>
+          </div>
+        </div>
+        <h3>心跳机制</h3>
+        <pre><code>Service Instance:
+  serviceName = order-service
+  ip = 10.1.2.3
+  port = 8080
+  ephemeral = true
+  metadata = { version: v1, zone: xa }
+
+Client -> Server heartbeat every few seconds
+Server updates lastBeat
+if timeout: mark unhealthy
+if long timeout: remove ephemeral instance</code></pre>
+        <p>临时实例依赖心跳维持存活，适合普通微服务实例。持久实例更强调元数据持久化，即使客户端不在线也不会立刻消失，通常适合对服务实例管理更强约束的场景。</p>
+        <h3>AP / CP 怎么答</h3>
+        <div class="answer"><b>表达：</b>Nacos 在服务发现里通常需要优先保证可用性，因为实例列表短暂不一致可以通过重试、负载均衡和健康检查兜底；但配置、持久实例等场景会更强调一致性。注册中心选型本质是在一致性、可用性和故障恢复速度之间取舍。</div>
+        <h3>故障场景</h3>
+        <table>
+          <tr><th>问题</th><th>影响</th><th>兜底</th></tr>
+          <tr><td>服务实例宕机</td><td>消费者可能短时间拿到旧实例。</td><td>心跳摘除、客户端失败重试、熔断。</td></tr>
+          <tr><td>Nacos Server 短暂不可用</td><td>新注册/配置拉取受影响。</td><td>客户端本地缓存继续调用旧列表。</td></tr>
+          <tr><td>网络分区</td><td>不同节点看到的实例列表不一致。</td><td>最终一致、健康检查、重试和限流。</td></tr>
+          <tr><td>大量实例上下线</td><td>推送风暴、客户端缓存频繁刷新。</td><td>批量推送、延迟合并、客户端限频。</td></tr>
+        </table>
+      </section>
+
+      <section id="online-system">
+        <h2>7. 架构设计题：用户登录在线时长统计系统，精准统计每日在线峰值</h2>
+        <p class="lead">这题考你能不能拆指标。在线时长和在线峰值不是一回事：一个是用户维度累计，一个是全站维度最大并发在线数。</p>
+        <h3>需求澄清</h3>
+        <table>
+          <tr><th>指标</th><th>定义</th><th>难点</th></tr>
+          <tr><td>用户每日在线时长</td><td>用户当天处于在线状态的总时长。</td><td>跨天切分、异常断开、重复登录、多端登录。</td></tr>
+          <tr><td>每日在线峰值</td><td>当天任意时刻全站在线用户数最大值。</td><td>高频心跳、去重、过期清理、原子更新峰值。</td></tr>
+          <tr><td>实时在线人数</td><td>当前未超时的在线用户数。</td><td>心跳延迟、Redis 热点、统计成本。</td></tr>
+        </table>
+        <h3>基础方案：登录 + 心跳 + 退出 + 超时</h3>
+        <pre><code>LOGIN(userId, sessionId, ts)
+HEARTBEAT(userId, sessionId, ts)
+LOGOUT(userId, sessionId, ts)
+TIMEOUT(userId, sessionId, ts)</code></pre>
+        <p>不能只靠登录和退出，因为用户可能直接关浏览器、断网、杀进程。所以必须依赖心跳和 TTL 超时兜底。</p>
+        <h3>Redis 数据结构</h3>
+        <pre><code># 当前在线 session，TTL 例如 5 分钟
+online:session:{sessionId} = {userId, loginTime, lastHeartbeatTime}
+
+# 用户多端在线集合
+online:user:{userId} = Set(sessionId...)
+
+# 全站在线集合，score 是最后心跳时间
+zset:online:sessions = ZSET(sessionId -> lastHeartbeatTime)
+
+# 每日峰值
+daily:online:peak:{yyyyMMdd} = maxOnlineCount</code></pre>
+        <h3>当前在线人数与峰值</h3>
+        <pre><code>// 每次心跳：
+ZADD zset:online:sessions now sessionId
+EXPIRE online:session:{sessionId} 300
+
+// 统计当前在线：
+ZREMRANGEBYSCORE zset:online:sessions 0 now - timeout
+current = ZCARD zset:online:sessions
+
+// 更新每日峰值：
+old = GET daily:online:peak:20260629
+if current &gt; old:
+    SET daily:online:peak:20260629 current</code></pre>
+        <div class="note"><b>原子性：</b>清理过期、统计当前在线、更新峰值最好用 Lua 脚本或单线程消费器串行完成，避免并发更新峰值时丢最大值。</div>
+        <h3>在线时长计算</h3>
+        <p>登录时记录 session 开始时间；退出时或超时时计算结束时间。跨天时必须切分。</p>
+        <pre><code>2026-06-29 23:50:00 login
+2026-06-30 00:10:00 logout
+
+split:
+2026-06-29 -> 10 minutes
+2026-06-30 -> 10 minutes</code></pre>
+        <h3>高并发升级方案</h3>
+        <pre><code>Client
+  -> Gateway / App
+  -> Kafka: login/heartbeat/logout events
+  -> Realtime Consumer / Flink
+  -> Redis: realtime online, daily peak
+  -> MySQL/ClickHouse: daily duration report</code></pre>
+        <table>
+          <tr><th>层</th><th>职责</th></tr>
+          <tr><td>业务服务</td><td>接收登录、心跳、退出，快速写事件，避免同步做重统计。</td></tr>
+          <tr><td>MQ</td><td>削峰，保证事件可回放。</td></tr>
+          <tr><td>实时计算</td><td>聚合在线人数、峰值、时长增量。</td></tr>
+          <tr><td>Redis</td><td>实时查询当前在线和峰值。</td></tr>
+          <tr><td>MySQL/ClickHouse</td><td>保存历史明细和报表。</td></tr>
+        </table>
+        <h3>边界问题</h3>
+        <ul>
+          <li>多端登录：按 session 统计在线，按 userId 去重统计在线用户，口径要提前定义。</li>
+          <li>重复登录：同一个 sessionId 幂等覆盖，不重复累计。</li>
+          <li>异常断开：用最后心跳 + timeout 作为结束时间。</li>
+          <li>心跳乱序：只接受大于当前 lastHeartbeat 的时间。</li>
+          <li>跨天：按自然日切片累加。</li>
+          <li>峰值精度：如果要求秒级精准，事件流聚合；如果允许分钟级，定时采样也可以。</li>
+        </ul>
+        <div class="answer"><b>60 秒回答：</b>我会把系统拆成在线状态、在线时长和每日峰值三部分。在线状态用 Redis 维护 session，登录写入，心跳续期，退出删除，异常断开靠 TTL 超时兜底。在线时长基于 session 的开始和结束时间计算，跨天要切分，多端要明确按用户去重还是按 session 统计。每日峰值可以用 Redis ZSet 存活跃 session，score 是最后心跳时间，定期清理过期 session，计算当前在线数，并用 Lua 原子更新当天最大值。高并发下把登录、心跳、退出事件写入 MQ，由实时计算任务聚合，Redis 支撑实时查询，MySQL 或 ClickHouse 保存历史报表。</div>
+      </section>
+
+      <section id="traffic">
+        <h2>8. 高并发限流、熔断、降级分层设计，大流量场景多级兜底</h2>
+        <p class="lead">限流是挡流量，熔断是保护下游，降级是保核心体验。三者不是一回事。</p>
+        <div class="flow">
+          <div><b>客户端</b><br>按钮防抖、重试退避、静态缓存。</div>
+          <div><b>CDN/WAF</b><br>静态资源缓存、恶意流量清洗。</div>
+          <div><b>网关</b><br>IP/用户/租户/接口维度限流。</div>
+          <div><b>应用</b><br>热点参数限流、线程池隔离。</div>
+          <div><b>下游依赖</b><br>熔断、超时、降级、缓存兜底。</div>
+        </div>
+        <h3>限流算法</h3>
+        <table>
+          <tr><th>算法</th><th>特点</th><th>适用</th></tr>
+          <tr><td>固定窗口</td><td>简单，但窗口边界有突刺。</td><td>低成本粗限流。</td></tr>
+          <tr><td>滑动窗口</td><td>比固定窗口平滑。</td><td>接口 QPS 控制。</td></tr>
+          <tr><td>令牌桶</td><td>允许一定突发。</td><td>秒杀、活动入口。</td></tr>
+          <tr><td>漏桶</td><td>匀速处理。</td><td>保护下游稳定消费。</td></tr>
+          <tr><td>并发数限流</td><td>控制同时执行的请求数。</td><td>慢接口、数据库连接保护。</td></tr>
+        </table>
+        <h3>熔断状态机</h3>
+        <pre><code>Closed 正常调用
+  -> 错误率/慢调用比例超过阈值
+Open 直接失败或走降级
+  -> 熔断窗口到期，放少量探测请求
+Half-Open 半开
+  -> 探测成功恢复 Closed，失败回到 Open</code></pre>
+        <h3>降级策略</h3>
+        <table>
+          <tr><th>业务</th><th>核心</th><th>可降级</th></tr>
+          <tr><td>商品详情</td><td>价格、库存、购买按钮。</td><td>评论、推荐、排行榜、营销标签。</td></tr>
+          <tr><td>下单</td><td>订单创建、库存扣减、支付链路。</td><td>优惠推荐、埋点实时写、非关键通知。</td></tr>
+          <tr><td>搜索</td><td>基础召回结果。</td><td>个性化排序、复杂筛选、推荐解释。</td></tr>
+        </table>
+        <h3>大流量多级兜底话术</h3>
+        <div class="answer script">大流量系统不能只靠一个限流点。我会做分层防线：入口层通过 CDN、WAF 和网关做流量清洗与粗限流；应用层按用户、接口、租户、热点资源做细粒度限流；服务调用层设置超时、重试、熔断、线程池隔离；数据层通过缓存、本地缓存、热点 key 拆分、读写分离和异步削峰保护数据库。核心链路优先保障，非核心链路允许降级为空数据、静态数据或延迟处理。所有策略都要可配置、可观测、可灰度，避免硬编码导致故障时无法快速调整。</div>
+        <h3>重试风暴必须主动提</h3>
+        <p>重试不是越多越好。下游已经慢或已经挂了，上游无脑重试会把流量放大，形成雪崩。写请求还要考虑幂等，否则可能重复下单、重复扣款。</p>
+        <pre><code>Retry rule:
+  maxAttempts = 2 or 3
+  backoff = exponential + jitter
+  only retry idempotent operation
+  combine with timeout + circuit breaker</code></pre>
+      </section>
+
+      <section id="architecture">
+        <h2>9. 如何理解高可用、高并发、可扩展性？技术选型如何取舍性能与一致性？</h2>
+        <div class="grid-3">
+          <div class="box"><h3>高可用</h3><p>系统少宕机，宕机能自动恢复。手段：多副本、负载均衡、故障转移、限流、熔断、降级、灰度、备份。</p><span class="tag">HA</span></div>
+          <div class="box"><h3>高并发</h3><p>系统能同时处理大量请求。手段：缓存、异步、线程池、批处理、读写分离、分库分表、少锁化。</p><span class="tag ok">Throughput</span></div>
+          <div class="box"><h3>可扩展性</h3><p>业务增长或需求变化时低成本扩容和演进。手段：模块化、接口抽象、策略化、插件化、无状态、水平扩容。</p><span class="tag info">Scalability</span></div>
+        </div>
+        <h3>取舍框架</h3>
+        <table>
+          <tr><th>场景</th><th>优先级</th><th>技术选择</th></tr>
+          <tr><td>支付扣款</td><td>一致性和可恢复性优先。</td><td>事务、幂等、防重、对账、补偿、审计。</td></tr>
+          <tr><td>浏览量统计</td><td>性能和吞吐优先。</td><td>Redis 计数、MQ 异步、批量落库、最终一致。</td></tr>
+          <tr><td>秒杀库存</td><td>防超卖优先，同时要高吞吐。</td><td>Redis 预扣、Lua 原子、异步落库、失败补偿。</td></tr>
+          <tr><td>推荐系统</td><td>可用性和性能优先。</td><td>缓存、离线计算、降级默认推荐。</td></tr>
+          <tr><td>订单状态</td><td>正确性、可追踪、可补偿。</td><td>状态机、事件日志、幂等、重试、人工补偿入口。</td></tr>
+        </table>
+        <div class="answer"><b>面试金句：</b>架构设计没有绝对最优，只有在业务目标、性能、一致性、成本、复杂度和团队能力之间做取舍。交易链路优先正确性和可恢复性，读多写少和统计类链路优先吞吐和可用性。能同步做对的就同步做，不能同步承受的就异步削峰，但异步之后必须有幂等、重试、补偿和可观测性。</div>
+        <h3>从单体到微服务怎么拆</h3>
+        <ul>
+          <li>先按业务边界拆，不要按技术层拆。</li>
+          <li>高频变化和低频稳定模块分开。</li>
+          <li>读多写少和交易写链路分开。</li>
+          <li>强一致链路不要过度拆分，否则分布式事务成本很高。</li>
+          <li>先模块化，再服务化，避免为了微服务而微服务。</li>
+        </ul>
+      </section>
+
+      <section id="binary">
+        <h2>10. 算法手撕：旋转数组找最小值，二分查找进阶</h2>
+        <p class="lead">这题核心不是背代码，而是说清楚为什么比较 <code>nums[mid]</code> 和 <code>nums[right]</code>。</p>
+        <h3>无重复元素</h3>
+        <pre><code>public int findMin(int[] nums) {
+    int left = 0, right = nums.length - 1;
+    while (left &lt; right) {
+        int mid = left + (right - left) / 2;
+        if (nums[mid] &gt; nums[right]) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    return nums[left];
+}</code></pre>
+        <p>解释：旋转数组由两个有序段组成。如果 <code>nums[mid] &gt; nums[right]</code>，说明 mid 在左侧大段，最小值一定在 mid 右边；否则 mid 在右侧小段或数组未旋转，最小值在 left 到 mid 之间，right = mid 不能跳过 mid。</p>
+        <h3>有重复元素</h3>
+        <pre><code>public int findMinWithDuplicates(int[] nums) {
+    int left = 0, right = nums.length - 1;
+    while (left &lt; right) {
+        int mid = left + (right - left) / 2;
+        if (nums[mid] &gt; nums[right]) {
+            left = mid + 1;
+        } else if (nums[mid] &lt; nums[right]) {
+            right = mid;
+        } else {
+            right--;
+        }
+    }
+    return nums[left];
+}</code></pre>
+        <p>当 <code>nums[mid] == nums[right]</code> 时无法判断最小值在哪边，只能保守缩小右边界。平均 O(log n)，最坏 O(n)，例如全是重复元素。</p>
+        <h3>Rust 版本</h3>
+        <pre><code>pub fn find_min(nums: Vec&lt;i32&gt;) -&gt; i32 {
+    let mut left = 0usize;
+    let mut right = nums.len() - 1;
+    while left &lt; right {
+        let mid = left + (right - left) / 2;
+        if nums[mid] &gt; nums[right] {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    nums[left]
+}
+
+pub fn find_min_with_duplicates(nums: Vec&lt;i32&gt;) -&gt; i32 {
+    let mut left = 0usize;
+    let mut right = nums.len() - 1;
+    while left &lt; right {
+        let mid = left + (right - left) / 2;
+        if nums[mid] &gt; nums[right] {
+            left = mid + 1;
+        } else if nums[mid] &lt; nums[right] {
+            right = mid;
+        } else {
+            right -= 1;
+        }
+    }
+    nums[left]
+}</code></pre>
+        <h3>面试官追问</h3>
+        <table>
+          <tr><th>追问</th><th>回答</th></tr>
+          <tr><td>为什么不是和 left 比？</td><td>也可以设计，但和 right 比更容易判断右侧有序段和最小值方向，边界更稳。</td></tr>
+          <tr><td>为什么 right = mid，不是 mid - 1？</td><td>因为 mid 可能就是最小值，不能丢掉。</td></tr>
+          <tr><td>有重复为什么会退化？</td><td>相等时无法判断方向，只能 right--，极端重复数组每次缩一位。</td></tr>
+        </table>
+      </section>
+
+      <section id="scripts">
+        <h2>最后：10 题口述模板</h2>
+        <div class="question"><b>1. 自我介绍：</b>我会从复杂业务链路、性能优化、工程效率三块介绍自己，并强调我关注状态流转、异常闭环、幂等补偿和可观测性。</div>
+        <div class="question"><b>2. 设计模式：</b>设计模式本质是控制变化。Spring 里 BeanFactory 是工厂，AOP 是代理，JdbcTemplate 是模板方法，ApplicationEvent 是观察者，HandlerAdapter 是适配器。</div>
+        <div class="question"><b>3. 业务解耦：</b>策略模式消灭 if-else，工厂统一选择策略，观察者解耦主流程和后置动作。Spring 里可以用 List 注入所有策略，用事件监听做后置扩展。</div>
+        <div class="question"><b>4. Bean 生命周期：</b>BeanDefinition、实例化、属性填充、Aware、BPP before、init、BPP after、使用、销毁。AOP 代理常在 BPP after 阶段生成。</div>
+        <div class="question"><b>5. 事务传播：</b>REQUIRED 加入当前事务；REQUIRES_NEW 挂起外层新开内层；NESTED 在同一物理事务创建 savepoint。事务失效常见于内部调用、异常被 catch、非 public、rollbackFor 不对。</div>
+        <div class="question"><b>6. Nacos：</b>服务启动注册实例，临时实例定时心跳，服务端根据心跳判断健康和剔除，消费者拉取并缓存实例列表，变化时推送或刷新。</div>
+        <div class="question"><b>7. 在线统计：</b>登录、心跳、退出、超时四类事件；Redis 维护在线状态和 ZSet；在线时长按 session 计算并跨天切分；峰值用当前在线数原子更新。</div>
+        <div class="question"><b>8. 高并发兜底：</b>限流挡流量，熔断保下游，降级保核心。入口、网关、应用、调用、数据层都要有防线。</div>
+        <div class="question"><b>9. 架构取舍：</b>高可用关注故障恢复，高并发关注吞吐，可扩展性关注低成本演进。交易链路一致性优先，统计推荐链路性能和可用性优先。</div>
+        <div class="question"><b>10. 旋转数组：</b>比较 mid 和 right 判断最小值方向。mid 大于 right，最小值在右侧；否则在左侧含 mid；重复元素相等时 right--。</div>
+        <a class="toplink" href="#top">↑ 回到顶部</a>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

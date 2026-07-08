@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SQL 优化案例复盘专题</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      font-size: clamp(14px, 0.28vw + 13px, 16px);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    main, section, article, div, aside { min-width: 0; }
+    button, textarea, select { font: inherit; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(244, 239, 230, 0.82);
+      overflow: auto;
+    }
+
+    .brand { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+    .back { display: inline-flex; margin-top: 12px; color: var(--accent-2); text-decoration: none; font-weight: 800; font-size: 13px; }
+
+    nav { display: grid; gap: 8px; }
+    nav a {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255, 250, 240, 0.68);
+      text-decoration: none;
+    }
+    nav a:hover { color: var(--accent-2); border-color: rgba(216, 101, 42, 0.45); background: var(--accent-soft); }
+
+    main { width: min(1180px, 100%); padding: 34px 36px 56px; }
+    .hero, .card { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
+    .hero { padding: 30px; margin-bottom: 28px; }
+
+    .eyebrow { display: inline-flex; margin-bottom: 18px; padding: 5px 10px; border-radius: 999px; color: var(--accent-2); background: var(--accent-soft); font-size: 13px; font-weight: 700; }
+    h1 { max-width: 980px; margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5.8vw, 62px); line-height: 1; letter-spacing: 0; }
+    .hero p, .section-head p, .card p { margin: 0; color: var(--muted); }
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+    .section-head h2 { margin: 0 0 6px; font-family: Georgia, "Times New Roman", serif; font-size: 34px; line-height: 1; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .card { padding: 24px 26px; overflow: hidden; }
+    .card h3 { margin: 0 0 8px; font-size: 25px; line-height: 1.2; }
+    .badge { display: inline-flex; margin-bottom: 12px; padding: 3px 10px; border-radius: 999px; color: var(--accent-2); background: var(--accent-soft); font-size: 12px; font-weight: 800; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    .box { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.7); }
+    .box h4 { margin: 0 0 8px; font-size: 16px; }
+    .box p, .box li { color: var(--muted); }
+    .box p { margin: 0 0 10px; }
+    .box li { margin: 6px 0; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code { padding: 2px 5px; border-radius: 6px; color: var(--accent-2); background: var(--accent-soft); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .warn { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--muted); }
+    .flow { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; margin-top: 14px; }
+    .flow-step { position: relative; min-height: 104px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.72); transition: transform .25s ease, background .25s ease, border-color .25s ease; }
+    .flow-step b { display: block; margin-bottom: 6px; }
+    .flow-step.active { transform: translateY(-5px); border-color: rgba(216, 101, 42, 0.6); background: var(--accent-soft); box-shadow: 0 12px 30px rgba(216, 101, 42, 0.14); }
+    .flow-step.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 9px; height: 3px; border-radius: 999px; background: var(--accent); animation: pulse 1.1s infinite; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .controls button, .lab button, .quiz button, .lab select {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--ink);
+    }
+    .controls button, .lab button, .quiz button { cursor: pointer; }
+    .controls button.active, .quiz button.correct { border-color: #3e7b4f; background: rgba(62, 123, 79, 0.12); }
+    .quiz button.wrong { border-color: #b43d34; background: rgba(180, 61, 52, 0.12); }
+    .lab { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 16px; }
+    .lab select { width: 100%; margin-top: 8px; }
+    .output {
+      min-height: 250px;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+    .quiz-card { padding: 16px; margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.7); }
+    .quiz-card h3 { margin: 0 0 10px; font-size: 17px; }
+    .quiz button { display: block; width: 100%; margin: 8px 0; text-align: left; }
+    .hint { display: none; color: var(--muted); }
+    .hint.show { display: block; }
+    @keyframes pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .cols, .lab { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      main { padding: 14px; }
+      .hero, .card { padding: 20px; }
+      .flow { grid-template-columns: 1fr; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>SQL Optimization Cases</b>
+        <span>匿名化 · 经验贴复盘 · 面试表达</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav>
+        <a href="#how">怎么重新理解</a>
+        <a href="#flow">诊断流程</a>
+        <a href="#case1">案例 1：左模糊</a>
+        <a href="#case2">案例 2：执行计划误判</a>
+        <a href="#case3">案例 3：深分页回表</a>
+        <a href="#lab">EXPLAIN 推演</a>
+        <a href="#quiz">自测</a>
+        <a href="#interview">面试表达</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">SQL Deep Dive / Index · Optimizer · Pagination</span>
+        <h1>把 SQL 优化案例从“我当时这么改”变成“我知道为什么这么改”。</h1>
+        <p>本页根据经验贴口述做匿名化整理：不保留真实表名、字段名、接口名和内部业务代号。三个案例分别对应索引失效、优化器选错执行计划、深分页回表。</p>
+      </section>
+
+      <section class="section" id="how">
+        <div class="section-head">
+          <h2>先把这三个案例翻译成人话</h2>
+          <p>它们不是三个零散技巧，而是 SQL 优化的三类高频问题。</p>
+        </div>
+        <article class="card">
+          <span class="badge">总览</span>
+          <h3>三类问题其实分别在问三件事</h3>
+          <div class="cols">
+            <div class="box">
+              <h4>1. 索引为什么没用上</h4>
+              <p>左模糊 <code>LIKE '%xxx'</code> 破坏 B+ 树从左到右有序匹配，索引无法定位起点，只能扫描大量数据。</p>
+            </div>
+            <div class="box">
+              <h4>2. 优化器为什么选错路</h4>
+              <p><code>WHERE</code> 和 <code>ORDER BY</code> 都有索引时，优化器会估算成本。有时它以为走排序索引更便宜，结果过滤大量无效行。</p>
+            </div>
+            <div class="box">
+              <h4>3. 为什么 OFFSET 越大越慢</h4>
+              <p>深分页要跳过大量行，如果直接查整行，会发生大量回表。优化思路是先用覆盖索引拿到主键，再回表查少量数据。</p>
+            </div>
+            <div class="box">
+              <h4>面试总句</h4>
+              <p>我遇到的 SQL 慢不只是“没加索引”，还包括索引失效、优化器选错索引、深分页回表这三类问题。我会先看执行计划，再判断扫描行数、key、Extra、回表和排序成本。</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="flow">
+        <div class="section-head">
+          <h2>慢 SQL 诊断流程动画</h2>
+          <p>SQL 优化要按证据走，不要一上来就“加索引”。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Diagnostic Flow</span>
+          <h3>从接口慢到优化验证的 5 步</h3>
+          <div class="flow" id="sqlFlow">
+            <div class="flow-step active"><b>1. 定位 SQL</b>日志、trace、慢查询日志找具体语句。</div>
+            <div class="flow-step"><b>2. 看 EXPLAIN</b>关注 type、key、rows、Extra。</div>
+            <div class="flow-step"><b>3. 判断成本</b>索引失效、扫描过多、排序、回表。</div>
+            <div class="flow-step"><b>4. 改写方案</b>改条件、组合索引、覆盖索引、延迟关联。</div>
+            <div class="flow-step"><b>5. 验证回归</b>对比耗时、扫描行数、结果正确性。</div>
+          </div>
+          <div class="controls" id="flowControls"></div>
+          <p class="warn" id="flowExplain">当前重点：先定位具体 SQL，别凭感觉优化接口。一个接口慢可能由多个 SQL、远程调用或序列化造成。</p>
+        </article>
+      </section>
+
+      <section class="section" id="case1">
+        <div class="section-head">
+          <h2>案例 1：SQL 超时，左模糊匹配导致索引失效</h2>
+          <p>关键词：B+ 树、最左前缀、LIKE、扫描行数。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Index Invalid</span>
+          <h3>现象 → 原因 → 优化</h3>
+          <div class="cols">
+            <div class="box">
+              <h4>现象</h4>
+              <ul>
+                <li>订单或资源列表查询超时。</li>
+                <li>查询条件里有名称、标识、描述类字段的模糊搜索。</li>
+                <li>字段本身有索引，但执行计划扫描行数仍然很大。</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h4>根因</h4>
+              <p>B+ 树索引要求从左到右匹配。<code>LIKE 'abc%'</code> 能定位到 abc 开头的范围；<code>LIKE '%abc'</code> 或 <code>LIKE '%abc%'</code> 不知道从哪里开始，只能扫描。</p>
+            </div>
+          </div>
+          <pre>-- 不友好：左模糊，普通 B+ 树索引很难利用
+where name like '%keyword%'
+
+-- 可优化方向 1：改成右模糊，保留索引范围扫描能力
+where name like 'keyword%'
+
+-- 可优化方向 2：如果必须任意位置匹配，考虑搜索引擎、倒排索引、冗余字段或业务改造
+-- 可优化方向 3：先用租户、状态、时间等高选择性条件缩小范围，再做模糊过滤</pre>
+          <p class="warn">面试别只说“左模糊索引失效”。要补一句：因为 B+ 树按索引值有序，左侧通配符让数据库无法确定扫描起点。</p>
+        </article>
+      </section>
+
+      <section class="section" id="case2">
+        <div class="section-head">
+          <h2>案例 2：SQL 未下发，WHERE 和 ORDER BY 各持索引导致优化器误判</h2>
+          <p>关键词：执行计划、成本估算、索引选择、Hint、排序索引。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Optimizer Misjudge</span>
+          <h3>这个案例你原话里的“解释器误判”，更准确叫优化器成本估算误判</h3>
+          <div class="cols">
+            <div class="box">
+              <h4>现象</h4>
+              <ul>
+                <li>业务上表现为 SQL 没有按预期下发或执行非常慢。</li>
+                <li>排查相关会话/明细表数量正常，说明不是数据没生成。</li>
+                <li>执行计划发现数据库没有选择过滤性更好的索引。</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h4>根因</h4>
+              <p><code>WHERE</code> 条件能走一个索引，<code>ORDER BY</code> 又能走另一个索引。优化器可能为了避免额外排序，选择了排序索引，但这个索引过滤性差，导致扫描大量无关数据。</p>
+            </div>
+          </div>
+          <pre>-- 抽象问题模型：
+select *
+from order_table
+where tenant_id = ? and status = ?
+order by create_time desc
+limit 20;
+
+-- 可能出现两条路：
+-- A. 走 where 条件索引：过滤快，但可能需要 filesort
+-- B. 走 order by 索引：天然有序，但可能过滤大量无关行
+
+-- 优化方向 1：建立更匹配查询的组合索引
+(tenant_id, status, create_time)
+
+-- 优化方向 2：必要时用 hint 指定索引，避免优化器误判
+force index(idx_tenant_status_time)
+
+-- 优化方向 3：把主键加入 order by，保证排序稳定，也帮助索引设计
+order by create_time desc, id desc</pre>
+          <p class="warn">你说的“增加 hint 或者主键进入 order by”，可以理解成：要么明确告诉优化器走哪个索引，要么把排序条件设计得更稳定、更贴合组合索引。</p>
+        </article>
+      </section>
+
+      <section class="section" id="case3">
+        <div class="section-head">
+          <h2>案例 3：OFFSET 触发大量回表，先分页主键再回表</h2>
+          <p>关键词：深分页、覆盖索引、回表、延迟关联。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Deep Pagination</span>
+          <h3>OFFSET 慢不是因为 limit，而是因为跳过的那些行也要付成本</h3>
+          <div class="cols">
+            <div class="box">
+              <h4>现象</h4>
+              <ul>
+                <li>第一页很快，越往后翻越慢。</li>
+                <li><code>limit 100000, 20</code> 这类深分页耗时明显。</li>
+                <li>查询字段很多，索引无法覆盖，需要大量回表。</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h4>根因</h4>
+              <p>数据库需要先找到并跳过 offset 行。如果每一行都查整行，就会对大量被丢弃的数据做回表，成本很高。</p>
+            </div>
+          </div>
+          <pre>-- 原始写法：深分页 + 查整行，容易大量回表
+select *
+from order_table
+where tenant_id = ?
+order by create_time desc
+limit 100000, 20;
+
+-- 优化写法：先用覆盖索引拿到这一页的主键
+select o.*
+from order_table o
+join (
+    select id
+    from order_table
+    where tenant_id = ?
+    order by create_time desc, id desc
+    limit 100000, 20
+) t on o.id = t.id
+order by o.create_time desc, o.id desc;
+
+-- 更进一步：游标翻页，避免大 offset
+where (create_time, id) < (?, ?)
+order by create_time desc, id desc
+limit 20;</pre>
+          <p class="warn">你说的“右链接查询”，面试里建议说成“延迟关联 / 子查询先分页主键，再按主键回表查详情”。这样更通用，也更容易被理解。</p>
+        </article>
+      </section>
+
+      <section class="section" id="lab">
+        <div class="section-head">
+          <h2>EXPLAIN 场景推演</h2>
+          <p>选择一个执行计划症状，练习把字段含义翻译成优化动作。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Explain Lab</span>
+          <h3>从执行计划反推问题</h3>
+          <div class="lab">
+            <div class="box">
+              <h4>选择症状</h4>
+              <select id="explainType">
+                <option value="like">type=ALL，key=NULL，LIKE '%keyword%'</option>
+                <option value="filesort">Extra=Using filesort，ORDER BY 慢</option>
+                <option value="wrongIndex">key 走了排序索引，rows 很大</option>
+                <option value="deepPage">limit 100000,20，回表严重</option>
+                <option value="covering">Using index，覆盖索引生效</option>
+              </select>
+              <div class="controls"><button id="runExplain">生成分析</button></div>
+            </div>
+            <div class="output" id="explainOutput">等待选择执行计划症状。</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="quiz">
+        <div class="section-head">
+          <h2>SQL 优化自测</h2>
+          <p>确认你不是背了三个案例，而是真的能看懂问题类型。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Quiz</span>
+          <div class="quiz" id="quizList"></div>
+          <div class="controls"><button id="resetQuiz">重做自测</button></div>
+        </article>
+      </section>
+
+      <section class="section" id="interview">
+        <div class="section-head">
+          <h2>面试里怎么把三个案例讲顺</h2>
+          <p>别背术语，按排障链路说：慢在哪、怎么看、为什么、怎么改、怎么验证。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Interview Script</span>
+          <h3>90 秒版本</h3>
+          <p>我做过几类订单查询 SQL 优化。第一类是索引失效，比如模糊查询用了左通配，B+ 树无法定位扫描起点，导致即使字段有索引也会扫很多行；这类要么改成右模糊，要么先用租户、状态、时间等高选择性条件缩小范围，必要时引入搜索能力。第二类是优化器选错索引，WHERE 和 ORDER BY 都有索引时，优化器可能为了避免排序走了排序索引，但过滤性很差，实际扫描更多；我会通过 EXPLAIN 看 key、rows、Extra，必要时改组合索引、加 hint，或者把主键加入排序保证稳定。第三类是深分页回表，OFFSET 很大时如果直接查整行，会对大量被跳过的数据回表；优化方式是先用覆盖索引子查询拿到当前页主键，再关联主表查详情，或者改成游标翻页。我的习惯是先定位具体 SQL，再看执行计划，最后做优化前后耗时和扫描行数对比。</p>
+          <pre>口述框架：
+现象：接口超时 / SQL 未按预期执行 / 深分页变慢
+排查：日志定位 SQL -> EXPLAIN -> key / rows / Extra
+原因：索引失效 / 优化器误判 / 大量回表
+方案：改查询模式 / 组合索引或 hint / 延迟关联
+验证：执行计划变化 + 耗时下降 + 回归业务结果</pre>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script>
+    const flowLabels = ["定位 SQL", "看 EXPLAIN", "判断成本", "改写方案", "验证回归"];
+    const flowDetails = [
+      "当前重点：先定位具体 SQL，别凭感觉优化接口。一个接口慢可能由多个 SQL、远程调用或序列化造成。",
+      "当前重点：EXPLAIN 重点看 type、possible_keys、key、rows、filtered、Extra，先判断有没有走对索引。",
+      "当前重点：慢的本质通常是扫描行数太多、排序成本高、回表太多、临时表或锁等待。",
+      "当前重点：优化动作要对应根因。左模糊改查询模式，排序误判改组合索引，深分页做延迟关联或游标翻页。",
+      "当前重点：优化后要对比执行计划和耗时，并确认业务结果一致，避免为了快改错语义。"
+    ];
+    const flowControls = document.getElementById("flowControls");
+    flowLabels.forEach((label, index) => {
+      const button = document.createElement("button");
+      button.textContent = `${index + 1}. ${label}`;
+      button.className = index === 0 ? "active" : "";
+      button.addEventListener("click", () => setFlow(index));
+      flowControls.appendChild(button);
+    });
+    function setFlow(index) {
+      document.querySelectorAll(".flow-step").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.querySelectorAll("#flowControls button").forEach((node, i) => node.classList.toggle("active", i === index));
+      document.getElementById("flowExplain").textContent = flowDetails[index];
+    }
+
+    const explainCases = {
+      like: [
+        "现象：type=ALL，key=NULL，rows 很大，条件是 LIKE '%keyword%'。",
+        "解释：左侧通配符让 B+ 树无法确定扫描起点，普通索引无法高效定位。",
+        "动作：能改成右模糊就改成 keyword%；不能改就用搜索引擎/倒排索引，或先用租户、状态、时间缩小范围。",
+        "面试话术：不是有索引就一定能用，索引结构决定了它需要从左到右匹配。"
+      ],
+      filesort: [
+        "现象：Extra 出现 Using filesort，排序耗时明显。",
+        "解释：当前索引无法同时满足过滤和排序，数据库需要额外排序。",
+        "动作：设计符合 where + order by 的组合索引；排序字段方向和顺序要匹配；必要时加入 id 保证稳定排序。",
+        "面试话术：filesort 不一定都慢，但在大结果集上通常是风险信号。"
+      ],
+      wrongIndex: [
+        "现象：key 选择了 order by 相关索引，但 rows 很大，过滤条件选择性很好却没用上。",
+        "解释：优化器成本估算误判，以为避免排序更便宜，实际扫描了大量无关行。",
+        "动作：更新统计信息，设计更合适的组合索引，必要时 force index，或改写 SQL 引导优化器。",
+        "面试话术：优化器不是绝对正确，最终要以执行计划和实际耗时验证。"
+      ],
+      deepPage: [
+        "现象：limit 100000,20 越翻越慢，查询字段很多。",
+        "解释：数据库要跳过 offset 行，如果直接查整行，被跳过的数据也可能大量回表。",
+        "动作：覆盖索引子查询先拿 id，再关联主表查详情；更推荐游标翻页。",
+        "面试话术：深分页慢的关键不是 limit 20，而是 offset 之前的 100000 行也要付成本。"
+      ],
+      covering: [
+        "现象：Extra=Using index，查询很快。",
+        "解释：查询字段都在二级索引里，数据库不需要回表。",
+        "动作：对高频列表页可设计覆盖索引，但要控制索引宽度和写入成本。",
+        "面试话术：覆盖索引能减少回表，但不是字段越多越好，索引也会增加写入和存储成本。"
+      ]
+    };
+    document.getElementById("runExplain").addEventListener("click", () => {
+      const lines = explainCases[document.getElementById("explainType").value];
+      document.getElementById("explainOutput").textContent = lines.map((line, index) => `Step ${index + 1}：${line}`).join("\n");
+    });
+
+    const quizzes = [
+      ["LIKE '%abc%' 普通索引为什么难用上？", ["无法确定 B+ 树扫描起点", "因为 abc 太短", "因为 SQL 必须大写"], 0, "左通配破坏从左到右匹配。"],
+      ["EXPLAIN 里 rows 很大通常说明什么？", ["预估扫描行数高", "返回字段很多", "数据库连接数高"], 0, "rows 是优化器估算需要扫描的行数。"],
+      ["深分页优化里“延迟关联”先查什么？", ["当前页主键", "所有字段", "随机 20 行"], 0, "先用覆盖索引拿主键，再回表查少量详情。"],
+      ["优化器选错索引时可以怎么处理？", ["组合索引、更新统计信息、必要时 hint", "删库重建", "只加缓存"], 0, "要让过滤和排序成本更可控。"],
+      ["覆盖索引的核心收益是什么？", ["减少回表", "自动分库", "避免事务"], 0, "查询字段都在索引里时无需回主键索引查整行。"]
+    ];
+    function renderQuiz() {
+      const list = document.getElementById("quizList");
+      list.innerHTML = "";
+      quizzes.forEach(([question, options, answer, hint], index) => {
+        const card = document.createElement("div");
+        card.className = "quiz-card";
+        card.innerHTML = `<h3>${index + 1}. ${question}</h3>${options.map((option, i) => `<button data-i="${i}">${option}</button>`).join("")}<p class="hint">${hint}</p>`;
+        card.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("click", () => {
+            card.querySelectorAll("button").forEach((node) => node.disabled = true);
+            const picked = Number(button.dataset.i);
+            button.classList.add(picked === answer ? "correct" : "wrong");
+            card.querySelectorAll("button")[answer].classList.add("correct");
+            card.querySelector(".hint").classList.add("show");
+          });
+        });
+        list.appendChild(card);
+      });
+    }
+    document.getElementById("resetQuiz").addEventListener("click", renderQuiz);
+    renderQuiz();
+  </script>
+</body>
+</html>
