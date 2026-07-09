@@ -22,14 +22,6 @@ index.html
   - Java / 算法 / DB 核心题
   - 覆盖线程安全单例、最大子数组和、反转链表、二叉树对称/反转/层序、LRU、JVM 内存区域 + GC Roots、索引失效 + Explain、Redis 缓存一致性。
 
-- `pages/senior-java-spring-architecture.html`
-  - Java / Spring 中高级冲刺专题
-  - 覆盖高阶自我介绍、常用设计模式、Spring 源码模式映射、线程安全单例多种手写、策略/工厂/观察者业务落地、Spring Bean 生命周期、后置处理器与自定义扩展、事务传播底层、REQUIRES_NEW 挂起事务、NESTED 保存点、Nacos 注册发现与心跳、用户在线时长与每日在线峰值系统设计、高并发限流熔断降级、多级兜底、高可用/高并发/可扩展性取舍，以及旋转数组找最小值 Java/Rust 手撕。
-
-- `pages/mysql-innodb-sql-optimization.html`
-  - MySQL / InnoDB / SQL 优化面试专题
-  - 覆盖项目数据库设计与 SQL 优化经验、InnoDB 聚簇索引、二级索引、回表流程、MVCC undo log 版本链、ReadView、RR 隔离级别如何解决幻读、间隙锁和临键锁触发场景、数据库死锁定位与规避、联合索引最左匹配原则、隐式转换/or/in/函数/左模糊等索引失效场景、覆盖索引、慢 SQL 排查、Explain 字段含义、千万级数据表优化、是否分库分表与字段取舍，以及最长无重复子串 Java/Rust 手撕。
-
 - `pages/greedy-algorithm.html`
   - 贪心算法专题
   - 覆盖贪心证明套路、区间贪心、射气球、跳跃游戏、买卖股票 II、分发饼干、加油站、划分字母区间、柠檬水找零和常见反例。
@@ -46,9 +38,13 @@ index.html
   - AI 辅助研发项目深挖专题
   - 覆盖需求理解、规格生成、SubAgent 任务拆解、RAG/向量检索、AI Coding、Skill/MCP 工具化、SDD/TDD、迁移模式、当前瓶颈和面试追问防守。
 
+- `pages/mq-kafka-rocketmq-guide.html`
+  - MQ / Kafka / RocketMQ 快速掌握专题
+  - 覆盖 MQ 基础、Kafka 与 RocketMQ 原理对比、订单异步下发实战、可靠消息、事务消息 / Outbox、重复消费、消费幂等、顺序消息、延迟消息、堆积排查和面试追问。
+
 - `pages/sql-optimization-cases.html`
   - SQL 优化案例复盘专题
-  - 基于经验贴口述做匿名化整理，覆盖左模糊索引失效、WHERE/ORDER BY 索引选择误判、Hint 与稳定排序、OFFSET 深分页回表、覆盖索引子查询和延迟关联。
+  - 基于经验贴口述整理，覆盖左模糊索引失效、WHERE/ORDER BY 索引选择误判、Hint 与稳定排序、OFFSET 深分页回表、覆盖索引子查询和延迟关联。
 
 - `pages/java-fullgc-jvm.html`
   - Java Full GC / JVM 面试知识页
