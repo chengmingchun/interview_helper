@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MQ / Kafka / RocketMQ 快速掌握</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.14);
+      --panel: rgba(255, 252, 245, 0.9);
+      --accent: #d8652a;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --accent-2: #9f4d28;
+      --dark: #171511;
+      --code: #e8d9bd;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    html { font-size: clamp(14px, 0.28vw + 13px, 16px); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 101, 42, 0.12), transparent 30%),
+        linear-gradient(120deg, rgba(255,255,255,0.42) 0 1px, transparent 1px 48px),
+        linear-gradient(0deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 48px),
+        var(--paper);
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+
+    .layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100vh; }
+    aside { position: sticky; top: 0; height: 100vh; padding: 22px; border-right: 1px solid var(--line); background: rgba(244, 239, 230, 0.82); overflow: auto; }
+    .brand { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .brand b { display: block; font-size: 18px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+    .back { display: inline-flex; margin-top: 12px; color: var(--accent-2); text-decoration: none; font-weight: 800; font-size: 13px; }
+    nav { display: grid; gap: 8px; }
+    nav a { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: rgba(255, 250, 240, 0.68); text-decoration: none; }
+    nav a:hover { color: var(--accent-2); border-color: rgba(216, 101, 42, 0.45); background: var(--accent-soft); }
+
+    main { width: min(1180px, 100%); padding: 34px 36px 56px; }
+    .hero, .card { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
+    .hero { padding: 30px; margin-bottom: 28px; }
+    .eyebrow { display: inline-flex; margin-bottom: 18px; padding: 5px 10px; border-radius: 999px; color: var(--accent-2); background: var(--accent-soft); font-size: 13px; font-weight: 700; }
+    h1 { max-width: 1020px; margin: 0 0 14px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 5.8vw, 62px); line-height: 1; letter-spacing: 0; }
+    .hero p, .section-head p, .card p { margin: 0; color: var(--muted); }
+    .section { margin: 34px 0; }
+    .section-head { margin-bottom: 14px; }
+    .section-head h2 { margin: 0 0 6px; font-family: Georgia, "Times New Roman", serif; font-size: 34px; line-height: 1; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+    .card { padding: 24px 26px; overflow: hidden; }
+    .card h3 { margin: 0 0 8px; font-size: 25px; line-height: 1.2; }
+    .card h4 { margin: 0 0 8px; font-size: 16px; }
+    .badge { display: inline-flex; margin-bottom: 12px; padding: 3px 10px; border-radius: 999px; color: var(--accent-2); background: var(--accent-soft); font-size: 12px; font-weight: 800; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    .triple { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
+    .box { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 250, 240, 0.7); }
+    .box p, .box li { color: var(--muted); }
+    .box p { margin: 0 0 10px; }
+    .box li { margin: 6px 0; }
+    .full { grid-column: 1 / -1; }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 8px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      max-width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    code { padding: 2px 5px; border-radius: 6px; color: var(--accent-2); background: var(--accent-soft); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .script { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--muted); }
+    .question { color: var(--ink); font-weight: 800; }
+    .answer { color: var(--muted); }
+
+    @media (max-width: 1080px) { .triple { grid-template-columns: 1fr; } }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      main { padding: 20px; }
+      .cols { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
+    }
+    @media (max-width: 560px) {
+      nav { grid-template-columns: 1fr; }
+      main { padding: 14px; }
+      .hero, .card { padding: 20px; }
+      h1 { font-size: clamp(30px, 10vw, 42px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <b>MQ Kafka RocketMQ Drill</b>
+        <span>原理 · 场景 · 实战 · 防追问</span>
+        <a class="back" href="../index.html">← 返回专题入口</a>
+      </div>
+      <nav>
+        <a href="#mq">什么是 MQ</a>
+        <a href="#why">为什么用 MQ</a>
+        <a href="#kafka">什么是 Kafka</a>
+        <a href="#rocketmq">什么是 RocketMQ</a>
+        <a href="#compare">Kafka vs RocketMQ</a>
+        <a href="#order-case">实战：订单异步下发</a>
+        <a href="#reliable">可靠消息</a>
+        <a href="#idempotent">重复消费与幂等</a>
+        <a href="#orderly">顺序消息</a>
+        <a href="#delay">延迟消息</a>
+        <a href="#learn">快速掌握路径</a>
+        <a href="#defense">面试追问防守</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="hero" id="top">
+        <span class="eyebrow">Message Queue / Kafka · RocketMQ · Order System</span>
+        <h1>MQ 不是“加个中间件”，而是把系统从同步调用改造成可缓冲、可解耦、可重试的消息驱动链路。</h1>
+        <p>这页用来快速掌握 MQ、Kafka、RocketMQ：先讲概念和原理，再用订单异步下发、削峰填谷、事务消息、重复消费、顺序消费、延迟消息这些实战场景串起来。</p>
+      </section>
+
+      <section class="section" id="mq">
+        <div class="section-head">
+          <h2>什么是 MQ</h2>
+          <p>MQ = Message Queue，消息队列。它把一次直接调用拆成“生产消息”和“消费消息”。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Core Concept</span>
+          <h3>一句话理解</h3>
+          <p class="script">MQ 是系统之间的缓冲层。生产者不直接调用消费者，而是把事件或任务写到消息队列；消费者再按自己的节奏拉取或接收消息并处理。这样可以解耦系统、削峰填谷、异步化耗时操作，并通过重试机制提升最终成功率。</p>
+          <pre>同步调用：
+订单服务 -> 库存服务 -> 支付服务 -> 通知服务
+调用链长，任何一个服务慢都会拖慢主链路。
+
+消息驱动：
+订单服务 -> MQ -> 库存消费者
+             -> MQ -> 通知消费者
+             -> MQ -> 下发消费者
+主链路快速返回，后续动作异步处理。</pre>
+          <div class="cols">
+            <div class="box"><h4>核心角色</h4><ul><li><b>Producer：</b>生产消息的一方。</li><li><b>Broker：</b>存储和转发消息的服务。</li><li><b>Consumer：</b>消费消息的一方。</li><li><b>Topic：</b>消息主题，表示一类业务事件。</li><li><b>Consumer Group：</b>消费者组，同组内分摊消费。</li></ul></div>
+            <div class="box"><h4>你要避免的误解</h4><ul><li>MQ 不是让系统强一致，而是常用于最终一致。</li><li>MQ 不是无成本，带来重复消费、消息堆积、顺序性、可观测性问题。</li><li>MQ 不是所有场景都需要，简单同步链路不一定要引入。</li></ul></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="why">
+        <div class="section-head">
+          <h2>为什么用 MQ：四个典型场景</h2>
+          <p>面试里别只说“解耦削峰异步”，要能把它们落到业务里。</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <span class="badge">Scenario</span>
+            <h3>1. 异步化：主链路减负</h3>
+            <p>订单创建成功后，短信通知、积分发放、资源下发、日志采集不一定要同步完成。主链路只负责订单落库和消息投递，后续消费者异步处理。</p>
+            <pre>订单创建 -> 保存订单 -> 发送 OrderCreated 消息 -> 返回成功
+消费者：库存、通知、资源下发各自消费</pre>
+          </article>
+
+          <article class="card">
+            <span class="badge">Scenario</span>
+            <h3>2. 解耦：生产者不关心谁消费</h3>
+            <p>订单服务只发布订单事件，不直接依赖通知服务、报表服务、审计服务。后续新增消费者，不需要改订单服务主流程。</p>
+          </article>
+
+          <article class="card">
+            <span class="badge">Scenario</span>
+            <h3>3. 削峰填谷：流量先进入队列</h3>
+            <p>秒杀、批量下发、批量导入时，请求峰值可能超过下游处理能力。MQ 可以把瞬时高峰转成消费者可承受的处理速率。</p>
+            <pre>峰值请求 10000/s -> MQ 缓冲
+消费者按照 1000/s 稳定处理
+代价：实时性降低，系统变成最终完成</pre>
+          </article>
+
+          <article class="card">
+            <span class="badge">Scenario</span>
+            <h3>4. 最终一致：失败可重试、可补偿</h3>
+            <p>同步调用失败时链路直接失败；消息模式下可以重试、进入死信队列、触发补偿任务，使系统最终收敛。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="kafka">
+        <div class="section-head">
+          <h2>什么是 Kafka</h2>
+          <p>Kafka 更像高吞吐、可持久化、可水平扩展的分布式日志系统，常用于日志、埋点、数据管道、流式处理。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Kafka</span>
+          <h3>核心原理</h3>
+          <pre>Topic
+  -> Partition 0: append-only log, offset 0,1,2,3...
+  -> Partition 1: append-only log, offset 0,1,2,3...
+  -> Partition 2: append-only log, offset 0,1,2,3...
+
+Producer 把消息写入某个 Partition。
+Consumer Group 中的消费者分配 Partition 消费。
+每条消息在 Partition 内有递增 offset。
+消费者提交 offset 表示消费进度。</pre>
+          <div class="cols">
+            <div class="box"><h4>Kafka 的关键词</h4><ul><li><b>Partition：</b>并行和扩展的基本单位。</li><li><b>Offset：</b>消息在分区内的位置，也是消费进度。</li><li><b>Consumer Group：</b>同组内负载均衡，不同组可重复消费同一批消息。</li><li><b>Replica：</b>分区副本，用于高可用。</li><li><b>Leader/Follower：</b>分区主从副本，生产和消费通常访问 leader。</li></ul></div>
+            <div class="box"><h4>Kafka 适合什么</h4><ul><li>日志采集、埋点、行为流。</li><li>大吞吐数据管道。</li><li>流式计算输入源。</li><li>多个系统订阅同一类事件。</li><li>对顺序要求局限在单个 key / partition 内的场景。</li></ul></div>
+          </div>
+          <p class="script">面试句子：Kafka 的本质是分布式追加日志。它通过 partition 提升并行度，通过 offset 管理消费进度，通过副本保证高可用。它很适合高吞吐事件流，但业务特性如延迟消息、事务消息、复杂重试通常要靠框架或额外设计补齐。</p>
+        </article>
+      </section>
+
+      <section class="section" id="rocketmq">
+        <div class="section-head">
+          <h2>什么是 RocketMQ</h2>
+          <p>RocketMQ 更偏业务消息中间件，常用于电商订单、交易、异步任务、事务消息、延迟消息、顺序消息。</p>
+        </div>
+        <article class="card">
+          <span class="badge">RocketMQ</span>
+          <h3>核心原理</h3>
+          <pre>Producer -> NameServer 获取路由 -> Broker 写入消息
+Consumer -> NameServer 获取路由 -> Broker 拉取消息
+
+Topic 下有多个 MessageQueue。
+Producer 把消息写入某个队列。
+Consumer Group 中消费者分配队列消费。
+RocketMQ 内置延迟消息、事务消息、重试、死信等业务能力。</pre>
+          <div class="cols">
+            <div class="box"><h4>RocketMQ 的关键词</h4><ul><li><b>NameServer：</b>轻量级路由注册中心。</li><li><b>Broker：</b>存储消息、处理生产消费请求。</li><li><b>Topic：</b>消息主题。</li><li><b>MessageQueue：</b>Topic 下的队列，影响并行度和顺序。</li><li><b>Tag：</b>同一 Topic 下的二级过滤标识。</li><li><b>Consumer Group：</b>消费组。</li></ul></div>
+            <div class="box"><h4>RocketMQ 适合什么</h4><ul><li>订单、交易、支付等业务消息。</li><li>延迟消息：超时关单、延迟检查。</li><li>事务消息：本地事务与消息发送一致。</li><li>顺序消息：同一订单状态按顺序消费。</li><li>需要重试、死信、消费状态管理的业务场景。</li></ul></div>
+          </div>
+          <p class="script">面试句子：RocketMQ 更像面向业务场景的 MQ。它不仅能传递消息，还内置了延迟消息、事务消息、顺序消息、消费重试和死信队列，因此在订单、交易、下发任务这类业务系统里更容易直接落地。</p>
+        </article>
+      </section>
+
+      <section class="section" id="compare">
+        <div class="section-head">
+          <h2>Kafka vs RocketMQ</h2>
+          <p>不要说谁绝对更好，要看场景：日志流和大数据偏 Kafka，业务消息和交易链路偏 RocketMQ。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Compare</span>
+          <h3>面试对比表</h3>
+          <div class="triple">
+            <div class="box"><h4>Kafka</h4><ul><li>定位：分布式日志 / 事件流。</li><li>优势：高吞吐、生态强、适合流处理。</li><li>模型：Topic + Partition + Offset。</li><li>常见场景：日志、埋点、CDC、数据管道。</li></ul></div>
+            <div class="box"><h4>RocketMQ</h4><ul><li>定位：业务消息中间件。</li><li>优势：事务消息、延迟消息、重试死信、顺序消息。</li><li>模型：Topic + MessageQueue + ConsumerGroup。</li><li>常见场景：订单、交易、任务下发、业务解耦。</li></ul></div>
+            <div class="box"><h4>选择原则</h4><ul><li>海量事件流、日志分析：Kafka。</li><li>订单交易、延迟关单：RocketMQ。</li><li>强依赖生态和流计算：Kafka。</li><li>强依赖业务消息能力：RocketMQ。</li></ul></div>
+          </div>
+          <p class="script">推荐回答：Kafka 和 RocketMQ 都能做消息队列，但侧重点不同。Kafka 更像高吞吐日志流平台，适合数据流和流计算；RocketMQ 更像业务消息平台，对订单交易里的事务消息、延迟消息、顺序消费、重试死信支持更直接。选型要看业务诉求，而不是看哪个更流行。</p>
+        </article>
+      </section>
+
+      <section class="section" id="order-case">
+        <div class="section-head">
+          <h2>实战例子：订单异步下发</h2>
+          <p>把 MQ 和你的订单项目连起来讲，面试会更自然。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Practical Case</span>
+          <h3>场景：订单创建后异步调用下游资源系统</h3>
+          <pre>同步方案：
+创建订单 -> 调下游资源系统 -> 等待返回 -> 更新订单状态 -> 返回用户
+问题：下游慢会拖慢主链路；下游失败会让订单创建体验变差。
+
+MQ 方案：
+创建订单 -> 订单落库 PENDING -> 发送 OrderCreated 消息 -> 返回用户
+消费者 -> 拉取消息 -> 调用下游 -> 更新订单 PROCESSING/SUCCESS/FAILED
+补偿任务 -> 扫描长时间处理中订单 -> 查询下游最终状态</pre>
+          <div class="cols">
+            <div class="box"><h4>为什么适合 MQ</h4><ul><li>下游调用耗时且不稳定。</li><li>订单创建和资源下发可以解耦。</li><li>失败可以通过重试和补偿收敛。</li><li>高峰期可以先堆积消息，消费者按能力处理。</li></ul></div>
+            <div class="box"><h4>关键设计点</h4><ul><li>消息体包含 orderId、tenantId、bizType、requestId。</li><li>消费者处理必须幂等。</li><li>订单状态更新带前置状态或版本号。</li><li>失败消息进入重试，超过次数进入死信。</li><li>监控消息堆积和消费失败率。</li></ul></div>
+          </div>
+          <pre>class OrderCreatedEvent {
+    String eventId;     // 消息唯一 ID，用于消费幂等
+    String orderId;     // 订单号
+    String tenantId;    // 租户
+    String bizType;     // 资源类型
+    String requestId;   // 下游幂等请求号
+    long createdAt;
+}</pre>
+          <p class="script">推荐回答：订单下发这类场景我会用 MQ 做异步解耦。订单服务负责本地落库和发送订单创建事件，消费者负责调用下游资源系统并推进订单状态。这样主链路不被下游耗时拖住，同时可以利用 MQ 的重试、死信、堆积监控和补偿任务保证最终一致。</p>
+        </article>
+      </section>
+
+      <section class="section" id="reliable">
+        <div class="section-head">
+          <h2>可靠消息：怎么保证消息不丢</h2>
+          <p>面试官一定会追：你发消息失败怎么办？数据库成功了但消息没发出去怎么办？</p>
+        </div>
+        <article class="card">
+          <span class="badge">Reliability</span>
+          <h3>三段式看可靠性</h3>
+          <div class="cols">
+            <div class="box"><h4>1. 生产者到 Broker</h4><p>发送消息要确认 broker ack。失败要重试，但重试可能导致重复消息，所以消息要有 eventId，消费者要幂等。</p></div>
+            <div class="box"><h4>2. Broker 存储</h4><p>Broker 要持久化消息，并通过副本提高可用性。不同 MQ 的刷盘、副本、确认策略会影响可靠性和延迟。</p></div>
+            <div class="box"><h4>3. Broker 到消费者</h4><p>消费者处理成功后再提交 offset 或 ack。处理失败不要提交，进入重试或死信。</p></div>
+            <div class="box"><h4>最难点：本地事务和消息发送一致</h4><p>订单落库成功但消息发送失败，会导致下游永远不知道订单创建。常见方案是事务消息或本地消息表 / Outbox。</p></div>
+          </div>
+          <pre>Outbox 模式：
+1. 本地事务内：保存订单 + 保存待发送消息表
+2. 事务提交后：异步任务扫描消息表发送 MQ
+3. 发送成功：标记消息已发送
+4. 发送失败：继续重试
+5. 消费端：根据 eventId 做幂等</pre>
+          <p class="script">推荐回答：可靠消息不能只看 MQ 本身，要看生产、存储、消费三段。尤其是订单本地事务和消息发送之间的一致性，我会用事务消息或 Outbox 模式解决；消费端再通过幂等保证重复消息不会产生副作用。</p>
+        </article>
+      </section>
+
+      <section class="section" id="idempotent">
+        <div class="section-head">
+          <h2>重复消费与幂等</h2>
+          <p>MQ 默认要按“至少一次”来设计，重复消费不是异常，而是必须面对的工程事实。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Idempotency</span>
+          <h3>为什么会重复消费</h3>
+          <div class="cols">
+            <div class="box"><h4>重复来源</h4><ul><li>生产者重试发送。</li><li>消费者处理成功但 ack 失败。</li><li>消费者超时导致 Broker 重新投递。</li><li>Rebalance 后新消费者重新消费未提交进度。</li><li>人工补偿重复投递消息。</li></ul></div>
+            <div class="box"><h4>幂等手段</h4><ul><li>业务唯一键：orderId + eventType。</li><li>消费记录表：eventId 唯一索引。</li><li>状态机判断：SUCCESS 不再重复执行。</li><li>下游 requestId 保证下游幂等。</li><li>数据库唯一约束兜底。</li></ul></div>
+          </div>
+          <pre>public void consume(OrderCreatedEvent event) {
+    if (consumeLog.exists(event.eventId())) {
+        return;
+    }
+    try {
+        consumeLog.insert(event.eventId()); // 唯一索引兜底
+        dispatchService.dispatch(event.orderId(), event.requestId());
+        orderService.markProcessing(event.orderId());
+    } catch (DuplicateKeyException duplicate) {
+        return;
+    }
+}</pre>
+          <p class="script">推荐回答：我默认 MQ 会重复投递，所以消费者一定要做幂等。幂等不是只在代码里 if 判断，而是要有业务唯一键、消费记录表或状态机兜底。订单下发场景里，我会用 eventId 防重复消费，用 requestId 防下游重复执行，用订单状态机防重复推进。</p>
+        </article>
+      </section>
+
+      <section class="section" id="orderly">
+        <div class="section-head">
+          <h2>顺序消息：什么时候需要顺序</h2>
+          <p>不是所有消息都要全局有序。大多数业务只需要“同一个业务 key 内有序”。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Ordering</span>
+          <h3>订单状态流转要按 orderId 有序</h3>
+          <pre>同一订单的状态消息：
+OrderCreated -> OrderPaid -> OrderDispatched -> OrderFinished
+必须按顺序处理。
+
+不同订单之间：
+orderA 和 orderB 不需要全局有序，可以并行处理。</pre>
+          <div class="cols">
+            <div class="box"><h4>Kafka 怎么做</h4><p>用相同 key，例如 orderId，把同一订单的消息写入同一个 partition。Kafka 保证单 partition 内有序。</p></div>
+            <div class="box"><h4>RocketMQ 怎么做</h4><p>发送顺序消息时按 orderId 选择同一个 MessageQueue。消费者按队列顺序消费。</p></div>
+            <div class="box"><h4>代价</h4><p>顺序会降低并发度。热点 orderId 或队列积压会影响处理速度，所以只对真正需要顺序的业务 key 保序。</p></div>
+            <div class="box"><h4>面试防坑</h4><p>不要说“MQ 保证全局顺序”。更准确是：在同一个 partition / queue 内有序，跨分区或跨队列不保证全局顺序。</p></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="delay">
+        <div class="section-head">
+          <h2>延迟消息：超时关单与延迟检查</h2>
+          <p>延迟消息是业务系统里非常常见的 MQ 场景。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Delay Message</span>
+          <h3>场景：订单 30 分钟未支付自动关闭</h3>
+          <pre>用户创建订单
+  -> 发送延迟消息：30 分钟后检查订单
+  -> 30 分钟后消费者收到消息
+  -> 查询订单状态
+  -> 如果仍未支付，关闭订单
+  -> 如果已支付，忽略消息</pre>
+          <div class="cols">
+            <div class="box"><h4>为什么要查状态</h4><p>延迟消息到达时，订单可能已经支付或取消，不能直接关单。消费者必须查询当前状态后再决定。</p></div>
+            <div class="box"><h4>RocketMQ</h4><p>RocketMQ 原生支持延迟消息，适合超时关单、延迟检查、重试退避等业务。</p></div>
+            <div class="box"><h4>Kafka</h4><p>Kafka 原生不是以延迟消息为核心能力。可以通过额外延迟队列、定时任务、时间轮或业务层调度实现。</p></div>
+            <div class="box"><h4>注意点</h4><p>延迟消息也会重复投递，消费者仍然要幂等；关单操作也要带状态判断，避免误关已支付订单。</p></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section" id="learn">
+        <div class="section-head">
+          <h2>怎么快速掌握 MQ / Kafka / RocketMQ</h2>
+          <p>不要先背参数，先用场景驱动，把 8 个问题打穿。</p>
+        </div>
+        <article class="card">
+          <span class="badge">Learning Path</span>
+          <h3>三天速成路线</h3>
+          <div class="triple">
+            <div class="box"><h4>Day 1：MQ 通用能力</h4><ul><li>同步 vs 异步。</li><li>解耦、削峰、最终一致。</li><li>生产者、Broker、消费者、Topic、Consumer Group。</li><li>重复消费、消息丢失、消息堆积。</li></ul></div>
+            <div class="box"><h4>Day 2：Kafka / RocketMQ 原理</h4><ul><li>Kafka：Topic、Partition、Offset、Consumer Group、副本。</li><li>RocketMQ：NameServer、Broker、Topic、MessageQueue、Tag。</li><li>两者适用场景对比。</li></ul></div>
+            <div class="box"><h4>Day 3：实战场景</h4><ul><li>订单异步下发。</li><li>Outbox / 事务消息。</li><li>消费幂等。</li><li>顺序消息。</li><li>延迟消息。</li><li>堆积排查。</li></ul></div>
+          </div>
+          <pre>面试前必须能回答：
+1. MQ 解决什么问题？
+2. MQ 带来什么问题？
+3. Kafka 为什么高吞吐？
+4. RocketMQ 为什么适合业务消息？
+5. 如何保证消息不丢？
+6. 如何处理重复消费？
+7. 如何保证同一订单顺序？
+8. 消息堆积怎么排查？</pre>
+        </article>
+      </section>
+
+      <section class="section" id="defense">
+        <div class="section-head">
+          <h2>面试追问防守卡</h2>
+          <p>这些问题很容易从 MQ 一路追到分布式一致性。</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <span class="badge">Defense</span>
+            <h3>基础追问</h3>
+            <div class="cols">
+              <div class="box"><h4>问：MQ 会不会丢消息？</h4><p><span class="answer">可能会，取决于生产确认、Broker 持久化、副本策略和消费 ack。工程上要从生产、存储、消费三段分别保证，并用补偿机制兜底。</span></p></div>
+              <div class="box"><h4>问：MQ 如何保证 exactly once？</h4><p><span class="answer">业务上通常不要依赖绝对 exactly once，而是按至少一次投递 + 消费端幂等设计。最终业务效果做到 exactly once。</span></p></div>
+              <div class="box"><h4>问：消息堆积怎么办？</h4><p><span class="answer">先看生产速率、消费速率、消费者是否报错、下游是否慢、分区/队列数是否足够。处理手段包括扩容消费者、优化消费逻辑、限流生产、临时旁路消费和排查下游瓶颈。</span></p></div>
+              <div class="box"><h4>问：MQ 和 RPC 区别？</h4><p><span class="answer">RPC 是同步请求响应，适合强实时调用；MQ 是异步消息驱动，适合解耦、削峰和最终一致。MQ 引入后要处理延迟、重复、堆积和一致性。</span></p></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <span class="badge">Defense</span>
+            <h3>场景追问</h3>
+            <div class="cols">
+              <div class="box"><h4>问：订单创建成功但消息发送失败怎么办？</h4><p><span class="answer">用事务消息或 Outbox。本地事务里同时写订单和待发送消息，异步任务可靠投递 MQ，消费端幂等。</span></p></div>
+              <div class="box"><h4>问：消费者处理失败怎么办？</h4><p><span class="answer">可重试的异常进入重试；不可重试或超过次数进入死信；同时要记录失败原因和告警，必要时人工补偿。</span></p></div>
+              <div class="box"><h4>问：如何保证订单状态顺序？</h4><p><span class="answer">按 orderId 分区或选择同一队列，只保证同一订单内有序。状态更新还要带前置状态或版本号，防止乱序覆盖。</span></p></div>
+              <div class="box"><h4>问：为什么不是所有系统都上 MQ？</h4><p><span class="answer">MQ 会增加系统复杂度。简单、低流量、强实时、强一致的调用链路，直接 RPC 可能更合适。</span></p></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="script">
+        <div class="section-head">
+          <h2>最终可背的话术</h2>
+          <p>用这段作为面试开场，然后根据面试官方向展开 Kafka、RocketMQ 或订单实战。</p>
+        </div>
+        <article class="card">
+          <span class="badge">90 Seconds</span>
+          <h3>MQ 90 秒版本</h3>
+          <p class="script">MQ 是消息队列，它把系统间的直接同步调用改成生产消息和消费消息。它的核心价值是异步化、解耦、削峰填谷和最终一致，但代价是要处理消息丢失、重复消费、顺序性、消息堆积和可观测性。Kafka 更像高吞吐的分布式日志系统，核心模型是 Topic、Partition、Offset 和 Consumer Group，适合日志、埋点、事件流和大数据管道。RocketMQ 更偏业务消息中间件，内置延迟消息、事务消息、顺序消息、重试和死信能力，更适合订单、交易、资源下发这类业务链路。以订单异步下发为例，订单服务本地落库后发送订单创建消息，消费者异步调用下游资源系统并推进订单状态；为了保证可靠性，需要用事务消息或 Outbox 保证订单和消息一致，用 eventId、requestId 和状态机做消费幂等，用重试、死信、补偿任务处理失败。面试里我会强调：MQ 不是为了追中间件，而是为了把同步长链路改造成可缓冲、可重试、可治理的消息驱动链路。</p>
+        </article>
+        <article class="card">
+          <span class="badge">30 Seconds</span>
+          <h3>MQ 30 秒版本</h3>
+          <p class="script">MQ 用来做异步、解耦、削峰和最终一致。Kafka 更适合高吞吐事件流和日志场景，RocketMQ 更适合订单交易这类业务消息场景。真正落地时重点不是“会发消息”，而是保证消息可靠投递、消费端幂等、顺序性、失败重试、死信和堆积监控。订单异步下发就是典型场景：订单先落库，再发消息，下游消费者异步处理，失败后重试或补偿。</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
