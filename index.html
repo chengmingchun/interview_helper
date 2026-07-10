@@ -3,19 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Interview Review Hub</title>
+  <title>Interview Helper Router</title>
   <style>
     :root {
       --paper: #f4efe6;
       --ink: #201a14;
       --muted: #776b5d;
       --line: rgba(32, 26, 20, 0.14);
-      --panel: rgba(255, 252, 245, 0.88);
+      --panel: rgba(255, 252, 245, 0.9);
+      --panel-solid: #fffaf0;
       --accent: #d8652a;
       --accent-soft: rgba(216, 101, 42, 0.12);
       --accent-2: #9f4d28;
       --dark: #171511;
       --code: #e8d9bd;
+      --green: #3e7b4f;
+      --blue: #386a91;
       --shadow: 0 22px 70px rgba(60, 42, 24, 0.14);
     }
 
@@ -41,25 +44,24 @@
       overflow-x: hidden;
     }
 
-    main, section, article, div {
-      min-width: 0;
-    }
+    main, section, article, div { min-width: 0; }
+    button, input { font: inherit; }
 
     main {
-      width: min(1120px, calc(100% - 32px));
+      width: min(1220px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 44px 0;
+      padding: 34px 0 50px;
     }
 
     .hero {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 320px;
+      grid-template-columns: minmax(0, 1fr) 330px;
       gap: 18px;
       align-items: stretch;
       margin-bottom: 18px;
     }
 
-    .panel {
+    .panel, .card, .toolbar {
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel);
@@ -76,7 +78,7 @@
       color: var(--accent-2);
       background: var(--accent-soft);
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     h1 {
@@ -87,90 +89,171 @@
       letter-spacing: 0;
     }
 
-    .hero p {
-      max-width: 720px;
+    .hero p, .muted {
       margin: 0;
       color: var(--muted);
-      font-size: 18px;
     }
 
-    .terminal {
-      overflow: hidden;
-      color: var(--code);
-      background: var(--dark);
-    }
-
-    .terminal-bar {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(232, 217, 189, 0.16);
-      color: rgba(232, 217, 189, 0.72);
-      font-size: 13px;
-    }
-
-    .dots { display: flex; gap: 6px; }
-    .dots span { width: 10px; height: 10px; border-radius: 50%; background: #fb7185; }
-    .dots span:nth-child(2) { background: #fbbf24; }
-    .dots span:nth-child(3) { background: #34d399; }
-
-    .terminal-body {
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
       padding: 18px;
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      font-size: 13px;
     }
 
-    .prompt { color: #8ec07c; }
-    .cmd { color: #f5d49c; }
+    .stat {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-solid);
+    }
+
+    .stat b { display: block; font-size: 28px; line-height: 1; }
+    .stat span { color: var(--muted); font-size: 13px; }
+
+    .toolbar {
+      position: sticky;
+      top: 12px;
+      z-index: 10;
+      padding: 16px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(16px);
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(255, 250, 240, 0.82);
+      outline: none;
+    }
+
+    input:focus {
+      border-color: rgba(216, 101, 42, 0.58);
+      box-shadow: 0 0 0 3px rgba(216, 101, 42, 0.12);
+    }
+
+    .count {
+      min-width: 92px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: right;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tab, .quick a {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 250, 240, 0.72);
+      color: var(--muted);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .tab {
+      padding: 8px 11px;
+    }
+
+    .tab.active {
+      color: var(--accent-2);
+      border-color: rgba(216, 101, 42, 0.48);
+      background: var(--accent-soft);
+      font-weight: 800;
+    }
+
+    .quick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 18px;
+    }
+
+    .quick a {
+      padding: 7px 10px;
+      font-size: 14px;
+    }
+
+    .quick a:hover {
+      color: var(--accent-2);
+      background: var(--accent-soft);
+    }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 285px), 1fr));
+      gap: 14px;
     }
 
     .card {
       display: grid;
-      min-height: 330px;
-      padding: 22px;
+      min-height: 260px;
+      padding: 20px;
+      box-shadow: none;
     }
 
     .card h2 {
       margin: 0 0 10px;
-      font-size: 25px;
-      line-height: 1.15;
+      font-size: 22px;
+      line-height: 1.16;
     }
 
     .card p {
-      margin: 0 0 16px;
+      margin: 0 0 14px;
       color: var(--muted);
       overflow-wrap: anywhere;
     }
 
-    .tags {
+    .meta {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin: 10px 0 18px;
+      margin: 4px 0 16px;
     }
 
     .tag {
-      padding: 5px 9px;
+      padding: 4px 8px;
       border-radius: 999px;
       color: var(--accent-2);
       background: var(--accent-soft);
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 800;
     }
 
-    a.button {
+    .category {
+      color: var(--blue);
+      background: rgba(56, 106, 145, 0.12);
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: fit-content;
-      min-height: 42px;
-      margin-top: auto;
-      padding: 10px 14px;
+      min-height: 40px;
+      padding: 9px 13px;
       border-radius: 8px;
       color: var(--paper);
       background: var(--dark);
@@ -178,15 +261,36 @@
       font-weight: 800;
     }
 
+    .path {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .empty {
+      display: none;
+      padding: 22px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255, 250, 240, 0.58);
+      text-align: center;
+    }
+
     @media (max-width: 900px) {
-      .hero, .grid { grid-template-columns: 1fr; }
-      main { padding: 24px 0; }
+      .hero { grid-template-columns: 1fr; }
+      .toolbar { position: static; }
+      .search-row { grid-template-columns: 1fr; }
+      .count { text-align: left; }
     }
 
     @media (max-width: 520px) {
-      main { width: min(100% - 20px, 1120px); }
-      .hero-copy, .card { padding: 18px; }
+      main { width: min(100% - 20px, 1220px); padding-top: 20px; }
+      .hero-copy, .card, .toolbar { padding: 16px; }
       h1 { font-size: clamp(30px, 10vw, 42px); }
+      .stats { grid-template-columns: 1fr; }
+      .card-footer { display: grid; }
     }
   </style>
 </head>
@@ -194,61 +298,158 @@
   <main>
     <section class="hero">
       <div class="panel hero-copy">
-        <span class="eyebrow">Interview Review Hub</span>
-        <h1>选择今天要复习的专题</h1>
-        <p>每个专题都是独立 HTML。入口页只负责路由，旧专题不会被新内容覆盖；新增复习内容会继续挂在这里。</p>
+        <span class="eyebrow">Interview Helper</span>
+        <h1>按场景路由复习，不再翻卡片堆。</h1>
+        <p>用分类页签和关键词检索快速定位专题。想刷算法、补后端八股、看项目深挖、练 AI/RAG，都从这里进。</p>
+        <div class="quick" id="quickLinks" aria-label="快速入口"></div>
       </div>
-      <div class="panel terminal" aria-label="复习终端">
-        <div class="terminal-bar">
-          <div class="dots"><span></span><span></span><span></span></div>
-          <span>review-router</span>
-        </div>
-        <div class="terminal-body">
-          <p><span class="prompt">$</span> <span class="cmd">ls pages</span></p>
-          <p>python-core-interview.html</p>
-          <p>java-algorithm-core.html</p>
-          <p>greedy-algorithm.html</p>
-          <p>monotonic-stack-queue.html</p>
-          <p>resume-order-deep-dive.html</p>
-          <p>ai-assisted-dev-deep-dive.html</p>
-          <p>mq-kafka-rocketmq-guide.html</p>
-          <p>sql-optimization-cases.html</p>
-          <p>java-fullgc-jvm.html</p>
-          <p>data-agent-ai-coding.html</p>
-          <p>rag-masterclass.html</p>
-          <p>mq-architecture-rag.html</p>
-          <p>one-interview-gap.html</p>
-        </div>
+      <div class="panel stats" aria-label="专题统计">
+        <div class="stat"><b id="totalCount">0</b><span>专题页</span></div>
+        <div class="stat"><b id="categoryCount">0</b><span>分类</span></div>
+        <div class="stat"><b id="shownCount">0</b><span>当前命中</span></div>
+        <div class="stat"><b>HTML</b><span>本地静态路由</span></div>
       </div>
     </section>
 
-    <section class="grid" aria-label="专题列表">
-      <article class="panel card"><h2>Python 八股速成</h2><p>快速掌握 Python 高频面试点：对象模型、装饰器、生成器、GIL、内存管理、并发、拷贝、异常、性能和 Web/数据常问点。</p><div class="tags"><span class="tag">Python</span><span class="tag">GIL</span><span class="tag">装饰器</span><span class="tag">并发</span></div><a class="button" href="./pages/python-core-interview.html">进入专题学习</a></article>
-
-      <article class="panel card"><h2>Java / 算法 / DB 核心题</h2><p>线程安全单例、手撕算法、二叉树、LRU、JVM、索引失效、Explain 和 Redis 缓存一致性。</p><div class="tags"><span class="tag">Java</span><span class="tag">算法</span><span class="tag">JVM</span><span class="tag">MySQL/Redis</span></div><a class="button" href="./pages/java-algorithm-core.html">进入专题学习</a></article>
-
-      <article class="panel card"><h2>贪心算法专题</h2><p>系统练习贪心算法：证明套路、区间贪心、覆盖范围、股票收益、资源匹配、加油站和常见反例。</p><div class="tags"><span class="tag">Greedy</span><span class="tag">区间</span><span class="tag">证明</span><span class="tag">Java</span></div><a class="button" href="./pages/greedy-algorithm.html">进入贪心专题</a></article>
-
-      <article class="panel card"><h2>单调栈 / 单调队列</h2><p>彻底区分单调栈和单调队列：邻近更大更小、窗口最大最小、每日温度、柱状图最大矩形、滑动窗口最大值和前缀和队列。</p><div class="tags"><span class="tag">单调栈</span><span class="tag">单调队列</span><span class="tag">窗口</span><span class="tag">Java/Rust</span></div><a class="button" href="./pages/monotonic-stack-queue.html">进入单调专题</a></article>
-
-      <article class="panel card"><h2>订单项目深挖</h2><p>围绕订单模块项目经历深挖：高并发提交、幂等、重复入库、缓存一致性、状态机、异步下发、慢 SQL 和面试话术。</p><div class="tags"><span class="tag">订单</span><span class="tag">幂等</span><span class="tag">缓存一致性</span><span class="tag">SQL 优化</span></div><a class="button" href="./pages/resume-order-deep-dive.html">进入订单深挖</a></article>
-
-      <article class="panel card"><h2>AI 辅助研发深挖</h2><p>深挖 AI 增强研发项目：需求理解、规格生成、SubAgent 拆解、RAG 补上下文、AI Coding、Skill/MCP 工具化、迁移模式和当前瓶颈。</p><div class="tags"><span class="tag">AI Coding</span><span class="tag">SDD/TDD</span><span class="tag">RAG</span><span class="tag">MCP</span></div><a class="button" href="./pages/ai-assisted-dev-deep-dive.html">进入 AI 项目深挖</a></article>
-
-      <article class="panel card"><h2>MQ / Kafka / RocketMQ</h2><p>快速掌握消息队列：MQ 基础、Kafka 与 RocketMQ 原理对比、订单异步下发、可靠消息、消费幂等、顺序消息、延迟消息和面试追问。</p><div class="tags"><span class="tag">MQ</span><span class="tag">Kafka</span><span class="tag">RocketMQ</span><span class="tag">实战</span></div><a class="button" href="./pages/mq-kafka-rocketmq-guide.html">进入 MQ 专题</a></article>
-
-      <article class="panel card"><h2>SQL 优化案例复盘</h2><p>把三个经验贴案例重新讲明白：左模糊索引失效、WHERE/ORDER BY 索引选择误判、OFFSET 深分页回表与延迟关联。</p><div class="tags"><span class="tag">SQL</span><span class="tag">索引</span><span class="tag">执行计划</span><span class="tag">深分页</span></div><a class="button" href="./pages/sql-optimization-cases.html">进入 SQL 案例</a></article>
-
-      <article class="panel card"><h2>Java Full GC / JVM</h2><p>把 JVM 内存区域、GC Roots、Full GC 触发原因、日志解读、线上排查命令和 60 秒面试模板串成一条链路。</p><div class="tags"><span class="tag">Full GC</span><span class="tag">JVM</span><span class="tag">线上排障</span></div><a class="button" href="./pages/java-fullgc-jvm.html">进入 JVM 专题</a></article>
-
-      <article class="panel card"><h2>Data Agent / AI Coding</h2><p>Data Agent 架构、Text-to-SQL、语义层、数据评估，以及 AI Coding 面试实战打法。</p><div class="tags"><span class="tag">Data Agent</span><span class="tag">Text-to-SQL</span><span class="tag">AI Coding</span></div><a class="button" href="./pages/data-agent-ai-coding.html">进入专题学习</a></article>
-
-      <article class="panel card"><h2>RAG 完全掌握</h2><p>工具选型、技术点、工程步骤、评估指标、生产问题和前沿增强型 RAG。</p><div class="tags"><span class="tag">LangChain</span><span class="tag">LlamaIndex</span><span class="tag">GraphRAG</span></div><a class="button" href="./pages/rag-masterclass.html">进入 RAG 学习</a></article>
-
-      <article class="panel card"><h2>MQ / 架构 / RAG</h2><p>综合专题：消息队列、系统架构设计和企业知识库 RAG 场景题。</p><div class="tags"><span class="tag">MQ</span><span class="tag">架构设计</span><span class="tag">系统设计</span></div><a class="button" href="./pages/mq-architecture-rag.html">进入复习</a></article>
-
-      <article class="panel card"><h2>一面查漏补缺</h2><p>后端基础八股和经典场景题：Redis、MySQL、B+ 树、复杂度、限流与排障。</p><div class="tags"><span class="tag">Redis</span><span class="tag">MySQL</span><span class="tag">B+ 树</span></div><a class="button" href="./pages/one-interview-gap.html">进入复习</a></article>
+    <section class="toolbar" aria-label="检索和分类">
+      <div class="search-row">
+        <input id="searchInput" autocomplete="off" placeholder="搜索专题、标签或关键词，比如：Spring、二分、MQ、缓存一致性、RAG" />
+        <div class="count" id="resultCount">0 个结果</div>
+      </div>
+      <div class="tabs" id="tabs" aria-label="分类页签"></div>
     </section>
+
+    <section class="grid" id="topicGrid" aria-label="专题列表"></section>
+    <section class="empty" id="emptyState">没有匹配的专题。换个关键词，或者切回“全部”。</section>
   </main>
+
+  <script>
+    const categories = [
+      { id: "all", name: "全部" },
+      { id: "java", name: "Java 后端" },
+      { id: "algorithm", name: "算法手撕" },
+      { id: "middleware", name: "中间件/DB" },
+      { id: "project", name: "项目深挖" },
+      { id: "ai", name: "AI / RAG" },
+      { id: "python", name: "Python" },
+      { id: "review", name: "查漏补缺" }
+    ];
+
+    const topics = [
+      { title: "Spring 核心专题", category: "java", href: "./pages/spring-core.html", tags: ["Spring", "IoC", "AOP", "事务", "Boot"], desc: "按请求链路理解 Spring：IoC 容器、Bean 生命周期、循环依赖、AOP 代理、事务失效、Spring MVC 和 Boot 自动配置。" },
+      { title: "Java 并发 / 线程池 / 锁机制", category: "java", href: "./pages/java-concurrency-threadpool.html", tags: ["Java 并发", "线程池", "锁机制", "JUC", "AQS"], desc: "线程池七参数、拒绝策略、参数估算、JMM、volatile、synchronized、ReentrantLock、AQS、ThreadLocal 和并发排障。" },
+      { title: "Java Full GC / JVM", category: "java", href: "./pages/java-fullgc-jvm.html", tags: ["JVM", "Full GC", "GC Roots", "排障"], desc: "JVM 内存区域、GC Roots、Full GC 触发原因、日志解读、线上排查命令和 60 秒面试模板。" },
+      { title: "Java / 算法 / DB 核心题", category: "algorithm", href: "./pages/java-algorithm-core.html", tags: ["Java", "算法", "LRU", "二叉树", "手撕"], desc: "线程安全单例、最大子数组和、反转链表、二叉树、LRU、索引失效和 Redis 缓存一致性。" },
+      { title: "二分法专题", category: "algorithm", href: "./pages/binary-search.html", tags: ["二分", "边界", "答案二分", "旋转数组", "峰值"], desc: "精确查找、lower_bound、右边界、二分答案、旋转数组、峰值和手撕时最容易错的返回值。" },
+      { title: "链表手撕专题", category: "algorithm", href: "./pages/linked-list.html", tags: ["链表", "指针", "快慢指针", "dummy"], desc: "反转链表、删除倒数节点、合并有序链表、环入口、区间反转、相交链表和中点。" },
+      { title: "动态规划专题", category: "algorithm", href: "./pages/dynamic-programming.html", tags: ["DP", "背包", "LIS", "LCS", "状态转移"], desc: "用五步法学会 DP：状态定义、转移方程、初始化、遍历顺序、空间优化。" },
+      { title: "贪心算法专题", category: "algorithm", href: "./pages/greedy-algorithm.html", tags: ["Greedy", "区间", "证明", "反例"], desc: "贪心证明套路、区间贪心、覆盖范围、股票收益、资源匹配、加油站和常见反例。" },
+      { title: "单调栈 / 单调队列", category: "algorithm", href: "./pages/monotonic-stack-queue.html", tags: ["单调栈", "单调队列", "窗口", "前缀和"], desc: "邻近更大更小、窗口最大最小、每日温度、柱状图最大矩形、滑动窗口最大值和前缀和队列。" },
+      { title: "SQL 优化案例复盘", category: "middleware", href: "./pages/sql-optimization-cases.html", tags: ["SQL", "索引", "Explain", "深分页"], desc: "左模糊索引失效、WHERE/ORDER BY 索引选择误判、OFFSET 深分页回表与延迟关联。" },
+      { title: "Redis 高可用与分片集群", category: "middleware", href: "./pages/redis-cluster-sentinel.html", tags: ["Redis", "Sentinel", "Cluster", "MOVED", "缓存一致性"], desc: "Redis 主从复制、哨兵模式、Cluster 分片、MOVED/ASK、热点 Key、脑裂和缓存一致性。" },
+      { title: "MQ / Kafka / RocketMQ", category: "middleware", href: "./pages/mq-kafka-rocketmq-guide.html", tags: ["MQ", "Kafka", "RocketMQ", "可靠消息", "实战"], desc: "快速掌握消息队列：MQ 基础、Kafka 与 RocketMQ 原理对比、订单异步下发、可靠消息、消费幂等、顺序消息和延迟消息。" },
+      { title: "MQ 落地与可靠性", category: "middleware", href: "./pages/mq-reliability-practice.html", tags: ["MQ", "可靠消息", "幂等", "补偿", "积压"], desc: "按生产端、Broker、消费端、幂等、顺序、积压和补偿闭环拆解 MQ 落地实践。" },
+      { title: "订单项目深挖", category: "project", href: "./pages/resume-order-deep-dive.html", tags: ["订单", "幂等", "状态机", "异步下发", "SQL 优化"], desc: "围绕订单模块项目经历深挖：高并发提交、幂等、重复入库、缓存一致性、状态机、异步下发和慢 SQL。" },
+      { title: "AI 辅助研发深挖", category: "project", href: "./pages/ai-assisted-dev-deep-dive.html", tags: ["AI Coding", "Agent", "SDD/TDD", "MCP"], desc: "AI 增强研发项目：需求理解、规格生成、SubAgent 拆解、RAG 补上下文、AI Coding、Skill/MCP 工具化。" },
+      { title: "Data Agent / AI Coding", category: "ai", href: "./pages/data-agent-ai-coding.html", tags: ["Data Agent", "Text-to-SQL", "AI Coding", "语义层"], desc: "Data Agent 架构、Text-to-SQL、语义层、数据评估，以及 AI Coding 面试实战打法。" },
+      { title: "RAG 完全掌握", category: "ai", href: "./pages/rag-masterclass.html", tags: ["RAG", "LangChain", "LlamaIndex", "GraphRAG"], desc: "工具选型、技术点、工程步骤、评估指标、生产问题和前沿增强型 RAG。" },
+      { title: "MQ / 架构 / RAG", category: "ai", href: "./pages/mq-architecture-rag.html", tags: ["MQ", "架构设计", "系统设计", "RAG"], desc: "综合专题：消息队列、系统架构设计和企业知识库 RAG 场景题。" },
+      { title: "Python 八股速成", category: "python", href: "./pages/python-core-interview.html", tags: ["Python", "GIL", "装饰器", "生成器", "并发"], desc: "Python 高频面试点：对象模型、装饰器、生成器、GIL、内存管理、并发、拷贝、异常、性能和 Web/数据常问点。" },
+      { title: "一面查漏补缺", category: "review", href: "./pages/one-interview-gap.html", tags: ["Redis", "MySQL", "B+ 树", "复杂度", "限流"], desc: "后端基础八股和经典场景题：Redis、MySQL、B+ 树、复杂度、限流与排障。" }
+    ];
+
+    const quick = ["Spring 核心专题", "二分法专题", "MQ 落地与可靠性", "Redis 高可用与分片集群", "RAG 完全掌握", "订单项目深挖"];
+    let activeCategory = "all";
+
+    function categoryName(id) {
+      return categories.find((item) => item.id === id)?.name || id;
+    }
+
+    function matchTopic(topic, keyword) {
+      if (!keyword) return true;
+      const haystack = [topic.title, topic.desc, categoryName(topic.category), ...topic.tags].join(" ").toLowerCase();
+      return haystack.includes(keyword.toLowerCase());
+    }
+
+    function filteredTopics() {
+      const keyword = document.getElementById("searchInput").value.trim();
+      return topics.filter((topic) => (activeCategory === "all" || topic.category === activeCategory) && matchTopic(topic, keyword));
+    }
+
+    function renderTabs() {
+      const tabs = document.getElementById("tabs");
+      tabs.innerHTML = categories.map((category) => {
+        const total = category.id === "all" ? topics.length : topics.filter((topic) => topic.category === category.id).length;
+        return `<button class="tab ${category.id === activeCategory ? "active" : ""}" data-category="${category.id}">${category.name} ${total}</button>`;
+      }).join("");
+      tabs.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          activeCategory = tab.dataset.category;
+          render();
+        });
+      });
+    }
+
+    function renderQuickLinks() {
+      const box = document.getElementById("quickLinks");
+      box.innerHTML = quick.map((title) => {
+        const topic = topics.find((item) => item.title === title);
+        return `<a href="${topic.href}">${title}</a>`;
+      }).join("");
+    }
+
+    function renderTopics() {
+      const grid = document.getElementById("topicGrid");
+      const rows = filteredTopics();
+      grid.innerHTML = rows.map((topic) => `
+        <article class="card">
+          <h2>${topic.title}</h2>
+          <p>${topic.desc}</p>
+          <div class="meta">
+            <span class="tag category">${categoryName(topic.category)}</span>
+            ${topic.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}
+          </div>
+          <div class="card-footer">
+            <a class="button" href="${topic.href}">进入专题</a>
+            <span class="path">${topic.href.replace("./", "")}</span>
+          </div>
+        </article>
+      `).join("");
+      document.getElementById("emptyState").style.display = rows.length ? "none" : "block";
+      document.getElementById("resultCount").textContent = `${rows.length} 个结果`;
+      document.getElementById("shownCount").textContent = rows.length;
+    }
+
+    function renderStats() {
+      document.getElementById("totalCount").textContent = topics.length;
+      document.getElementById("categoryCount").textContent = categories.length - 1;
+    }
+
+    function render() {
+      renderTabs();
+      renderTopics();
+      const params = new URLSearchParams();
+      if (activeCategory !== "all") params.set("cat", activeCategory);
+      const keyword = document.getElementById("searchInput").value.trim();
+      if (keyword) params.set("q", keyword);
+      const next = params.toString() ? `#${params.toString()}` : location.pathname;
+      history.replaceState(null, "", next);
+    }
+
+    function hydrateFromHash() {
+      const hash = location.hash.replace(/^#/, "");
+      const params = new URLSearchParams(hash);
+      const cat = params.get("cat");
+      if (cat && categories.some((item) => item.id === cat)) activeCategory = cat;
+      const q = params.get("q");
+      if (q) document.getElementById("searchInput").value = q;
+    }
+
+    hydrateFromHash();
+    renderStats();
+    renderQuickLinks();
+    render();
+    document.getElementById("searchInput").addEventListener("input", render);
+  </script>
 </body>
 </html>
