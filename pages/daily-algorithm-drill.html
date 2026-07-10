@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>双指针两日训练营｜Interview Helper</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --panel: rgba(255, 252, 245, 0.92);
+      --panel-strong: #fffaf1;
+      --ink: #201a14;
+      --muted: #776b5d;
+      --line: rgba(32, 26, 20, 0.13);
+      --accent: #d8652a;
+      --accent-dark: #8d3f1c;
+      --accent-soft: rgba(216, 101, 42, 0.12);
+      --blue: #416b89;
+      --blue-soft: rgba(65, 107, 137, 0.12);
+      --green: #3e7b4f;
+      --green-soft: rgba(62, 123, 79, 0.12);
+      --dark: #171511;
+      --code: #eadcc2;
+      --shadow: 0 18px 58px rgba(60, 42, 24, 0.11);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 14% 3%, rgba(216, 101, 42, 0.12), transparent 28rem),
+        radial-gradient(circle at 92% 14%, rgba(65, 107, 137, 0.09), transparent 25rem),
+        var(--paper);
+      line-height: 1.66;
+    }
+
+    button, input { font: inherit; }
+    a { color: inherit; }
+    .shell { width: min(1220px, calc(100% - 34px)); margin: 0 auto; padding: 22px 0 60px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 52px;
+      margin-bottom: 24px;
+    }
+
+    .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 850; }
+    .brand-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border-radius: 11px;
+      color: #fffaf5;
+      background: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      box-shadow: 0 8px 20px rgba(30, 29, 26, 0.15);
+    }
+    .top-note { color: var(--muted); font-size: 13px; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
+      gap: 28px;
+      padding: clamp(26px, 5vw, 54px);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .eyebrow { color: var(--accent-dark); font-size: 13px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    h1 {
+      max-width: 820px;
+      margin: 14px 0 18px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(38px, 6vw, 70px);
+      font-weight: 600;
+      line-height: .98;
+      letter-spacing: -.035em;
+    }
+    .hero p { max-width: 760px; margin: 0; color: var(--muted); font-size: clamp(15px, 2vw, 18px); }
+    .hero-side { align-self: end; display: grid; gap: 12px; }
+    .stat { padding: 15px; border: 1px solid var(--line); border-radius: 15px; background: rgba(255, 250, 241, .76); }
+    .stat-top { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 800; }
+    .stat small { display: block; margin-top: 5px; color: var(--muted); }
+    .progress { height: 8px; margin-top: 10px; overflow: hidden; border-radius: 999px; background: rgba(32, 26, 20, .09); }
+    .progress > span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), #e89145); transition: width .25s ease; }
+
+    .toolbar {
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 22px 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 252, 245, .9);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 28px rgba(60, 42, 24, .08);
+    }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+    .filter, .reset, .tab, .done-toggle {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--muted);
+      background: rgba(255, 250, 241, .72);
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .filter, .reset { padding: 8px 11px; }
+    .filter:hover, .reset:hover, .tab:hover, .done-toggle:hover { transform: translateY(-1px); border-color: rgba(216, 101, 42, .38); }
+    .filter.active { color: var(--accent-dark); border-color: rgba(216, 101, 42, .36); background: var(--accent-soft); font-weight: 850; }
+    .reset { color: var(--accent-dark); }
+
+    .day-section { margin: 34px 0 42px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 15px; }
+    .section-head h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(28px, 4vw, 42px); }
+    .section-head p { margin: 4px 0 0; color: var(--muted); }
+    .day-pill { flex: 0 0 auto; padding: 5px 10px; border-radius: 999px; color: var(--blue); background: var(--blue-soft); font-size: 12px; font-weight: 850; }
+
+    .question-grid { display: grid; gap: 17px; }
+    .question-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: 0 10px 34px rgba(60, 42, 24, .06);
+    }
+    .question-card.done { border-color: rgba(62, 123, 79, .35); }
+    .question-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+      padding: 22px 24px 18px;
+    }
+    .meta { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+    .badge { padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 850; }
+    .required { color: var(--accent-dark); background: var(--accent-soft); }
+    .optional { color: var(--blue); background: var(--blue-soft); }
+    .challenge { color: #764d11; background: rgba(194, 132, 32, .14); }
+    .difficulty { color: var(--green); background: var(--green-soft); }
+    .question-head h3 { margin: 0; font-size: clamp(21px, 3vw, 29px); line-height: 1.18; }
+    .question-head h3 a { text-decoration: none; }
+    .question-head h3 a:hover { color: var(--accent-dark); }
+    .description { margin: 10px 0 0; color: var(--muted); }
+    .done-toggle { min-width: 92px; padding: 9px 12px; color: var(--green); font-weight: 850; }
+    .question-card.done .done-toggle { color: #fff; border-color: var(--green); background: var(--green); }
+
+    .tabs { display: flex; gap: 7px; padding: 0 24px 12px; overflow-x: auto; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { flex: 0 0 auto; padding: 7px 10px; font-size: 12px; }
+    .tab.active { color: var(--accent-dark); border-color: rgba(216, 101, 42, .34); background: var(--accent-soft); font-weight: 850; }
+    .panel { display: none; padding: 20px 24px 24px; border-top: 1px solid rgba(32, 26, 20, .08); }
+    .panel.active { display: block; }
+    .panel h4 { margin: 0 0 8px; }
+    .panel p { margin: 0 0 12px; }
+    .panel ul { margin: 8px 0 0; padding-left: 20px; }
+    .panel li { margin: 7px 0; }
+    .info-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .info-box { padding: 13px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 250, 241, .65); }
+    .info-box b { display: block; margin-bottom: 4px; }
+    .info-box span { color: var(--muted); font-size: 13px; }
+    pre {
+      margin: 0;
+      padding: 16px;
+      border-radius: 12px;
+      color: var(--code);
+      background: var(--dark);
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 17px;
+      margin-top: 34px;
+    }
+    .summary-card { padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); box-shadow: var(--shadow); }
+    .summary-card h2, .summary-card h3 { margin-top: 0; }
+    .route { display: grid; gap: 8px; }
+    .route div { padding: 10px 12px; border-left: 3px solid var(--accent); border-radius: 8px; background: rgba(255, 250, 241, .66); }
+    .empty { display: none; padding: 42px; border: 1px dashed var(--line); border-radius: 18px; color: var(--muted); text-align: center; }
+    .footer { margin-top: 34px; color: var(--muted); font-size: 12px; text-align: center; }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .info-grid, .summary { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 20px, 1220px); padding-top: 12px; }
+      .top-note { display: none; }
+      .hero { padding: 23px 19px; border-radius: 21px; }
+      .toolbar { position: static; }
+      .question-head { grid-template-columns: 1fr; padding: 18px 16px 14px; }
+      .done-toggle { width: 100%; }
+      .tabs { padding-left: 16px; padding-right: 16px; }
+      .panel { padding: 17px 16px 20px; }
+      .section-head { align-items: start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html"><span class="brand-mark">IH</span><span>Interview Helper</span></a>
+      <div class="top-note">2026-07-09 → 2026-07-10 · Java / Rust 双解</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Daily Algorithm Drill · Day 2 + Day 3</div>
+          <h1>从快慢指针，到左右夹逼。</h1>
+          <p>昨天先用 slow 构造答案，今天再用 left / right 缩小搜索空间。十道题不是十个孤立答案，而是一条可以复用的双指针能力链。</p>
+        </div>
+        <div class="hero-side">
+          <div class="stat">
+            <div class="stat-top"><span>总进度</span><strong id="progressText">0 / 10</strong></div>
+            <div class="progress"><span id="progressBar"></span></div>
+            <small>勾选结果保存在当前浏览器，可分多次完成。</small>
+          </div>
+          <div class="stat">
+            <div class="stat-top"><span>完成策略</span><strong>3 + 1 + 1</strong></div>
+            <small>每天 3 道必做、1 道选做、1 道挑战；Java 全做，Rust 至少完成两道。</small>
+          </div>
+        </div>
+      </section>
+
+      <div class="toolbar">
+        <div class="filters" id="dayFilters">
+          <button class="filter active" data-day="all">两天全部</button>
+          <button class="filter" data-day="day2">昨天 · 快慢指针</button>
+          <button class="filter" data-day="day3">今天 · 左右指针</button>
+        </div>
+        <div class="filters" id="statusFilters">
+          <button class="filter active" data-status="all">全部状态</button>
+          <button class="filter" data-status="pending">待完成</button>
+          <button class="filter" data-status="done">已完成</button>
+          <button class="reset" id="resetProgress">重置进度</button>
+        </div>
+      </div>
+
+      <div id="content"></div>
+      <div class="empty" id="emptyState">当前筛选条件下没有题目。</div>
+
+      <section class="summary">
+        <article class="summary-card">
+          <h2>两日主线</h2>
+          <div class="route">
+            <div><b>27 → 26 → 283</b>：fast 扫描原数组，slow 构造合法前缀。</div>
+            <div><b>80</b>：把“保留条件”推广为每个元素最多保留 k 次。</div>
+            <div><b>75</b>：从单个写入边界升级为三个分区边界。</div>
+            <div><b>167 → 11 → 125</b>：左右指针通过单调性或排除法缩小搜索区间。</div>
+            <div><b>344 → 15</b>：原地交换，再升级到排序 + 固定一个数 + 两数夹逼。</div>
+          </div>
+        </article>
+        <article class="summary-card">
+          <h3>完成标准</h3>
+          <ul>
+            <li>10 道题中，6 道必做题全部用 Java 手写通过。</li>
+            <li>每天至少选择 2 道，用 Rust 再写一遍。</li>
+            <li>每道题能说清每个指针的语义，而不是只背移动规则。</li>
+            <li>挑战题必须解释正确性：为什么移动这个指针不会错过答案。</li>
+          </ul>
+          <p><b>面试表达：</b>快慢指针维护“已经构造出的合法答案”；左右指针维护“尚未被排除的搜索区间”。</p>
+        </article>
+      </section>
+    </main>
+
+    <div class="footer">把题目做成能力链，而不是答案收藏夹。</div>
+  </div>
+
+  <script>
+    const problems = [
+      {
+        day: "day2", dayName: "Day 2 · 2026-07-09", theme: "快慢指针与原地处理", level: "required", levelName: "必做",
+        id: 27, title: "移除元素", difficulty: "简单", link: "https://leetcode.cn/problems/remove-element/",
+        description: "给定数组 nums 和目标值 val，原地移除所有等于 val 的元素，返回保留下来的元素个数；新长度之后的内容无需关心。",
+        tags: "数组 · 快慢指针 · 原地覆盖",
+        goal: "掌握最基础的“扫描旧数组、构造新前缀”模板。",
+        why: "它是后续有序数组去重、移动零、链表过滤和滑动窗口写入逻辑的地基。",
+        idea: ["fast 负责检查每个旧元素。", "slow 指向下一个合法元素的写入位置。", "nums[fast] != val 时覆盖到 nums[slow]，随后 slow++。"],
+        migration: "把保留条件 nums[fast] != val 换掉，就能迁移到去重、过滤零、按条件压缩数组。",
+        java: `class Solution {
+    public int removeElement(int[] nums, int val) {
+        int slow = 0;
+        for (int fast = 0; fast < nums.length; fast++) {
+            if (nums[fast] != val) nums[slow++] = nums[fast];
+        }
+        return slow;
+    }
+}`,
+        rust: `impl Solution {
+    pub fn remove_element(nums: &mut Vec<i32>, val: i32) -> i32 {
+        let mut slow = 0usize;
+        for fast in 0..nums.len() {
+            if nums[fast] != val {
+                nums[slow] = nums[fast];
+                slow += 1;
+            }
+        }
+        slow as i32
+    }
+}`
+      },
+      {
+        day: "day2", dayName: "Day 2 · 2026-07-09", theme: "快慢指针与原地处理", level: "required", levelName: "必做",
+        id: 26, title: "删除有序数组中的重复项", difficulty: "简单", link: "https://leetcode.cn/problems/remove-duplicates-from-sorted-array/",
+        description: "给定升序数组，原地去重，使每种数字只保留一次，返回去重后的长度。",
+        tags: "有序数组 · 快慢指针 · 去重",
+        goal: "理解 slow 表示已构造答案长度，并用最后一个已保留值判断是否写入。",
+        why: "它把固定值过滤升级成“根据当前答案状态决定是否保留”。",
+        idea: ["有序性让相同数字相邻，因此只需和最后一个已保留元素比较。", "slow 是答案长度，nums[slow - 1] 是答案末尾。", "遇到新数字才写入。"],
+        migration: "从“每个值保留 1 次”继续推广，就是 LeetCode 80 的“最多保留 k 次”。",
+        java: `class Solution {
+    public int removeDuplicates(int[] nums) {
+        if (nums.length == 0) return 0;
+        int slow = 1;
+        for (int fast = 1; fast < nums.length; fast++) {
+            if (nums[fast] != nums[slow - 1]) nums[slow++] = nums[fast];
+        }
+        return slow;
+    }
+}`,
+        rust: `impl Solution {
+    pub fn remove_duplicates(nums: &mut Vec<i32>) -> i32 {
+        if nums.is_empty() { return 0; }
+        let mut slow = 1usize;
+        for fast in 1..nums.len() {
+            if nums[fast] != nums[slow - 1] {
+                nums[slow] = nums[fast];
+                slow += 1;
+            }
+        }
+        slow as i32
+    }
+}`
+      },
+      {
+        day: "day2", dayName: "Day 2 · 2026-07-09", theme: "快慢指针与原地处理", level: "required", levelName: "必做",
+        id: 283, title: "移动零", difficulty: "简单", link: "https://leetcode.cn/problems/move-zeroes/",
+        description: "把数组中的所有 0 移到末尾，同时保持非零元素的相对顺序，并要求原地完成。",
+        tags: "数组 · 快慢指针 · 稳定覆盖",
+        goal: "掌握“先压缩合法元素，再处理尾部空位”的两阶段写法。",
+        why: "它让你意识到原地算法不仅要返回长度，还可能需要恢复剩余区域。",
+        idea: ["第一遍稳定地把所有非零元素写到前面。", "slow 之后的位置都是待填充区域。", "第二遍统一补 0，逻辑比边扫描边交换更直接。"],
+        migration: "所有“把某类元素稳定移到末尾”的题，都可以先保留另一类元素，再回填尾部。",
+        java: `class Solution {
+    public void moveZeroes(int[] nums) {
+        int slow = 0;
+        for (int x : nums) if (x != 0) nums[slow++] = x;
+        while (slow < nums.length) nums[slow++] = 0;
+    }
+}`,
+        rust: `impl Solution {
+    pub fn move_zeroes(nums: &mut Vec<i32>) {
+        let mut slow = 0usize;
+        for fast in 0..nums.len() {
+            if nums[fast] != 0 {
+                nums[slow] = nums[fast];
+                slow += 1;
+            }
+        }
+        for x in &mut nums[slow..] { *x = 0; }
+    }
+}`
+      },
+      {
+        day: "day2", dayName: "Day 2 · 2026-07-09", theme: "快慢指针与原地处理", level: "optional", levelName: "选做",
+        id: 80, title: "删除有序数组中的重复项 II", difficulty: "中等", link: "https://leetcode.cn/problems/remove-duplicates-from-sorted-array-ii/",
+        description: "给定升序数组，原地处理后让每个数字最多出现两次，返回新长度。",
+        tags: "有序数组 · 快慢指针 · 通用 k 模板",
+        goal: "吃透“每种元素最多保留 k 个”的统一判断。",
+        why: "面试官常从 LeetCode 26 追问到最多保留 2 次或 k 次。",
+        idea: ["前 k 个元素必然可以保留。", "当 slow >= k 时，当前值只需和 nums[slow - k] 比较。", "不相等说明答案中当前值还不足 k 个。"],
+        migration: "通用条件：slow < k || nums[fast] != nums[slow - k]。把 k 改掉即可复用。",
+        java: `class Solution {
+    public int removeDuplicates(int[] nums) {
+        int k = 2, slow = 0;
+        for (int x : nums) {
+            if (slow < k || x != nums[slow - k]) nums[slow++] = x;
+        }
+        return slow;
+    }
+}`,
+        rust: `impl Solution {
+    pub fn remove_duplicates(nums: &mut Vec<i32>) -> i32 {
+        let k = 2usize;
+        let mut slow = 0usize;
+        for fast in 0..nums.len() {
+            if slow < k || nums[fast] != nums[slow - k] {
+                nums[slow] = nums[fast];
+                slow += 1;
+            }
+        }
+        slow as i32
+    }
+}`
+      },
+      {
+        day: "day2", dayName: "Day 2 · 2026-07-09", theme: "快慢指针与原地处理", level: "challenge", levelName: "挑战",
+        id: 75, title: "颜色分类", difficulty: "中等", link: "https://leetcode.cn/problems/sort-colors/",
+        description: "数组只包含 0、1、2，要求一次遍历附近原地排序，使 0 在左、1 在中、2 在右。",
+        tags: "三指针 · 荷兰国旗 · 原地分区",
+        goal: "建立区间不变量：左侧全是 0，右侧全是 2，中间是待处理区。",
+        why: "它把一个写入边界升级成多个分区边界，也是快速排序 partition 的前置能力。",
+        idea: ["[0, left) 已经是 0；(right, n) 已经是 2。", "遇到 0，和 left 交换后 left、i 同时前进。", "遇到 2，和 right 交换后 right--，但 i 不能动，因为换回来的值尚未检查。"],
+        migration: "三色分类是多路 partition 的原型；快排、按条件分组、奇偶分区都能从区间不变量推导。",
+        java: `class Solution {
+    public void sortColors(int[] nums) {
+        int left = 0, i = 0, right = nums.length - 1;
+        while (i <= right) {
+            if (nums[i] == 0) swap(nums, i++, left++);
+            else if (nums[i] == 2) swap(nums, i, right--);
+            else i++;
+        }
+    }
+    private void swap(int[] a, int i, int j) {
+        int t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+}`,
+        rust: `impl Solution {
+    pub fn sort_colors(nums: &mut Vec<i32>) {
+        let (mut left, mut i) = (0usize, 0usize);
+        let mut right = nums.len();
+        while i < right {
+            match nums[i] {
+                0 => { nums.swap(i, left); left += 1; i += 1; }
+                2 => { right -= 1; nums.swap(i, right); }
+                _ => i += 1,
+            }
+        }
+    }
+}`
+      },
+      {
+        day: "day3", dayName: "Day 3 · 2026-07-10", theme: "左右指针与搜索区间", level: "required", levelName: "必做",
+        id: 167, title: "两数之和 II - 输入有序数组", difficulty: "中等", link: "https://leetcode.cn/problems/two-sum-ii-input-array-is-sorted/",
+        description: "在升序数组中找到两个数，使它们之和等于 target，返回从 1 开始的下标。题目保证存在唯一答案。",
+        tags: "有序数组 · 左右夹逼 · 单调性",
+        goal: "理解为什么 sum 小了只能移动 left，sum 大了只能移动 right。",
+        why: "这是左右双指针最标准的单调搜索模型。",
+        idea: ["left 与 right 给出当前最小端和最大端。", "sum < target 时，移动 right 只会让和更小，因此只能 left++。", "sum > target 时同理只能 right--。"],
+        migration: "只要排序后目标函数随左右端点单调变化，就能考虑左右夹逼。",
+        java: `class Solution {
+    public int[] twoSum(int[] numbers, int target) {
+        int left = 0, right = numbers.length - 1;
+        while (left < right) {
+            int sum = numbers[left] + numbers[right];
+            if (sum == target) return new int[]{left + 1, right + 1};
+            if (sum < target) left++;
+            else right--;
+        }
+        return new int[0];
+    }
+}`,
+        rust: `impl Solution {
+    pub fn two_sum(numbers: Vec<i32>, target: i32) -> Vec<i32> {
+        let (mut left, mut right) = (0usize, numbers.len() - 1);
+        while left < right {
+            let sum = numbers[left] + numbers[right];
+            if sum == target { return vec![left as i32 + 1, right as i32 + 1]; }
+            if sum < target { left += 1; } else { right -= 1; }
+        }
+        vec![]
+    }
+}`
+      },
+      {
+        day: "day3", dayName: "Day 3 · 2026-07-10", theme: "左右指针与搜索区间", level: "required", levelName: "必做",
+        id: 11, title: "盛最多水的容器", difficulty: "中等", link: "https://leetcode.cn/problems/container-with-most-water/",
+        description: "从若干条竖线中选择两条组成容器，面积为较短高度乘两线距离，求最大面积。",
+        tags: "左右指针 · 贪心 · 排除法",
+        goal: "学会通过上界证明安全地丢弃短板。",
+        why: "它是双指针里最经典的正确性证明题，而不是单纯模板题。",
+        idea: ["面积由宽度和短板共同决定。", "移动长板会让宽度变小，短板不变，面积不可能增大。", "只有移动短板，才有机会出现更高的新短板，因此可以安全丢弃当前短板。"],
+        migration: "当答案由两端中的较弱者限制时，尝试移动弱侧，并用上界证明被排除状态不可能更优。",
+        java: `class Solution {
+    public int maxArea(int[] height) {
+        int left = 0, right = height.length - 1, ans = 0;
+        while (left < right) {
+            ans = Math.max(ans, Math.min(height[left], height[right]) * (right - left));
+            if (height[left] <= height[right]) left++;
+            else right--;
+        }
+        return ans;
+    }
+}`,
+        rust: `impl Solution {
+    pub fn max_area(height: Vec<i32>) -> i32 {
+        let (mut left, mut right, mut ans) = (0usize, height.len() - 1, 0i32);
+        while left < right {
+            ans = ans.max(height[left].min(height[right]) * (right - left) as i32);
+            if height[left] <= height[right] { left += 1; } else { right -= 1; }
+        }
+        ans
+    }
+}`
+      },
+      {
+        day: "day3", dayName: "Day 3 · 2026-07-10", theme: "左右指针与搜索区间", level: "required", levelName: "必做",
+        id: 125, title: "验证回文串", difficulty: "简单", link: "https://leetcode.cn/problems/valid-palindrome/",
+        description: "忽略非字母数字字符和大小写差异，判断字符串从左向右与从右向左是否一致。",
+        tags: "字符串 · 左右指针 · 跳过无效字符",
+        goal: "掌握左右指针在字符串上的跳过、比较和终止条件。",
+        why: "它把纯数字夹逼迁移到字符清洗场景，是面试中常见的边界题。",
+        idea: ["左右两端分别跳过非字母数字字符。", "统一大小写后比较，不同则立即返回 false。", "比较成功后两侧同时向中间移动。"],
+        migration: "回文验证、近似回文、反转元音等题都使用“跳过无效项 + 两端比较/交换”。",
+        java: `class Solution {
+    public boolean isPalindrome(String s) {
+        int left = 0, right = s.length() - 1;
+        while (left < right) {
+            while (left < right && !Character.isLetterOrDigit(s.charAt(left))) left++;
+            while (left < right && !Character.isLetterOrDigit(s.charAt(right))) right--;
+            if (Character.toLowerCase(s.charAt(left)) != Character.toLowerCase(s.charAt(right))) return false;
+            left++; right--;
+        }
+        return true;
+    }
+}`,
+        rust: `impl Solution {
+    pub fn is_palindrome(s: String) -> bool {
+        let chars: Vec<u8> = s.bytes()
+            .filter(|b| b.is_ascii_alphanumeric())
+            .map(|b| b.to_ascii_lowercase())
+            .collect();
+        let (mut left, mut right) = (0usize, chars.len());
+        while left < right {
+            right -= 1;
+            if chars[left] != chars[right] { return false; }
+            left += 1;
+        }
+        true
+    }
+}`
+      },
+      {
+        day: "day3", dayName: "Day 3 · 2026-07-10", theme: "左右指针与搜索区间", level: "optional", levelName: "选做",
+        id: 344, title: "反转字符串", difficulty: "简单", link: "https://leetcode.cn/problems/reverse-string/",
+        description: "给定字符数组，要求使用 O(1) 额外空间原地反转。",
+        tags: "左右指针 · 原地交换",
+        goal: "形成最简洁可靠的两端交换模板。",
+        why: "这个动作会直接迁移到数组旋转、快排分区和区间反转。",
+        idea: ["left 指向未反转区间左端，right 指向右端。", "交换两端后同时向中间收缩。", "left >= right 时所有对称位置均已处理。"],
+        migration: "任何原地区间反转，都只是把初始 left/right 改成指定区间边界。",
+        java: `class Solution {
+    public void reverseString(char[] s) {
+        for (int left = 0, right = s.length - 1; left < right; left++, right--) {
+            char t = s[left]; s[left] = s[right]; s[right] = t;
+        }
+    }
+}`,
+        rust: `impl Solution {
+    pub fn reverse_string(s: &mut Vec<char>) {
+        if s.is_empty() { return; }
+        let (mut left, mut right) = (0usize, s.len() - 1);
+        while left < right {
+            s.swap(left, right);
+            left += 1;
+            right -= 1;
+        }
+    }
+}`
+      },
+      {
+        day: "day3", dayName: "Day 3 · 2026-07-10", theme: "左右指针与搜索区间", level: "challenge", levelName: "挑战",
+        id: 15, title: "三数之和", difficulty: "中等", link: "https://leetcode.cn/problems/3sum/",
+        description: "找出数组中所有和为 0 的不重复三元组，答案中不能出现重复组合。",
+        tags: "排序 · 固定一个数 · 左右夹逼 · 去重",
+        goal: "把两数夹逼迁移到三数问题，并掌握三层去重位置。",
+        why: "它是 K Sum 家族的母题，也是双指针专题真正的综合题。",
+        idea: ["先排序，固定 nums[i]，问题转化成在右侧寻找和为 -nums[i] 的两数。", "固定值、left 值、right 值都要在合适时机跳过重复。", "nums[i] > 0 时可提前结束，因为后续三数不可能再和为 0。"],
+        migration: "四数之和继续多固定一层；通用 K Sum 是递归固定前缀，最后两层使用左右双指针。",
+        java: `class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> ans = new ArrayList<>();
+        for (int i = 0; i < nums.length - 2; i++) {
+            if (nums[i] > 0) break;
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+            int left = i + 1, right = nums.length - 1;
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+                if (sum < 0) left++;
+                else if (sum > 0) right--;
+                else {
+                    ans.add(List.of(nums[i], nums[left], nums[right]));
+                    int l = nums[left], r = nums[right];
+                    while (left < right && nums[left] == l) left++;
+                    while (left < right && nums[right] == r) right--;
+                }
+            }
+        }
+        return ans;
+    }
+}`,
+        rust: `impl Solution {
+    pub fn three_sum(mut nums: Vec<i32>) -> Vec<Vec<i32>> {
+        nums.sort_unstable();
+        let n = nums.len();
+        let mut ans = Vec::new();
+        if n < 3 { return ans; }
+        for i in 0..n - 2 {
+            if nums[i] > 0 { break; }
+            if i > 0 && nums[i] == nums[i - 1] { continue; }
+            let (mut left, mut right) = (i + 1, n - 1);
+            while left < right {
+                let sum = nums[i] + nums[left] + nums[right];
+                if sum < 0 { left += 1; }
+                else if sum > 0 { right -= 1; }
+                else {
+                    ans.push(vec![nums[i], nums[left], nums[right]]);
+                    let (l, r) = (nums[left], nums[right]);
+                    while left < right && nums[left] == l { left += 1; }
+                    while left < right && nums[right] == r { right -= 1; }
+                }
+            }
+        }
+        ans
+    }
+}`
+      }
+    ];
+
+    const storageKey = "interview-helper-daily-algorithm-progress-v1";
+    const completed = new Set(JSON.parse(localStorage.getItem(storageKey) || "[]"));
+    let activeDay = "all";
+    let activeStatus = "all";
+
+    function keyOf(problem) { return `${problem.day}-${problem.id}`; }
+    function escapeHtml(text) {
+      return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    }
+    function save() { localStorage.setItem(storageKey, JSON.stringify([...completed])); }
+    function levelClass(level) { return level === "required" ? "required" : level === "optional" ? "optional" : "challenge"; }
+
+    function renderCard(problem) {
+      const key = keyOf(problem);
+      const isDone = completed.has(key);
+      return `
+        <article class="question-card ${isDone ? "done" : ""}" data-key="${key}">
+          <div class="question-head">
+            <div>
+              <div class="meta">
+                <span class="badge ${levelClass(problem.level)}">${problem.levelName}</span>
+                <span class="badge difficulty">${problem.difficulty}</span>
+                <span class="badge optional">${problem.tags}</span>
+              </div>
+              <h3><a href="${problem.link}" target="_blank" rel="noreferrer">LeetCode ${problem.id}. ${problem.title} ↗</a></h3>
+              <p class="description">${problem.description}</p>
+            </div>
+            <button class="done-toggle" data-action="toggle-done">${isDone ? "✓ 已完成" : "标记完成"}</button>
+          </div>
+          <div class="tabs">
+            <button class="tab active" data-tab="overview">训练说明</button>
+            <button class="tab" data-tab="idea">核心思路</button>
+            <button class="tab" data-tab="java">Java</button>
+            <button class="tab" data-tab="rust">Rust</button>
+            <button class="tab" data-tab="migration">套路迁移</button>
+          </div>
+          <div class="panel active" data-panel="overview">
+            <div class="info-grid">
+              <div class="info-box"><b>训练目标</b><span>${problem.goal}</span></div>
+              <div class="info-box"><b>为什么练</b><span>${problem.why}</span></div>
+              <div class="info-box"><b>语言要求</b><span>Java 独立手写；Rust 重点处理 usize、所有权与原地修改。</span></div>
+            </div>
+          </div>
+          <div class="panel" data-panel="idea"><h4>你必须能口述的推导</h4><ul>${problem.idea.map(x => `<li>${x}</li>`).join("")}</ul></div>
+          <div class="panel" data-panel="java"><pre><code>${escapeHtml(problem.java)}</code></pre></div>
+          <div class="panel" data-panel="rust"><pre><code>${escapeHtml(problem.rust)}</code></pre></div>
+          <div class="panel" data-panel="migration"><h4>不要只记这一题</h4><p>${problem.migration}</p></div>
+        </article>`;
+    }
+
+    function filteredProblems() {
+      return problems.filter(problem => {
+        const dayMatch = activeDay === "all" || problem.day === activeDay;
+        const done = completed.has(keyOf(problem));
+        const statusMatch = activeStatus === "all" || (activeStatus === "done" ? done : !done);
+        return dayMatch && statusMatch;
+      });
+    }
+
+    function render() {
+      const rows = filteredProblems();
+      const groups = ["day2", "day3"].map(day => ({ day, rows: rows.filter(p => p.day === day) })).filter(g => g.rows.length);
+      document.getElementById("content").innerHTML = groups.map(group => {
+        const sample = problems.find(p => p.day === group.day);
+        return `<section class="day-section">
+          <div class="section-head">
+            <div><h2>${sample.dayName}</h2><p>${sample.theme}</p></div>
+            <span class="day-pill">${group.rows.length} 道可见</span>
+          </div>
+          <div class="question-grid">${group.rows.map(renderCard).join("")}</div>
+        </section>`;
+      }).join("");
+      document.getElementById("emptyState").style.display = rows.length ? "none" : "block";
+      const doneCount = completed.size;
+      document.getElementById("progressText").textContent = `${doneCount} / ${problems.length}`;
+      document.getElementById("progressBar").style.width = `${doneCount / problems.length * 100}%`;
+      bindCards();
+    }
+
+    function bindCards() {
+      document.querySelectorAll(".question-card").forEach(card => {
+        card.querySelector('[data-action="toggle-done"]').addEventListener("click", () => {
+          const key = card.dataset.key;
+          completed.has(key) ? completed.delete(key) : completed.add(key);
+          save();
+          render();
+        });
+        card.querySelectorAll(".tab").forEach(tab => {
+          tab.addEventListener("click", () => {
+            card.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+            card.querySelectorAll(".panel").forEach(x => x.classList.remove("active"));
+            tab.classList.add("active");
+            card.querySelector(`[data-panel="${tab.dataset.tab}"]`).classList.add("active");
+          });
+        });
+      });
+    }
+
+    document.getElementById("dayFilters").addEventListener("click", event => {
+      const button = event.target.closest("[data-day]");
+      if (!button) return;
+      activeDay = button.dataset.day;
+      document.querySelectorAll("[data-day]").forEach(x => x.classList.toggle("active", x === button));
+      render();
+    });
+    document.getElementById("statusFilters").addEventListener("click", event => {
+      const button = event.target.closest("[data-status]");
+      if (!button) return;
+      activeStatus = button.dataset.status;
+      document.querySelectorAll("[data-status]").forEach(x => x.classList.toggle("active", x === button));
+      render();
+    });
+    document.getElementById("resetProgress").addEventListener("click", () => {
+      if (!confirm("确认清空这两天的完成记录？")) return;
+      completed.clear();
+      save();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
