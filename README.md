@@ -22,6 +22,10 @@ index.html
   - Java / 算法 / DB 核心题
   - 覆盖线程安全单例、最大子数组和、反转链表、二叉树对称/反转/层序、LRU、JVM 内存区域 + GC Roots、索引失效 + Explain、Redis 缓存一致性。
 
+- `pages/daily-algorithm-drill.html`
+  - 每日算法题单：双指针两日训练营
+  - 集成 Day 2 快慢指针与 Day 3 左右夹逼共 10 道题，包含 LeetCode 链接、简化题目描述、训练目标、核心推导、Java/Rust 双解、套路迁移、筛选与本地进度记录。
+
 - `pages/greedy-algorithm.html`
   - 贪心算法专题
   - 覆盖贪心证明套路、区间贪心、射气球、跳跃游戏、买卖股票 II、分发饼干、加油站、划分字母区间、柠檬水找零和常见反例。
