@@ -23,8 +23,9 @@ index.html
   - 覆盖线程安全单例、最大子数组和、反转链表、二叉树对称/反转/层序、LRU、JVM 内存区域 + GC Roots、索引失效 + Explain、Redis 缓存一致性。
 
 - `pages/daily-algorithm-drill.html`
-  - 每日算法题单：双指针两日训练营
-  - 集成 Day 2 快慢指针与 Day 3 左右夹逼共 10 道题，包含 LeetCode 链接、简化题目描述、训练目标、核心推导、Java/Rust 双解、套路迁移、筛选与本地进度记录。
+  - 算法训练 · 第 1 期
+  - 当前集成 Day 1–Day 3 共 15 条训练记录，包含 LeetCode 链接、简化题目描述、训练目标、核心推导、Java/Rust 双解、套路迁移、筛选与本地进度记录。
+  - 采用五天一期的归档节奏：Day 1–Day 5 收齐后冻结本期，Day 6–Day 10 开启下一期；重复题按训练日期保留，作为间隔复习记录。
 
 - `pages/greedy-algorithm.html`
   - 贪心算法专题
