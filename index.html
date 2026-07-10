@@ -91,7 +91,7 @@
       <div class="controls">
         <div class="search-wrap">
           <svg class="search-icon" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"></circle><path d="m16.2 16.2 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
-          <input id="searchInput" autocomplete="off" placeholder="搜索专题或关键词，例如：Spring、二分、MQ、双指针、RAG" />
+          <input id="searchInput" autocomplete="off" placeholder="搜索专题或关键词，例如：Spring、二分、MQ、架构、RAG" />
           <span class="shortcut">/</span>
         </div>
         <div class="tabs" id="tabs"></div>
@@ -105,7 +105,7 @@
 <script>
   const categories=[
     {id:"all",name:"全部"},{id:"java",name:"Java 后端"},{id:"algorithm",name:"算法手撕"},
-    {id:"middleware",name:"中间件 / DB"},{id:"project",name:"项目深挖"},{id:"ai",name:"AI / RAG"},
+    {id:"middleware",name:"中间件 / DB"},{id:"architecture",name:"架构设计"},{id:"project",name:"项目深挖"},{id:"ai",name:"AI / RAG"},
     {id:"python",name:"Python"},{id:"review",name:"查漏补缺"}
   ];
   const topics=[
@@ -123,6 +123,7 @@
     {title:"Redis 高可用与分片集群",category:"middleware",href:"./pages/redis-cluster-sentinel.html",tags:["Redis","Sentinel","Cluster","MOVED","缓存一致性"],desc:"Redis 主从复制、哨兵模式、Cluster 分片、MOVED/ASK、热点 Key、脑裂和缓存一致性。"},
     {title:"MQ / Kafka / RocketMQ",category:"middleware",href:"./pages/mq-kafka-rocketmq-guide.html",tags:["MQ","Kafka","RocketMQ","可靠消息","实战"],desc:"MQ 基础、Kafka 与 RocketMQ 对比、订单异步下发、可靠消息、消费幂等、顺序消息和延迟消息。"},
     {title:"MQ 落地与可靠性",category:"middleware",href:"./pages/mq-reliability-practice.html",tags:["MQ","可靠消息","幂等","补偿","积压"],desc:"按生产端、Broker、消费端、幂等、顺序、积压和补偿闭环拆解 MQ 落地实践。"},
+    {title:"架构师成长 / 系统设计",category:"architecture",href:"./pages/architect-growth-system-design.html",tags:["架构师","系统设计","容量估算","可靠性","迁移","Tradeoff"],desc:"用边、量、模、链、险、演六步法解决场景题，包含容量估算、架构演进、Word 三道实战题和严厉面试官。"},
     {title:"订单项目深挖",category:"project",href:"./pages/resume-order-deep-dive.html",tags:["订单","幂等","状态机","异步下发","SQL 优化"],desc:"高并发提交、幂等、重复入库、缓存一致性、状态机、异步下发和慢 SQL。"},
     {title:"AI 辅助研发深挖",category:"project",href:"./pages/ai-assisted-dev-deep-dive.html",tags:["AI Coding","Agent","SDD/TDD","MCP"],desc:"需求理解、规格生成、SubAgent 拆解、RAG 补上下文、AI Coding、Skill/MCP 工具化。"},
     {title:"Data Agent / AI Coding",category:"ai",href:"./pages/data-agent-ai-coding.html",tags:["Data Agent","Text-to-SQL","AI Coding","语义层"],desc:"Data Agent 架构、Text-to-SQL、语义层、数据评估，以及 AI Coding 面试实战打法。"},

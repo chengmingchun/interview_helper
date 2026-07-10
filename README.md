@@ -67,6 +67,10 @@ index.html
   - MQ / 架构设计 / RAG
   - 覆盖消息队列可靠性、系统架构设计、企业知识库 RAG 场景。
 
+- `pages/architect-growth-system-design.html`
+  - 架构师成长 / 系统设计
+  - 通过“边、量、模、链、险、演”六步法训练场景题，包含容量估算、架构演进、邮件迁移、在线时长、运价指标、随机追问、自评量表和 DeepSeek 严厉面试官。
+
 - `pages/one-interview-gap.html`
   - 一面查漏补缺
   - 覆盖 Redis、MySQL 主从、B+ 树、复杂度和经典后端场景题。
