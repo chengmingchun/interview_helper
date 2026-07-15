@@ -14,6 +14,18 @@ index.html
 
 ## 当前专题
 
+- `pages/backend-interview-recovery-roadmap.html`
+  - 后端面试补齐路线
+  - 基于近期面试反馈整理能力诊断、P0/P1 优先级、L0-L4 达标标准、六周补齐计划、每日闭环、能力评分和下一轮投递策略。
+
+- `pages/redis-mq-interview-defense.html`
+  - Redis / MQ 面试防线
+  - 覆盖 Redis 与 MQ 高频主干、三轮追问、缓存与消息一致性、订单异步链路映射、故障场景、随机口述和本地进度。
+
+- `pages/java-map-collections-defense.html`
+  - Java Map 与集合基础防线
+  - 覆盖 HashMap / TreeMap / LinkedHashMap / ConcurrentHashMap 对比、put 流程、红黑树与范围查询、并发 Map 追问、随机口述和自测。
+
 - `pages/python-core-interview.html`
   - Python 八股速成
   - 覆盖对象模型、可变/不可变、深浅拷贝、装饰器、迭代器/生成器、GIL、内存管理、并发、性能和 Web 高频点。
@@ -24,7 +36,7 @@ index.html
 
 - `pages/daily-algorithm-drill.html`
   - 算法训练 · 第 1 期
-  - 当前集成 Day 1–Day 3 共 15 条训练记录，包含 LeetCode 链接、简化题目描述、训练目标、核心推导、Java/Rust 双解、套路迁移、筛选与本地进度记录。
+  - 当前集成 Day 1–Day 4 共 20 条训练记录，包含 LeetCode 链接、简化题目描述、训练目标、核心推导、Java/Rust 双解、套路迁移、筛选与本地进度记录。
   - 采用五天一期的归档节奏：Day 1–Day 5 收齐后冻结本期，Day 6–Day 10 开启下一期；重复题按训练日期保留，作为间隔复习记录。
 
 - `pages/greedy-algorithm.html`
@@ -77,7 +89,7 @@ index.html
 
 ## 建议练习方式
 
-1. 先看专题页的结论和代码。
-2. 用右侧追问区遮答案自测。
-3. 再用口述训练台写 60 秒回答。
-4. 最后做自测题，错题回到对应知识卡。
+1. 先从“后端面试补齐路线”完成自评，按 P0/P1 顺序选择专题。
+2. 先看专题页的结论和代码，再关闭答案口述。
+3. 用 60 秒回答和三轮追问检验，不把“看懂”当作“会了”。
+4. 最后做自测和错题记录，第二天先复测昨日失败点。
