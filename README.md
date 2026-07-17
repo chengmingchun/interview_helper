@@ -22,13 +22,28 @@ index.html
   - Redis / MQ 面试防线
   - 覆盖 Redis 与 MQ 高频主干、三轮追问、缓存与消息一致性、订单异步链路映射、故障场景、随机口述和本地进度。
 
+- `pages/redis-interview-master.html`
+  - Redis 超详细八股 · 交互学习版
+  - 覆盖 Redis 数据结构、底层编码、过期删除、内存淘汰、RDB/AOF、主从复制、Sentinel、Cluster、缓存穿透/击穿/雪崩、缓存一致性、分布式锁、大 Key/热 Key 和线上排障。
+  - 支持分类筛选、关键词检索、知识卡折叠、故障诊断实验室、记忆卡、自测题和本地掌握进度。
+
 - `pages/java-map-collections-defense.html`
   - Java Map 与集合基础防线
   - 覆盖 HashMap / TreeMap / LinkedHashMap / ConcurrentHashMap 对比、put 流程、红黑树与范围查询、并发 Map 追问、随机口述和自测。
 
+- `pages/python-interview-master.html`
+  - Python 强化八股 · 交互学习版
+  - 覆盖对象模型、可变性、深浅拷贝、LEGB 与闭包、装饰器、迭代器/生成器、上下文管理器、描述符、引用计数、GIL、asyncio、并发模型、dict、元类和性能优化。
+  - 支持难度筛选、搜索、全部展开、知识卡、翻面记忆卡、自测题和本地掌握进度。
+
 - `pages/python-core-interview.html`
   - Python 八股速成
   - 覆盖对象模型、可变/不可变、深浅拷贝、装饰器、迭代器/生成器、GIL、内存管理、并发、性能和 Web 高频点。
+
+- `pages/go-interview-master.html`
+  - Go 超级八股 · 交互学习版
+  - 覆盖 Go 设计哲学、Slice、Map、String、Interface nil、defer/panic/recover、Error、GMP、goroutine、Channel、select、同步原语、Context、逃逸分析、GC、net/http、泛型、反射、pprof 和测试。
+  - 支持 GMP 调度可视化、并发故障实验室、分类搜索、知识卡、记忆卡、自测题和本地掌握进度。
 
 - `pages/java-algorithm-core.html`
   - Java / 算法 / DB 核心题
