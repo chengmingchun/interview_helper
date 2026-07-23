@@ -14,6 +14,11 @@ index.html
 
 ## 当前专题
 
+- `pages/cloud-platform-distributed-interview-drill.html`
+  - 云平台分布式链路 · 面试复盘训练场
+  - 把云管理平台架构、多云 Provider、MQ、Redis 分布式锁、延迟与顺序消息、SQL 事务和合并区间串成一次完整的云资源创建闭环。
+  - 支持链路故障注入、锁竞态演示、MQ 积压计算、SQL 延迟任务模拟、事务边界选择、合并区间逐步执行、60 秒口述训练和本地掌握进度。
+
 - `pages/backend-interview-recovery-roadmap.html`
   - 后端面试补齐路线
   - 基于近期面试反馈整理能力诊断、P0/P1 优先级、L0-L4 达标标准、六周补齐计划、每日闭环、能力评分和下一轮投递策略。
